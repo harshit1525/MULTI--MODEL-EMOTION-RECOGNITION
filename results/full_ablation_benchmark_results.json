@@ -1,0 +1,79 @@
+{
+  "timestamp": "2026-11-13 00:42:22",
+  "dataset": "MELD Held-Out Dev/Test Splits",
+  "eval_samples": 105,
+  "classes": [
+    "anger",
+    "disgust",
+    "fear",
+    "joy",
+    "neutral",
+    "sadness",
+    "surprise"
+  ],
+  "ablation_results": [
+    {
+      "name": "Audio Only",
+      "acc": 0.2571,
+      "macro_f1": 0.2314,
+      "weighted_f1": 0.2314,
+      "ece": 0.033,
+      "brier": 0.8578,
+      "latency": 2.7
+    },
+    {
+      "name": "Video Only",
+      "acc": 0.4095,
+      "macro_f1": 0.3876,
+      "weighted_f1": 0.3876,
+      "ece": 0.1705,
+      "brier": 0.7384,
+      "latency": 2.49
+    },
+    {
+      "name": "Text Only",
+      "acc": 0.4286,
+      "macro_f1": 0.4156,
+      "weighted_f1": 0.4156,
+      "ece": 0.0951,
+      "brier": 0.7316,
+      "latency": 2.49
+    },
+    {
+      "name": "Audio + Video",
+      "acc": 0.419,
+      "macro_f1": 0.4122,
+      "weighted_f1": 0.4122,
+      "ece": 0.107,
+      "brier": 0.7185,
+      "latency": 2.54
+    },
+    {
+      "name": "Audio + Text",
+      "acc": 0.419,
+      "macro_f1": 0.406,
+      "weighted_f1": 0.406,
+      "ece": 0.1076,
+      "brier": 0.7322,
+      "latency": 2.6
+    },
+    {
+      "name": "Video + Text",
+      "acc": 0.5524,
+      "macro_f1": 0.5475,
+      "weighted_f1": 0.5475,
+      "ece": 0.0935,
+      "brier": 0.6133,
+      "latency": 2.56
+    },
+    {
+      "name": "Trimodal (Audio + Video + Text)",
+      "acc": 0.5524,
+      "macro_f1": 0.5473,
+      "weighted_f1": 0.5473,
+      "ece": 0.046,
+      "brier": 0.613,
+      "latency": 2.68
+    }
+  ]
+}

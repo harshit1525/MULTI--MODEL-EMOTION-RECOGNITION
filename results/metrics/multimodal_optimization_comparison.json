@@ -1,0 +1,152 @@
+{
+  "benchmark_timestamp": "2026-11-13 01:01:49",
+  "test_samples": 105,
+  "classes": [
+    "anger",
+    "disgust",
+    "fear",
+    "joy",
+    "neutral",
+    "sadness",
+    "surprise"
+  ],
+  "baseline_system": {
+    "prediction_confidence": 0.5083,
+    "accuracy": 0.2952,
+    "macro_f1": 0.2833,
+    "ece": 0.213,
+    "brier_score": 0.8811,
+    "nll": 1.9835,
+    "latency_ms": 1687.95
+  },
+  "optimized_system": {
+    "prediction_confidence": 0.4007,
+    "accuracy": 0.3619,
+    "macro_f1": 0.3574,
+    "ece": 0.0734,
+    "brier_score": 0.7785,
+    "nll": 1.7244,
+    "latency_ms": 0.08
+  },
+  "relative_improvements": {
+    "accuracy_gain_absolute": 0.0667,
+    "macro_f1_gain_absolute": 0.0741,
+    "ece_reduction_absolute": 0.1396,
+    "brier_reduction_absolute": 0.1026,
+    "nll_reduction_absolute": 0.2591
+  },
+  "ablation_study": [
+    {
+      "configuration": "Audio Only",
+      "mask": [
+        true,
+        false,
+        false
+      ],
+      "accuracy": 0.2095,
+      "macro_f1": 0.2022,
+      "weighted_f1": 0.2022,
+      "mean_confidence": 0.3576,
+      "ece": 0.1725,
+      "brier_score": 0.8655,
+      "nll": 1.9861,
+      "latency_ms": 0.17
+    },
+    {
+      "configuration": "Video Only",
+      "mask": [
+        false,
+        false,
+        true
+      ],
+      "accuracy": 0.0667,
+      "macro_f1": 0.0681,
+      "weighted_f1": 0.0681,
+      "mean_confidence": 0.4792,
+      "ece": 0.4125,
+      "brier_score": 1.0758,
+      "nll": 2.5764,
+      "latency_ms": 0.03
+    },
+    {
+      "configuration": "Text Only",
+      "mask": [
+        false,
+        true,
+        false
+      ],
+      "accuracy": 0.3714,
+      "macro_f1": 0.365,
+      "weighted_f1": 0.365,
+      "mean_confidence": 0.558,
+      "ece": 0.1903,
+      "brier_score": 0.82,
+      "nll": 1.9435,
+      "latency_ms": 0.02
+    },
+    {
+      "configuration": "Audio + Video",
+      "mask": [
+        true,
+        false,
+        true
+      ],
+      "accuracy": 0.1714,
+      "macro_f1": 0.1618,
+      "weighted_f1": 0.1618,
+      "mean_confidence": 0.332,
+      "ece": 0.1606,
+      "brier_score": 0.8745,
+      "nll": 1.9841,
+      "latency_ms": 0.02
+    },
+    {
+      "configuration": "Audio + Text",
+      "mask": [
+        true,
+        true,
+        false
+      ],
+      "accuracy": 0.3714,
+      "macro_f1": 0.367,
+      "weighted_f1": 0.367,
+      "mean_confidence": 0.4492,
+      "ece": 0.1146,
+      "brier_score": 0.7706,
+      "nll": 1.7354,
+      "latency_ms": 0.07
+    },
+    {
+      "configuration": "Video + Text",
+      "mask": [
+        false,
+        true,
+        true
+      ],
+      "accuracy": 0.3524,
+      "macro_f1": 0.3394,
+      "weighted_f1": 0.3394,
+      "mean_confidence": 0.462,
+      "ece": 0.1128,
+      "brier_score": 0.814,
+      "nll": 1.8302,
+      "latency_ms": 0.02
+    },
+    {
+      "configuration": "Audio + Video + Text (Trimodal)",
+      "mask": [
+        true,
+        true,
+        true
+      ],
+      "accuracy": 0.3619,
+      "macro_f1": 0.3574,
+      "weighted_f1": 0.3574,
+      "mean_confidence": 0.4007,
+      "ece": 0.0734,
+      "brier_score": 0.7785,
+      "nll": 1.7244,
+      "latency_ms": 0.08
+    }
+  ]
+}

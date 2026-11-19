@@ -1,0 +1,10 @@
+dia0_utt0.mp4	[WinError 2] The system cannot find the file specified
+dia0_utt1.mp4	[WinError 2] The system cannot find the file specified
+dia0_utt2.mp4	[WinError 2] The system cannot find the file specified
+dia1_utt0.mp4	[WinError 2] The system cannot find the file specified
+dia1_utt1.mp4	[WinError 2] The system cannot find the file specified
+dia1_utt2.mp4	[WinError 2] The system cannot find the file specified
+dia1_utt3.mp4	[WinError 2] The system cannot find the file specified
+dia1_utt4.mp4	[WinError 2] The system cannot find the file specified
+dia1_utt5.mp4	[WinError 2] The system cannot find the file specified
+dia1_utt6.mp4	[WinError 2] The system cannot find the file specified

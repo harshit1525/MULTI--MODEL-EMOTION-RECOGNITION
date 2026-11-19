@@ -1,0 +1,20 @@
+# Python virtual environments & bytecode
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Datasets and heavy binary files
+audio_data/
+audio_embeddings/
+MELD.Raw/
+data/*.pt
+*.wav
+*.mp4
+archive/
+
+# OS metadata
+.DS_Store
+._*
+Thumbs.db

@@ -1,0 +1,32 @@
+# Audio Pipeline Configuration
+sample_rate: 16000
+channels: 1
+output_dir: "audio_data"
+
+embeddings:
+  model_name: "facebook/wav2vec2-base"
+  embedding_dim: 768
+  output_dir: "audio_embeddings"
+  max_duration_seconds: 30
+
+model:
+  checkpoint: "models/audio_classifier/best_audio_model_balanced.pth"
+  legacy_checkpoint: "models/audio_classifier/best_audio_model.pth"
+  architecture: "StrongerAudioClassifier"
+  input_dim: 768
+  num_classes: 7
+  dropout: 0.3
+
+training:
+  batch_size: 32
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  epochs: 50
+  early_stopping_patience: 10
+  strategies:
+    - "standard"
+    - "focal"
+    - "weighted"
+    - "sampler"
+    - "stronger"
+

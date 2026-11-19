@@ -1,0 +1,107 @@
+{
+    "train": {
+        "num_samples": 9988,
+        "embedding_dimension": 768,
+        "matrix_shape": [
+            9988,
+            768
+        ],
+        "total_values": 7670784,
+        "dtype": "torch.float32",
+        "file_size_bytes": 33948333,
+        "file_size_mb": 32.37565326690674,
+        "raw_memory_bytes": 30683136,
+        "nan_count": 0,
+        "infinity_count": 0,
+        "min": -3.08202862739563,
+        "max": 2.9307546615600586,
+        "mean": -0.000736110145226121,
+        "std": 0.23493584990501404,
+        "dim_768_count": 9988,
+        "non_768_count": 0,
+        "float32_count": 9988,
+        "non_float32_count": 0,
+        "emotion_counts": {
+            "anger": 1109,
+            "disgust": 271,
+            "fear": 268,
+            "joy": 1743,
+            "neutral": 4709,
+            "sadness": 683,
+            "surprise": 1205
+        }
+    },
+    "dev": {
+        "num_samples": 1108,
+        "embedding_dimension": 768,
+        "matrix_shape": [
+            1108,
+            768
+        ],
+        "total_values": 850944,
+        "dtype": "torch.float32",
+        "file_size_bytes": 3759481,
+        "file_size_mb": 3.585320472717285,
+        "raw_memory_bytes": 3403776,
+        "nan_count": 0,
+        "infinity_count": 0,
+        "min": -2.7318115234375,
+        "max": 2.736917495727539,
+        "mean": -0.0006576926680281758,
+        "std": 0.23516227304935455,
+        "dim_768_count": 1108,
+        "non_768_count": 0,
+        "float32_count": 1108,
+        "non_float32_count": 0,
+        "emotion_counts": {
+            "anger": 153,
+            "disgust": 22,
+            "fear": 40,
+            "joy": 163,
+            "neutral": 469,
+            "sadness": 111,
+            "surprise": 150
+        }
+    },
+    "test": {
+        "num_samples": 2610,
+        "embedding_dimension": 768,
+        "matrix_shape": [
+            2610,
+            768
+        ],
+        "total_values": 2004480,
+        "dtype": "torch.float32",
+        "file_size_bytes": 8865253,
+        "file_size_mb": 8.454564094543457,
+        "raw_memory_bytes": 8017920,
+        "nan_count": 0,
+        "infinity_count": 0,
+        "min": -2.9147722721099854,
+        "max": 3.022498607635498,
+        "mean": -0.0006770725012756884,
+        "std": 0.2346436083316803,
+        "dim_768_count": 2610,
+        "non_768_count": 0,
+        "float32_count": 2610,
+        "non_float32_count": 0,
+        "emotion_counts": {
+            "anger": 345,
+            "disgust": 68,
+            "fear": 50,
+            "joy": 402,
+            "neutral": 1256,
+            "sadness": 208,
+            "surprise": 281
+        }
+    },
+    "combined": {
+        "num_samples": 13706,
+        "embedding_dimension": 768,
+        "conceptual_matrix_shape": [
+            13706,
+            768
+        ],
+        "total_values": 10526208
+    }
+}

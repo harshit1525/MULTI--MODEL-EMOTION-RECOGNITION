@@ -1,0 +1,23 @@
+# Video Pipeline Configuration
+num_frames_sampled: 8
+input_resolution: [224, 224]
+backbone: "resnet50"
+embedding_dim: 2048
+
+detector:
+  model: "models/face_detection_yunet_2023mar.onnx"
+  score_threshold: 0.55
+  nms_threshold: 0.3
+
+model:
+  checkpoint: "models/video_classifier/best_video_model.pth"
+  input_dim: 2048
+  hidden_dim: 256
+  num_classes: 7
+  dropout: 0.3
+
+training:
+  batch_size: 16
+  learning_rate: 0.001
+  epochs: 30
+

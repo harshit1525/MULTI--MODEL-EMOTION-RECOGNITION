@@ -1,0 +1,87 @@
+{
+  "temperature": 1.1939494024674873,
+  "uncalibrated": {
+    "ece": 0.09576552038762107,
+    "brier": 0.7396256923675537,
+    "nll": 1.5801340341567993,
+    "bin_data": [
+      {
+        "bin": 2,
+        "range": [
+          0.2,
+          0.3
+        ],
+        "size": 26,
+        "accuracy": 0.4231,
+        "confidence": 0.2664
+      },
+      {
+        "bin": 3,
+        "range": [
+          0.3,
+          0.4
+        ],
+        "size": 23,
+        "accuracy": 0.3913,
+        "confidence": 0.333
+      },
+      {
+        "bin": 4,
+        "range": [
+          0.4,
+          0.5
+        ],
+        "size": 15,
+        "accuracy": 0.4667,
+        "confidence": 0.427
+      },
+      {
+        "bin": 5,
+        "range": [
+          0.5,
+          0.6
+        ],
+        "size": 3,
+        "accuracy": 0.6667,
+        "confidence": 0.5312
+      }
+    ]
+  },
+  "calibrated": {
+    "ece": 0.13032853114071175,
+    "brier": 0.7490521669387817,
+    "nll": 1.6070969104766846,
+    "bin_data": [
+      {
+        "bin": 2,
+        "range": [
+          0.2,
+          0.3
+        ],
+        "size": 38,
+        "accuracy": 0.4211,
+        "confidence": 0.2591
+      },
+      {
+        "bin": 3,
+        "range": [
+          0.3,
+          0.4
+        ],
+        "size": 23,
+        "accuracy": 0.4348,
+        "confidence": 0.3397
+      },
+      {
+        "bin": 4,
+        "range": [
+          0.4,
+          0.5
+        ],
+        "size": 6,
+        "accuracy": 0.5,
+        "confidence": 0.4346
+      }
+    ]
+  }
+}

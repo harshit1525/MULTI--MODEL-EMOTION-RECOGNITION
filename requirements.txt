@@ -1,0 +1,17 @@
+torch
+torchaudio
+torchvision
+transformers
+pandas
+numpy
+scikit-learn
+librosa
+soundfile
+tqdm
+matplotlib
+seaborn
+PyYAML
+opencv-python
+fastapi
+uvicorn
+python-multipart

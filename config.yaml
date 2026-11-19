@@ -1,0 +1,106 @@
+# Unified Multimodal AI Configuration (MELD Benchmark Dataset)
+project_name: "True Multimodal Emotion Recognition in Conversations"
+project_root: "."
+dataset_root: "MELD.Raw"
+
+emotions:
+  - "anger"
+  - "disgust"
+  - "fear"
+  - "joy"
+  - "neutral"
+  - "sadness"
+  - "surprise"
+
+dataset:
+  train:
+    csv: "train/train_sent_emo.csv"
+    splits: "train/train_splits"
+  dev:
+    csv: "dev_sent_emo.csv"
+    splits: "dev/dev_splits_complete"
+  test:
+    csv: "test_sent_emo.csv"
+    splits: "test/output_repeated_splits_test"
+
+# Modality 1: Audio Pipeline
+audio:
+  sample_rate: 16000
+  channels: 1
+  output_dir: "audio_data"
+  embeddings:
+    model_name: "facebook/wav2vec2-base"
+    embedding_dim: 768
+    output_dir: "audio_embeddings"
+    max_duration_seconds: 30
+  model:
+    checkpoint: "models/audio_classifier/best_audio_model.pth"
+    architecture: "mlp"
+
+# Modality 2: Text Pipeline
+text:
+  vectorizer:
+    ngram_range: [1, 3]
+    max_features: 12000
+    sublinear_tf: true
+  model:
+    checkpoint: "models/text_classifier/best_text_model.joblib"
+    type: "calibrated_logistic_regression"
+
+# Modality 3: Video Pipeline
+video:
+  num_frames_sampled: 8
+  input_resolution: [224, 224]
+  backbone: "resnet50"
+  embedding_dim: 2048
+  model:
+    checkpoint: "models/video_classifier/best_video_model.pth"
+
+# Speech-to-Text Transcription & Synchronization Pipeline
+transcription:
+  service: "speech_recognition_and_canonical_meld_catalog"
+  asr_engine: "google_speech_and_wav2vec2"
+  canonical_metadata_splits:
+    - "MELD.Raw/dev_sent_emo.csv"
+    - "MELD.Raw/test_sent_emo.csv"
+    - "MELD.Raw/train/train_sent_emo.csv"
+
+# Multimodal Attention-Gated Fusion Configuration
+fusion:
+  strategy: "learned_cross_modal_attention_with_reliability_gating"
+  checkpoint: "models/fusion_classifier/best_fusion_model.pth"
+  architecture: "LearnedAttentionFusionNet"
+  embed_dim: 64
+  num_heads: 2
+  num_classes: 7
+  fallback_strategy: "entropy_calibrated_bayesian_reliability"
+  base_weights:
+    video: 0.40
+    text: 0.35
+    audio: 0.25
+
+# Server configuration
+server:
+  host: "127.0.0.1"
+  port: 8000
+  reload: true
+
+results:
+  metrics_dir: "results/metrics"
+  plots_dir: "results/plots"
+  logs_dir: "results/logs"
+  video_metrics_dir: "results/video_metrics"
+
+embeddings:
+  model_name: "facebook/wav2vec2-base"
+  embedding_dim: 768
+  output_dir: "audio_embeddings"
+  max_duration_seconds: 30
+
+training:
+  model_dir: "models/fusion_classifier"
+  device: "cpu"
+  seed: 42
+  batch_size: 16
+  learning_rate: 0.001
+  epochs: 40

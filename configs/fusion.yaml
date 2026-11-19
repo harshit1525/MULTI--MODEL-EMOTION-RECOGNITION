@@ -1,0 +1,24 @@
+# Multimodal Fusion Configuration
+strategy: "learned_cross_modal_attention_with_reliability_gating"
+checkpoint: "models/fusion_classifier/best_fusion_model.pth"
+architecture: "LearnedAttentionFusionNet"
+embed_dim: 64
+num_heads: 4
+num_classes: 7
+dropout: 0.2
+
+calibration:
+  method: "centered_bayesian_logit_consensus"
+  temperature: 0.90
+  ece_target: 0.05
+
+base_weights:
+  video: 0.40
+  text: 0.35
+  audio: 0.25
+
+training:
+  batch_size: 16
+  learning_rate: 0.001
+  epochs: 40
+
