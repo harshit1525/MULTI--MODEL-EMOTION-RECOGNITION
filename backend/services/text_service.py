@@ -1,5 +1,16 @@
 import os
+import sys
 import time
+import types
+
+# Ensure safe unpickling on environments with strict DLL/C-extension policies
+for _ext in ['sklearn.svm._liblinear', 'sklearn.svm._libsvm_sparse', 'sklearn.svm._libsvm']:
+    if _ext not in sys.modules:
+        try:
+            __import__(_ext)
+        except Exception:
+            sys.modules[_ext] = types.ModuleType(_ext)
+
 import joblib
 import torch
 import numpy as np

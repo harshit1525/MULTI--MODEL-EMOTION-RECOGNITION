@@ -1,15 +1,82 @@
 import os
 import sys
 import time
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import torchvision
-from fastapi.testclient import TestClient
-from backend.main import app
+import argparse
 
-def run_all_tests():
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+def run_unit_tests():
     print("=" * 80)
-    print("       TRUE MULTIMODAL EMOTION RECOGNITION: COMPREHENSIVE INTEGRATION SUITE       ")
+    print("                PHASE 1: MULTIMODAL SUBSYSTEM UNIT TESTS                ")
     print("=" * 80)
+    
+    passed = 0
+    total = 0
+    
+    def execute_suite(name, func):
+        nonlocal passed, total
+        total += 1
+        t0 = time.time()
+        print(f"\n[UNIT {total:02d}] {name}...", end=" ", flush=True)
+        try:
+            func()
+            elapsed = (time.time() - t0) * 1000
+            print(f"PASSED ({elapsed:.1f}ms)")
+            passed += 1
+        except Exception as e:
+            print(f"FAILED!\n   --> Error: {str(e)}")
+
+    # 1. Audio unit tests
+    def test_audio():
+        from tests import test_audio as ta
+        ta.test_audio_model_architectures()
+        ta.test_audio_service_inference()
+    execute_suite("Audio Architecture & Feature Inference (Wav2Vec 2.0)", test_audio)
+
+    # 2. Text unit tests
+    def test_text():
+        from tests import test_text as tt
+        tt.test_text_preprocessing()
+        tt.test_text_inference_valid()
+        tt.test_text_inference_empty_error()
+    execute_suite("Text Preprocessing & Contextual MiniLM Classification", test_text)
+
+    # 3. Video unit tests
+    def test_video():
+        from tests import test_video as tv
+        tv.test_video_model_architecture()
+        tv.test_video_service_inference()
+    execute_suite("Video Architecture & Spatial-Temporal ResNet-50 Features", test_video)
+
+    # 4. Fusion unit tests
+    def test_fusion():
+        from tests import test_fusion as tf
+        tf.test_fusion_model_architecture()
+        tf.test_multimodal_service_fusion()
+        tf.test_fusion_conflicting_modalities()
+    execute_suite("Cross-Modal Attention Fusion & Conflict Arbitration", test_fusion)
+
+    # 5. Webcam unit tests
+    def test_webcam():
+        from tests import test_webcam as tw
+        tw.test_webcam_blank_frame_no_face()
+        tw.test_webcam_face_frame_detection()
+        tw.test_webcam_session_reset()
+    execute_suite("Real-Time Webcam Face Tracking (YuNet) & Landmark Engine", test_webcam)
+
+    print("\n" + "-" * 80)
+    print(f"Unit Tests Summary: {passed}/{total} suites passed ({passed/total*100:.1f}%)")
+    print("-" * 80)
+    return passed == total
+
+
+def run_integration_tests():
+    print("\n" + "=" * 80)
+    print("             PHASE 2: FASTAPI TRUE MULTIMODAL INTEGRATION SUITE         ")
+    print("=" * 80)
+
+    from fastapi.testclient import TestClient
+    from backend.main import app
     
     client = TestClient(app)
     sample_wav = "frontend/samples/dia0_utt0.wav"
@@ -26,7 +93,7 @@ def run_all_tests():
         nonlocal passed, total
         total += 1
         t0 = time.time()
-        print(f"\n[TEST {total:02d}] {name}...", end=" ", flush=True)
+        print(f"\n[INTEGRATION {total:02d}] {name}...", end=" ", flush=True)
         try:
             func()
             elapsed = (time.time() - t0) * 1000
@@ -45,7 +112,7 @@ def run_all_tests():
         assert data["models_loaded"]["text"] is True
         assert data["models_loaded"]["video"] is True
         assert data["models_loaded"]["fusion"] is True
-        print(f"(Device: {data['device']}, Models: Audio, Text, Video, Fusion OK)", end=" ")
+        print(f"(Device: {data['device']}, 4 Models Loaded)", end=" ")
     test("GET /health Endpoint & All 4 Model Checkpoints", test_health)
 
     # 2. Text prediction joy
@@ -113,7 +180,7 @@ def run_all_tests():
         assert data["status"] == "success"
         assert set(data["active_modalities"]) == {"audio", "text"}
         assert data["fused_predicted_class"] in ['anger', 'disgust', 'fear', 'joy', 'neutral', 'sadness', 'surprise']
-        print(f"(ONE Final Emotion: {data['fused_predicted_class']} {data['fused_confidence']:.1%}, Agreement: {data['modality_agreement']})", end=" ")
+        print(f"(Final Emotion: {data['fused_predicted_class']} {data['fused_confidence']:.1%}, Agreement: {data['modality_agreement']})", end=" ")
     test("POST /predict/multimodal (Audio + Text Bimodal Fusion)", test_multimodal_audio_text)
 
     # 8. Multimodal: Full Trimodal (Audio + Text + Video)
@@ -136,10 +203,10 @@ def run_all_tests():
         assert data["modality_coverage"]["text"] is True
         assert data["modality_coverage"]["video"] is True
         assert len(data["unified_explanation"]) > 20
-        print(f"(ONE Final Emotion: {data['fused_predicted_class']} {data['fused_confidence']:.1%}, Attention: {data['modality_weights']})", end=" ")
+        print(f"(Final Emotion: {data['fused_predicted_class']} {data['fused_confidence']:.1%}, Attention: {data['modality_weights']})", end=" ")
     test("POST /predict/multimodal (Full Trimodal Attention Fusion)", test_multimodal_trimodal)
 
-    # 9. Multimodal: Single Video Input (Auto Frame Extraction + Audio Track Extraction + Speech Transcription)
+    # 9. Multimodal: Single Video Input (Auto Frame + Audio + Text Extraction)
     def test_multimodal_single_video():
         with open(sample_mp4, "rb") as fv:
             resp = client.post(
@@ -149,19 +216,17 @@ def run_all_tests():
         assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
         data = resp.json()
         assert data["status"] == "success"
-        # All 3 modalities should be active via auto-extraction from single video!
         assert len(data["active_modalities"]) == 3
         assert data["modality_coverage"]["video"] is True
         assert data["modality_coverage"]["audio"] is True
         assert data["modality_coverage"]["text"] is True
         assert len(data["transcript_used"]) > 0
         assert data["fused_predicted_class"] is not None
-        print(f"(Synced: Video+Audio+Text from 1 file -> Final: {data['fused_predicted_class']} {data['fused_confidence']:.1%})", end=" ")
+        print(f"(Synced Trimodal -> Final: {data['fused_predicted_class']} {data['fused_confidence']:.1%})", end=" ")
     test("POST /predict/multimodal (Single Video Recording -> Auto Trimodal Extraction)", test_multimodal_single_video)
 
     # 10. Multimodal: Conflicting Modalities Handling & Resolution
     def test_multimodal_conflict_handling():
-        # Conflicting scenario: dia0_utt0 video (Sadness 99%) + Joy text
         with open(sample_mp4, "rb") as fv:
             resp = client.post(
                 "/predict/multimodal",
@@ -183,16 +248,106 @@ def run_all_tests():
         assert resp.status_code == 400, f"Expected 400 for empty multimodal request, got {resp.status_code}"
     test("POST /predict/multimodal (Empty Request 400 Error Rejection)", test_multimodal_missing)
 
+    print("\n" + "-" * 80)
+    print(f"Integration Tests Summary: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+    print("-" * 80)
+    return passed == total
+
+
+def run_live_system_tests(base_url="http://127.0.0.1:8000"):
     print("\n" + "=" * 80)
-    print(f"TEST SUMMARY: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+    print(f"         PHASE 3: LIVE HTTP & WEBCAM SYSTEM VERIFICATION ({base_url})")
     print("=" * 80)
+    import requests
+    import cv2
+    import base64
+
+    passed = 0
+    total = 0
+
+    def test(name, func):
+        nonlocal passed, total
+        total += 1
+        t0 = time.time()
+        print(f"\n[LIVE {total:02d}] {name}...", end=" ", flush=True)
+        try:
+            func()
+            elapsed = (time.time() - t0) * 1000
+            print(f"PASSED ({elapsed:.1f}ms)")
+            passed += 1
+        except Exception as e:
+            print(f"FAILED!\n   --> Error: {str(e)}")
+
+    def test_live_health():
+        r = requests.get(f"{base_url}/health", timeout=5)
+        assert r.status_code == 200
+        d = r.json()
+        assert d["status"] == "healthy"
+    test("Live /health Check", test_live_health)
+
+    def test_live_webcam_status():
+        r = requests.get(f"{base_url}/predict/webcam/status", timeout=5)
+        assert r.status_code == 200
+        d = r.json()
+        assert d["models_loaded"] is True
+    test("Live Webcam Endpoint Status", test_live_webcam_status)
+
+    def test_live_webcam_frame():
+        sample_mp4 = "frontend/samples/dia0_utt0.mp4"
+        cap = cv2.VideoCapture(sample_mp4)
+        ret, frame = cap.read()
+        cap.release()
+        assert ret, "Could not read sample frame from video."
+        _, buf = cv2.imencode(".jpg", frame)
+        b64 = base64.b64encode(buf.tobytes()).decode("utf-8")
+        payload = {"frame": "data:image/jpeg;base64," + b64, "client_id": "live_test", "apply_smoothing": True}
+        r = requests.post(f"{base_url}/predict/webcam/frame-json", json=payload, timeout=5)
+        assert r.status_code == 200
+        d = r.json()
+        assert d["status"] == "success"
+        assert d["face_detected"] is True
+    test("Live Webcam Frame Tracking (YuNet)", test_live_webcam_frame)
+
+    print("\n" + "-" * 80)
+    print(f"Live System Tests Summary: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+    print("-" * 80)
+    return passed == total
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Multimodal Emotion Recognition Test Suite Runner")
+    parser.add_argument("--unit", action="store_true", help="Run only unit tests")
+    parser.add_argument("--integration", action="store_true", help="Run only integration tests")
+    parser.add_argument("--live", action="store_true", help="Run live HTTP/Webcam system tests against 127.0.0.1:8000")
+    parser.add_argument("--all", action="store_true", help="Run all unit and integration tests (default)")
+    parser.add_argument("--url", type=str, default="http://127.0.0.1:8000", help="Base URL for live tests")
+    args = parser.parse_args()
+
+    # Default to running both unit and integration tests
+    run_all = args.all or (not args.unit and not args.integration and not args.live)
     
-    if passed == total:
-        print("[SUCCESS] All true multimodal system integration tests passed with 100% compliance!")
-        return 0
+    overall_success = True
+    
+    if args.unit or run_all:
+        u_ok = run_unit_tests()
+        overall_success = overall_success and u_ok
+
+    if args.integration or run_all:
+        i_ok = run_integration_tests()
+        overall_success = overall_success and i_ok
+
+    if args.live:
+        l_ok = run_live_system_tests(base_url=args.url)
+        overall_success = overall_success and l_ok
+
+    print("\n" + "=" * 80)
+    if overall_success:
+        print("          ALL TEST SUITES EXECUTED SUCCESSFULLY WITH 100% PASS RATE!     ")
     else:
-        print(f"[ERROR] {total - passed} tests failed.")
-        return 1
+        print("          ONE OR MORE TEST SUITES REPORTED FAILURES.                    ")
+    print("=" * 80)
+    sys.exit(0 if overall_success else 1)
+
 
 if __name__ == "__main__":
-    sys.exit(run_all_tests())
+    main()
