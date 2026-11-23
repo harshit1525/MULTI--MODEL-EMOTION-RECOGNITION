@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multimodal Emotion AI — Unified Audio, Text & Video Classification</title>
-    <meta name="description" content="True Multimodal Emotion Recognition System fusing Facial Expressions (ResNet-50), Vocal Prosody (Wav2Vec2), and Spoken Dialogue Context (NLP) into ONE unified final emotion prediction on the MELD benchmark.">
+    <meta name="description"
+        content="True Multimodal Emotion Recognition System fusing Facial Expressions (ResNet-50), Vocal Prosody (Wav2Vec2), and Spoken Dialogue Context (NLP) into ONE unified final emotion prediction on the MELD benchmark.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css?v=20261118_hd_v5">
 </head>
+
 <body>
     <!-- Top Application Header -->
     <header class="app-header">
@@ -77,11 +82,14 @@
         <section class="tab-pane active" id="tab-multimodal">
             <div class="pane-header">
                 <div>
-                    <div class="badge-pill" style="margin-bottom: 8px;">TRUE MULTIMODAL AI • LEARNED ATTENTION-GATED FUSION</div>
+                    <div class="badge-pill" style="margin-bottom: 8px;">TRUE MULTIMODAL AI • LEARNED ATTENTION-GATED
+                        FUSION</div>
                     <h2>🔮 Unified Multimodal Emotion Recognition System</h2>
                     <p class="subtext">
-                        Combines facial expressions (<strong>ResNet-50 Video</strong>), vocal prosody (<strong>Wav2Vec2 Audio</strong>), and dialogue semantics (<strong>Calibrated Text</strong>).
-                        All active streams are evaluated together to produce <strong>ONE final unified emotion prediction</strong>.
+                        Combines facial expressions (<strong>ResNet-50 Video</strong>), vocal prosody (<strong>Wav2Vec2
+                            Audio</strong>), and dialogue semantics (<strong>Calibrated Text</strong>).
+                        All active streams are evaluated together to produce <strong>ONE final unified emotion
+                            prediction</strong>.
                     </p>
                 </div>
                 <div class="quick-samples">
@@ -91,14 +99,19 @@
 
             <!-- Quick Multimodal Presets Strip -->
             <div class="section-card" style="padding: 16px 20px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <span style="font-size: 0.82rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.06em;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <span
+                        style="font-size: 0.82rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.06em;">
                         ⚡ Quick Multi-Stream Test Presets:
                     </span>
                     <div class="preset-pills-row">
-                        <button class="preset-btn" onclick="loadPresetTrimodal('dia0_utt0')">🎬 MELD Trimodal 1 (dia0_utt0)</button>
-                        <button class="preset-btn" onclick="loadPresetTrimodal('dia0_utt1')">🎬 MELD Trimodal 2 (dia0_utt1)</button>
-                        <button class="preset-btn" onclick="loadPresetTrimodal('conflict_scenario')" style="border-color: rgba(245, 158, 11, 0.5);">⚡ Conflicting Modalities Scenario</button>
+                        <button class="preset-btn" onclick="loadPresetTrimodal('dia0_utt0')">🎬 MELD Trimodal 1
+                            (dia0_utt0)</button>
+                        <button class="preset-btn" onclick="loadPresetTrimodal('dia0_utt1')">🎬 MELD Trimodal 2
+                            (dia0_utt1)</button>
+                        <button class="preset-btn" onclick="loadPresetTrimodal('conflict_scenario')"
+                            style="border-color: rgba(245, 158, 11, 0.5);">⚡ Conflicting Modalities Scenario</button>
                         <button class="preset-btn" onclick="loadPresetTrimodal('joy_sample')">😄 Joy Preset</button>
                         <button class="preset-btn" onclick="loadPresetTrimodal('anger_sample')">😡 Anger Preset</button>
                     </div>
@@ -113,20 +126,23 @@
                         <span class="card-icon">🎥</span>
                         <div>
                             <h4>1. Video Recording Clip</h4>
-                            <small style="color: var(--text-muted); font-size: 0.72rem;">Auto-extracts frames, audio track & transcript!</small>
+                            <small style="color: var(--text-muted); font-size: 0.72rem;">Auto-extracts frames, audio
+                                track & transcript!</small>
                         </div>
                     </div>
                     <div class="input-card-body">
                         <div class="mini-dropzone" id="mm-video-dropzone">
                             <span id="mm-video-text">Click or drag MP4 / AVI / MOV video</span>
-                            <input type="file" id="mm-video-input" accept=".mp4,.avi,.mov,.webm,.mkv" style="display:none;">
+                            <input type="file" id="mm-video-input" accept=".mp4,.avi,.mov,.webm,.mkv"
+                                style="display:none;">
                         </div>
                         <div id="mm-video-info" class="mini-selected" style="display:none;">
                             <span id="mm-video-name">video.mp4</span>
                             <button class="btn-text-danger" onclick="clearMMVideo()">Remove</button>
                         </div>
                         <div id="mm-video-player-wrapper" style="display:none; margin-top: 10px;">
-                            <video id="mm-video-player" controls style="width: 100%; max-height: 140px; border-radius: 6px;"></video>
+                            <video id="mm-video-player" controls
+                                style="width: 100%; max-height: 140px; border-radius: 6px;"></video>
                         </div>
                     </div>
                 </div>
@@ -137,13 +153,15 @@
                         <span class="card-icon">🎙️</span>
                         <div>
                             <h4>2. Audio Vocal Stream</h4>
-                            <small style="color: var(--text-muted); font-size: 0.72rem;">16kHz Mono Acoustic Prosody</small>
+                            <small style="color: var(--text-muted); font-size: 0.72rem;">16kHz Mono Acoustic
+                                Prosody</small>
                         </div>
                     </div>
                     <div class="input-card-body">
                         <div class="mini-dropzone" id="mm-audio-dropzone">
                             <span id="mm-audio-text">Click or drag WAV / MP3 file</span>
-                            <input type="file" id="mm-audio-input" accept=".wav,.mp3,.ogg,.flac,.m4a" style="display:none;">
+                            <input type="file" id="mm-audio-input" accept=".wav,.mp3,.ogg,.flac,.m4a"
+                                style="display:none;">
                         </div>
                         <div id="mm-audio-info" class="mini-selected" style="display:none;">
                             <span id="mm-audio-name">audio.wav</span>
@@ -158,11 +176,13 @@
                         <span class="card-icon">✍️</span>
                         <div>
                             <h4>3. Dialogue Transcript</h4>
-                            <small style="color: var(--text-muted); font-size: 0.72rem;">Spoken Utterance or Auto-Transcribed</small>
+                            <small style="color: var(--text-muted); font-size: 0.72rem;">Spoken Utterance or
+                                Auto-Transcribed</small>
                         </div>
                     </div>
                     <div class="input-card-body">
-                        <textarea id="mm-text-input" class="mini-textarea" placeholder="Enter conversational utterance transcript, or leave blank to auto-transcribe from video/audio..."></textarea>
+                        <textarea id="mm-text-input" class="mini-textarea"
+                            placeholder="Enter conversational utterance transcript, or leave blank to auto-transcribe from video/audio..."></textarea>
                     </div>
                 </div>
             </div>
@@ -181,13 +201,17 @@
             <!-- PRIORITIZED RESULTS DASHBOARD: ONE UNIFIED PREDICTION           -->
             <!-- =============================================================== -->
             <div id="unified-result-container" style="display:none; margin-top: 30px;">
-                
+
                 <!-- Hero Unified Prediction Card -->
                 <div class="unified-hero-card">
                     <div class="unified-header-row">
                         <div class="unified-hero-title-box">
                             <span class="unified-super-label">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 14 14"></polyline>
+                                </svg>
                                 Final Unified Multimodal Emotion Prediction
                             </span>
                             <div class="unified-emotion-badge" id="unified-emotion-badge">
@@ -198,7 +222,8 @@
                         <div class="unified-confidence-block">
                             <span class="unified-confidence-sub">Calibrated Confidence</span>
                             <div class="unified-confidence-num" id="unified-confidence-num">0.0%</div>
-                            <span class="badge" id="unified-calibration-badge" style="font-size: 0.68rem; margin-top: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            <span class="badge" id="unified-calibration-badge"
+                                style="font-size: 0.68rem; margin-top: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">
                                 ✓ Temperature Scaled (T=0.60)
                             </span>
                         </div>
@@ -206,7 +231,9 @@
 
                     <!-- Modality Coverage Status Bar -->
                     <div class="modality-coverage-bar">
-                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Modality Coverage:</span>
+                        <span
+                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Modality
+                            Coverage:</span>
                         <span class="coverage-pill active" id="pill-cov-video">✓ 🎥 Video (Visual Gestures)</span>
                         <span class="coverage-pill active" id="pill-cov-audio">✓ 🎙️ Audio (Vocal Prosody)</span>
                         <span class="coverage-pill active" id="pill-cov-text">✓ ✍️ Text (Dialogue Transcript)</span>
@@ -214,7 +241,8 @@
 
                     <!-- Analyzed Transcript Box -->
                     <div class="transcript-display-card" id="unified-transcript-card" style="display:none;">
-                        <div class="transcript-source-label" id="unified-transcript-source">Analyzed Utterance Transcript</div>
+                        <div class="transcript-source-label" id="unified-transcript-source">Analyzed Utterance
+                            Transcript</div>
                         <div class="transcript-quote" id="unified-transcript-text">""</div>
                     </div>
 
@@ -228,13 +256,15 @@
                             Evidence explanation will appear here upon inference.
                         </p>
                         <div style="margin-top: 10px; font-size: 0.75rem; color: var(--text-faint);">
-                            Fusion Architecture: <strong id="unified-fusion-method-name">Learned Cross-Modal Attention & Reliability Gating</strong>
+                            Fusion Architecture: <strong id="unified-fusion-method-name">Learned Cross-Modal Attention &
+                                Reliability Gating</strong>
                         </div>
                     </div>
 
                     <!-- Dynamic Modality Attention Allocation Meters -->
                     <div style="margin-bottom: 8px;">
-                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+                        <span
+                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
                             Learned Modality Attention Allocation:
                         </span>
                     </div>
@@ -245,7 +275,8 @@
                                 <span id="att-video-val">0.0%</span>
                             </div>
                             <div class="meter-bar">
-                                <div class="meter-fill" id="att-video-fill" style="width: 0%; background: #38bdf8;"></div>
+                                <div class="meter-fill" id="att-video-fill" style="width: 0%; background: #38bdf8;">
+                                </div>
                             </div>
                         </div>
 
@@ -255,7 +286,8 @@
                                 <span id="att-text-val">0.0%</span>
                             </div>
                             <div class="meter-bar">
-                                <div class="meter-fill" id="att-text-fill" style="width: 0%; background: #10b981;"></div>
+                                <div class="meter-fill" id="att-text-fill" style="width: 0%; background: #10b981;">
+                                </div>
                             </div>
                         </div>
 
@@ -265,7 +297,8 @@
                                 <span id="att-audio-val">0.0%</span>
                             </div>
                             <div class="meter-bar">
-                                <div class="meter-fill" id="att-audio-fill" style="width: 0%; background: #f59e0b;"></div>
+                                <div class="meter-fill" id="att-audio-fill" style="width: 0%; background: #f59e0b;">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -283,7 +316,11 @@
                 <div class="secondary-diagnostics-wrapper">
                     <div class="diagnostics-header" onclick="toggleDiagnostics()">
                         <h4>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
                             Secondary Modality Diagnostics & Model Transparency
                         </h4>
                         <span id="diag-toggle-icon" class="badge" style="cursor: pointer;">▼ Show Diagnostics</span>
@@ -291,7 +328,10 @@
 
                     <div id="secondary-diagnostics-content" style="display:none; margin-top: 14px;">
                         <div class="diagnostics-disclaimer">
-                            ⚠️ <strong>Transparency Notice:</strong> Individual unimodal model predictions are displayed below strictly for technical inspection, interpretability, and feature verification. They are <strong>supporting evidence</strong> and not three competing final answers. The true final answer is the <strong>Unified Multimodal Prediction</strong> above.
+                            ⚠️ <strong>Transparency Notice:</strong> Individual unimodal model predictions are displayed
+                            below strictly for technical inspection, interpretability, and feature verification. They
+                            are <strong>supporting evidence</strong> and not three competing final answers. The true
+                            final answer is the <strong>Unified Multimodal Prediction</strong> above.
                         </div>
 
                         <div class="modality-comparison-grid">
@@ -344,7 +384,8 @@
             <div class="pane-header">
                 <div>
                     <h2>📈 Multimodal Fusion Benchmarks & Ablation Evaluation</h2>
-                    <p class="subtext">Rigorous experimental evaluation across the MELD benchmark: Comparing individual unimodal performance vs. bimodal pairs vs. learned trimodal attention fusion.</p>
+                    <p class="subtext">Rigorous experimental evaluation across the MELD benchmark: Comparing individual
+                        unimodal performance vs. bimodal pairs vs. learned trimodal attention fusion.</p>
                 </div>
             </div>
 
@@ -376,7 +417,8 @@
             <div class="section-card">
                 <div class="card-header">
                     <h3>Empirical Ablation Study: Multimodal Fusion vs. Individual Streams</h3>
-                    <span class="subtext">Demonstrates the scientific contribution of each modality on the held-out MELD multimodal test partition.</span>
+                    <span class="subtext">Demonstrates the scientific contribution of each modality on the held-out MELD
+                        multimodal test partition.</span>
                 </div>
                 <div class="table-responsive">
                     <table class="data-table">
@@ -465,10 +507,12 @@
                 <div class="section-card">
                     <div class="card-header">
                         <h3>Learned Multimodal Fusion Confusion Matrix</h3>
-                        <span class="subtext">Confusion matrix across all 7 discrete emotion classes on held-out multimodal test data.</span>
+                        <span class="subtext">Confusion matrix across all 7 discrete emotion classes on held-out
+                            multimodal test data.</span>
                     </div>
                     <div style="text-align: center; padding: 10px;">
-                        <img src="/static/samples/multimodal_fusion_confusion_matrix.png" alt="Confusion Matrix" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-md);">
+                        <img src="/static/samples/multimodal_fusion_confusion_matrix.png" alt="Confusion Matrix"
+                            style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-md);">
                     </div>
                 </div>
 
@@ -477,10 +521,16 @@
                         <h3>Scientific Findings & Affect Insights</h3>
                     </div>
                     <ul class="insights-list">
-                        <li><strong>Cross-Modal Disambiguation:</strong> Disagreement between literal verbal transcripts and facial tone is resolved dynamically by the attention network rather than hardcoded heuristics.</li>
-                        <li><strong>Missing-Modality Masking:</strong> When video is unavailable, the network automatically shifts attention to linguistic and acoustic features without performance collapse.</li>
-                        <li><strong>Acoustic-Prosodic Anchoring:</strong> Acoustic energy differentiates high-arousal emotions (Anger, Surprise) from low-arousal states (Sadness, Neutral).</li>
-                        <li><strong>Visual Dominance for Subtle Cues:</strong> Facial micro-expressions provide the highest discriminative power for masked or sarcastic dialogue utterances.</li>
+                        <li><strong>Cross-Modal Disambiguation:</strong> Disagreement between literal verbal transcripts
+                            and facial tone is resolved dynamically by the attention network rather than hardcoded
+                            heuristics.</li>
+                        <li><strong>Missing-Modality Masking:</strong> When video is unavailable, the network
+                            automatically shifts attention to linguistic and acoustic features without performance
+                            collapse.</li>
+                        <li><strong>Acoustic-Prosodic Anchoring:</strong> Acoustic energy differentiates high-arousal
+                            emotions (Anger, Surprise) from low-arousal states (Sadness, Neutral).</li>
+                        <li><strong>Visual Dominance for Subtle Cues:</strong> Facial micro-expressions provide the
+                            highest discriminative power for masked or sarcastic dialogue utterances.</li>
                     </ul>
                 </div>
             </div>
@@ -489,11 +539,14 @@
             <div class="section-card" style="margin-top: 24px;">
                 <div class="card-header">
                     <h3>🎯 Post-Hoc Confidence Calibration & Reliability Curves (Temperature Scaling)</h3>
-                    <span class="subtext">Empirical validation of confidence calibration: comparing raw softmax probabilities against validation-optimized Temperature Scaling (T* = 0.5953).</span>
+                    <span class="subtext">Empirical validation of confidence calibration: comparing raw softmax
+                        probabilities against validation-optimized Temperature Scaling (T* = 0.5953).</span>
                 </div>
                 <div class="two-col-grid" style="align-items: center; margin-top: 10px;">
                     <div style="text-align: center; padding: 10px;">
-                        <img src="/static/samples/calibration_reliability_diagram.png" alt="Calibration Reliability Curves" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-md);">
+                        <img src="/static/samples/calibration_reliability_diagram.png"
+                            alt="Calibration Reliability Curves"
+                            style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-md);">
                     </div>
                     <div>
                         <div class="table-responsive">
@@ -517,7 +570,8 @@
                                         <td><strong>Expected Calibration Error (ECE)</strong></td>
                                         <td>13.77%</td>
                                         <td><strong>6.68%</strong></td>
-                                        <td>Monotonically aligned empirical accuracy per confidence bin (-51.5% error)</td>
+                                        <td>Monotonically aligned empirical accuracy per confidence bin (-51.5% error)
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td><strong>Brier Score</strong></td>
@@ -535,7 +589,11 @@
                             </table>
                         </div>
                         <div style="margin-top: 14px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
-                            💡 <strong>Why genuine confidence matters:</strong> Uncalibrated neural networks often produce over-confident predictions on concordant data and under-confident predictions on discordant data. Temperature Scaling preserves accuracy and ranking order while ensuring that a predicted confidence of 40% corresponds empirically to ~40–45% real-world classification accuracy.
+                            💡 <strong>Why genuine confidence matters:</strong> Uncalibrated neural networks often
+                            produce over-confident predictions on concordant data and under-confident predictions on
+                            discordant data. Temperature Scaling preserves accuracy and ranking order while ensuring
+                            that a predicted confidence of 40% corresponds empirically to ~40–45% real-world
+                            classification accuracy.
                         </div>
                     </div>
                 </div>
@@ -549,12 +607,15 @@
             <div class="pane-header">
                 <div>
                     <h2>🎥 Visual Modality Studio (ResNet-50)</h2>
-                    <p class="subtext">Extract 8 temporal frames via OpenCV, compute 2048-D ResNet-50 spatial-temporal features, and predict facial emotion.</p>
+                    <p class="subtext">Extract 8 temporal frames via OpenCV, compute 2048-D ResNet-50 spatial-temporal
+                        features, and predict facial emotion.</p>
                 </div>
                 <div class="quick-samples">
                     <span>Quick Video Samples:</span>
-                    <button class="btn btn-sm btn-outline" onclick="loadSampleVideo('dia0_utt0.mp4')">dia0_utt0.mp4</button>
-                    <button class="btn btn-sm btn-outline" onclick="loadSampleVideo('dia0_utt1.mp4')">dia0_utt1.mp4</button>
+                    <button class="btn btn-sm btn-outline"
+                        onclick="loadSampleVideo('dia0_utt0.mp4')">dia0_utt0.mp4</button>
+                    <button class="btn btn-sm btn-outline"
+                        onclick="loadSampleVideo('dia0_utt1.mp4')">dia0_utt1.mp4</button>
                 </div>
             </div>
 
@@ -565,7 +626,8 @@
                         <div class="dropzone-icon">🎬</div>
                         <p class="dropzone-text">Drag & drop MP4 / AVI / MOV video file</p>
                         <span class="dropzone-hint">8 frames sampled uniformly for ResNet-50 temporal pooling</span>
-                        <input type="file" id="video-file-input" accept=".mp4,.avi,.mov,.webm,.mkv" style="display:none;">
+                        <input type="file" id="video-file-input" accept=".mp4,.avi,.mov,.webm,.mkv"
+                            style="display:none;">
                     </div>
 
                     <div class="file-selected-card" id="video-file-info" style="display:none;">
@@ -583,7 +645,8 @@
                     </div>
 
                     <div class="action-row">
-                        <button class="btn btn-primary btn-block" id="btn-predict-video" onclick="predictVideo()" disabled>
+                        <button class="btn btn-primary btn-block" id="btn-predict-video" onclick="predictVideo()"
+                            disabled>
                             ⚡ Run Video Emotion Inference
                         </button>
                     </div>
@@ -635,12 +698,15 @@
             <div class="pane-header">
                 <div>
                     <h2>🎙️ Acoustic Modality Studio (Wav2Vec2)</h2>
-                    <p class="subtext">Transform raw conversational waveforms into 768-D temporal pooled Wav2Vec2 representations to recognize vocal affect.</p>
+                    <p class="subtext">Transform raw conversational waveforms into 768-D temporal pooled Wav2Vec2
+                        representations to recognize vocal affect.</p>
                 </div>
                 <div class="quick-samples">
                     <span>Quick Audio Samples:</span>
-                    <button class="btn btn-sm btn-outline" onclick="loadSampleAudio('dia0_utt0.wav')">dia0_utt0.wav</button>
-                    <button class="btn btn-sm btn-outline" onclick="loadSampleAudio('dia0_utt1.wav')">dia0_utt1.wav</button>
+                    <button class="btn btn-sm btn-outline"
+                        onclick="loadSampleAudio('dia0_utt0.wav')">dia0_utt0.wav</button>
+                    <button class="btn btn-sm btn-outline"
+                        onclick="loadSampleAudio('dia0_utt1.wav')">dia0_utt1.wav</button>
                 </div>
             </div>
 
@@ -651,7 +717,8 @@
                         <div class="dropzone-icon">🎙️</div>
                         <p class="dropzone-text">Drag & drop WAV / MP3 / OGG audio file</p>
                         <span class="dropzone-hint">Automatic conversion to 16kHz Mono 16-bit PCM</span>
-                        <input type="file" id="audio-file-input" accept=".wav,.mp3,.ogg,.flac,.m4a" style="display:none;">
+                        <input type="file" id="audio-file-input" accept=".wav,.mp3,.ogg,.flac,.m4a"
+                            style="display:none;">
                     </div>
 
                     <div class="file-selected-card" id="audio-file-info" style="display:none;">
@@ -664,7 +731,8 @@
                     </div>
 
                     <div class="action-row">
-                        <button class="btn btn-primary btn-block" id="btn-predict-audio" onclick="predictAudio()" disabled>
+                        <button class="btn btn-primary btn-block" id="btn-predict-audio" onclick="predictAudio()"
+                            disabled>
                             ⚡ Run Audio Emotion Inference
                         </button>
                     </div>
@@ -711,13 +779,18 @@
             <div class="pane-header">
                 <div>
                     <h2>✍️ Linguistic Modality Studio (NLP)</h2>
-                    <p class="subtext">Classify emotions from written dialogue utterance text using sublinear TF-IDF 1-3 N-Grams and calibrated logistic regression.</p>
+                    <p class="subtext">Classify emotions from written dialogue utterance text using sublinear TF-IDF 1-3
+                        N-Grams and calibrated logistic regression.</p>
                 </div>
                 <div class="quick-samples">
                     <span>Try Sample Utterances:</span>
-                    <button class="btn btn-sm btn-outline" onclick="loadSampleText('Why do all your coffee mugs have numbers on the bottom?')">Sample 1 (Curious)</button>
-                    <button class="btn btn-sm btn-outline" onclick="loadSampleText('I am so thrilled and happy that we won!')">Sample 2 (Joy)</button>
-                    <button class="btn btn-sm btn-outline" onclick="loadSampleText('Stop doing that right now, I am furious!')">Sample 3 (Anger)</button>
+                    <button class="btn btn-sm btn-outline"
+                        onclick="loadSampleText('Why do all your coffee mugs have numbers on the bottom?')">Sample 1
+                        (Curious)</button>
+                    <button class="btn btn-sm btn-outline"
+                        onclick="loadSampleText('I am so thrilled and happy that we won!')">Sample 2 (Joy)</button>
+                    <button class="btn btn-sm btn-outline"
+                        onclick="loadSampleText('Stop doing that right now, I am furious!')">Sample 3 (Anger)</button>
                 </div>
             </div>
 
@@ -725,7 +798,8 @@
                 <div class="studio-card input-panel">
                     <h3>1. Dialogue Text Input</h3>
                     <div class="textarea-wrapper">
-                        <textarea id="text-input" placeholder="Type or paste conversational utterance here... (e.g. 'Why do all your coffee mugs have numbers on the bottom?')"></textarea>
+                        <textarea id="text-input"
+                            placeholder="Type or paste conversational utterance here... (e.g. 'Why do all your coffee mugs have numbers on the bottom?')"></textarea>
                         <div class="textarea-footer">
                             <span id="char-count">0 characters</span>
                             <span id="word-count">0 words</span>
@@ -786,13 +860,16 @@
         <section class="tab-pane" id="tab-webcam">
             <div class="pane-header">
                 <div>
-                    <div class="badge-pill" style="margin-bottom: 8px; background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+                    <div class="badge-pill"
+                        style="margin-bottom: 8px; background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
                         LIVE COMPUTER VISION & MULTIMODAL AI • ZERO DISK STORAGE • LOCAL INFERENCE
                     </div>
                     <h2>📹 Real-Time Emotion Detection Studio</h2>
                     <p class="subtext">
-                        Detect facial expressions in real time directly from your computer webcam. 
-                        Powered by <strong>OpenCV YuNet DNN face detection</strong> (~30ms), <strong>CLAHE lighting normalization</strong>, and our trained <strong>ResNet-50 visual classifier</strong> with <strong>EMA temporal stabilization</strong>.
+                        Detect facial expressions in real time directly from your computer webcam.
+                        Powered by <strong>OpenCV YuNet DNN face detection</strong> (~30ms), <strong>CLAHE lighting
+                            normalization</strong>, and our trained <strong>ResNet-50 visual classifier</strong> with
+                        <strong>EMA temporal stabilization</strong>.
                     </p>
                 </div>
                 <div>
@@ -817,6 +894,9 @@
                     <button class="btn-webcam-restart" id="btn-restart-webcam" onclick="restartWebcam()" disabled>
                         <span>🔄</span> RESTART
                     </button>
+                    <button class="btn-webcam-calibrate" id="btn-calibrate-webcam" onclick="startWebcamCalibration()" disabled title="Hold a neutral facial expression for 2 seconds to subtract personal resting bias">
+                        <span>🎯</span> CALIBRATE FACE
+                    </button>
                 </div>
 
                 <!-- Camera Device Selection Dropdown -->
@@ -828,27 +908,34 @@
                 </div>
 
                 <!-- Real-Time Multimodal Microphone Toggle -->
-                <label class="webcam-toggle-wrapper" for="webcam-mic-toggle" title="Enable microphone to stream synchronized audio & speech transcription for real-time multimodal fusion">
-                    <input type="checkbox" id="webcam-mic-toggle" class="toggle-switch-input" onchange="toggleWebcamMicrophone()">
+                <label class="webcam-toggle-wrapper" for="webcam-mic-toggle"
+                    title="Enable microphone to stream synchronized audio & speech transcription for real-time multimodal fusion">
+                    <input type="checkbox" id="webcam-mic-toggle" class="toggle-switch-input"
+                        onchange="toggleWebcamMicrophone()">
                     <div>
                         <strong>🎙️ Synchronized Microphone Audio & Speech Fusion</strong>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">Combines live voice tone + spoken words with facial tracking</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">Combines live voice tone + spoken
+                            words with facial tracking</div>
                     </div>
                 </label>
             </div>
 
             <!-- Live Alert Banner (Low light, No face, Permission error) -->
-            <div id="webcam-alert-box" style="display:none; margin-top: 14px; padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.82rem;"></div>
+            <div id="webcam-alert-box"
+                style="display:none; margin-top: 14px; padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.82rem;">
+            </div>
 
             <!-- Main Studio Grid -->
             <div class="webcam-layout-grid">
                 <!-- Left: Live Video Feed with Canvas Overlay -->
                 <div class="webcam-feed-card">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
+                        <h4
+                            style="font-size: 0.95rem; font-weight: 700; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
                             <span>👁️</span> Live Camera Preview & Face Landmark Tracking
                         </h4>
-                        <span id="webcam-status-text" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
+                        <span id="webcam-status-text"
+                            style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
                             STANDBY
                         </span>
                     </div>
@@ -857,9 +944,11 @@
                         <!-- Camera Off Placeholder -->
                         <div class="webcam-placeholder" id="webcam-placeholder">
                             <div class="webcam-placeholder-icon">📷</div>
-                            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 6px;">Camera is Currently Inactive</h3>
+                            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 6px;">Camera is Currently
+                                Inactive</h3>
                             <p style="font-size: 0.82rem; max-width: 380px; margin-bottom: 18px;">
-                                Click <strong>START CAMERA</strong> above to request camera permission and start real-time expression detection.
+                                Click <strong>START CAMERA</strong> above to request camera permission and start
+                                real-time expression detection.
                             </p>
                             <button class="btn-webcam-start" onclick="startWebcam()">
                                 <span>▶️</span> Activate Camera
@@ -877,7 +966,8 @@
                         <span>🛡️</span>
                         <div>
                             <strong>Privacy & Security Verified:</strong>
-                            All video frames and microphone audio are processed 100% in volatile memory on your local machine. No camera frames or voice recordings are saved to disk.
+                            All video frames and microphone audio are processed 100% in volatile memory on your local
+                            machine. No camera frames or voice recordings are saved to disk.
                         </div>
                     </div>
                 </div>
@@ -885,7 +975,8 @@
                 <!-- Right: Live Emotion Analytics -->
                 <div class="webcam-analytics-card">
                     <!-- Mode Indicator -->
-                    <div id="webcam-mode-badge" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                    <div id="webcam-mode-badge"
+                        style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.74rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
                         <span>🎥</span> MODE: WEBCAM FACIAL EXPRESSION RECOGNITION (UNIMODAL VIDEO)
                     </div>
 
@@ -906,8 +997,11 @@
                     </div>
 
                     <!-- Scientific Disclaimer Note -->
-                    <div style="font-size: 0.72rem; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-cyan);">
-                        ℹ️ <strong>Scientific Note:</strong> This output represents an <em>apparent facial expression</em> detected from visual features and facial landmarks. Facial expressions alone do not necessarily establish a person's inner subjective emotional state.
+                    <div
+                        style="font-size: 0.72rem; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-cyan);">
+                        ℹ️ <strong>Scientific Note:</strong> This output represents an <em>apparent facial
+                            expression</em> detected from visual features and facial landmarks. Facial expressions alone
+                        do not necessarily establish a person's inner subjective emotional state.
                     </div>
 
                     <!-- Multimodal Real-Time Fusion Panel (Conditional when Mic Enabled) -->
@@ -918,18 +1012,23 @@
                             (<span id="webcam-mm-conf">--%</span> confidence)
                         </div>
                         <div style="font-size: 0.72rem; color: var(--text-muted);">
-                            Modality Weights: Video <strong id="webcam-weight-v">--%</strong> • Audio <strong id="webcam-weight-a">--%</strong> • Speech <strong id="webcam-weight-t">--%</strong>
+                            Modality Weights: Video <strong id="webcam-weight-v">--%</strong> • Audio <strong
+                                id="webcam-weight-a">--%</strong> • Speech <strong id="webcam-weight-t">--%</strong>
                         </div>
-                        <div style="font-size: 0.72rem; background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: var(--radius-sm);">
-                            Spoken Speech Transcript: <em id="webcam-mm-transcript" style="color: #cbd5e1;">(Listening for speech...)</em>
+                        <div
+                            style="font-size: 0.72rem; background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: var(--radius-sm);">
+                            Spoken Speech Transcript: <em id="webcam-mm-transcript" style="color: #cbd5e1;">(Listening
+                                for speech...)</em>
                         </div>
                         <div style="font-size: 0.70rem; color: #94a3b8;" id="webcam-mm-explanation"></div>
                     </div>
 
                     <!-- 7-Class Emotion Probability Bars -->
                     <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <h5 style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h5
+                                style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">
                                 Live Emotion Probability Distribution
                             </h5>
                             <span style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">
@@ -946,7 +1045,8 @@
                             <span id="webcam-history-count" style="font-family: var(--font-mono);">0 samples</span>
                         </div>
                         <div class="timeline-chips-row" id="webcam-timeline-chips">
-                            <span style="font-size: 0.72rem; color: var(--text-muted); padding: 4px;">Awaiting live camera stream...</span>
+                            <span style="font-size: 0.72rem; color: var(--text-muted); padding: 4px;">Awaiting live
+                                camera stream...</span>
                         </div>
                     </div>
                 </div>
@@ -960,7 +1060,8 @@
             <div class="pane-header">
                 <div>
                     <h2>📜 Prediction History & Audit Log</h2>
-                    <p class="subtext">All predictions made during this session are automatically recorded with timestamps, modalities used, and latency metrics.</p>
+                    <p class="subtext">All predictions made during this session are automatically recorded with
+                        timestamps, modalities used, and latency metrics.</p>
                 </div>
                 <div>
                     <button class="btn btn-outline btn-sm" onclick="clearHistory()">Clear History</button>
@@ -984,7 +1085,8 @@
                         <tbody id="history-tbody">
                             <tr>
                                 <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
-                                    No predictions made yet in this session. Run an analysis on Audio, Text, Video, or Multimodal!
+                                    No predictions made yet in this session. Run an analysis on Audio, Text, Video, or
+                                    Multimodal!
                                 </td>
                             </tr>
                         </tbody>
@@ -1001,4 +1103,5 @@
     <!-- Client Script -->
     <script src="/static/js/app.js?v=20261118_hd_v5"></script>
 </body>
+
 </html>

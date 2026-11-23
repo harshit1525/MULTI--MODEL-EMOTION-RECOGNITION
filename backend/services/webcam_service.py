@@ -127,9 +127,22 @@ class WebcamService:
                 "last_timestamp": now,
                 "fps_history": [],
                 "frame_count": 0,
+                "last_bbox": None,
+                "last_landmarks": None,
+                "baseline_logits": None,
+                "is_calibrating": False,
+                "calibration_buffer": [],
                 "history": []
             }
         return self.client_states[client_id]
+
+    def start_calibration(self, client_id: str = "default"):
+        """Activates baseline face calibration to cancel out resting facial bias."""
+        client = self._get_client_state(client_id)
+        client["is_calibrating"] = True
+        client["calibration_buffer"] = []
+        client["baseline_logits"] = None
+        return {"status": "calibrating", "message": "Calibration started. Please hold a neutral facial expression."}
 
     def decode_frame(self, frame_data: Any) -> Optional[np.ndarray]:
         """
@@ -159,16 +172,19 @@ class WebcamService:
         self,
         frame_data: Any,
         client_id: str = "default",
-        apply_smoothing: bool = True
+        apply_smoothing: bool = True,
+        calibrate: bool = False
     ) -> Dict[str, Any]:
         """
         Processes a single live webcam frame:
         1. Decodes frame and tracks inter-frame latency.
         2. Detects face(s) via YuNet DNN detector.
-        3. Normalizes lighting via CLAHE on facial crop.
-        4. Classifies facial expression using ResNet-50 + VideoClassifier.
-        5. Stabilizes output via Temporal EMA smoothing.
-        6. Calibrates probabilities with Centered Bayesian Logit Consensus (T*=0.90).
+        3. Applies Affine eye alignment to eliminate head tilt distortion.
+        4. Normalizes lighting via CLAHE on facial crop.
+        5. Classifies facial expression using ResNet-50 + VideoClassifier.
+        6. Dynamic personal baseline subtraction to cancel resting face bias.
+        7. Stabilizes output via 3-tier Fast-Attack / Slow-Decay Velocity-Adaptive EMA.
+        8. Calibrates probabilities with Centered Bayesian Logit Consensus (T*=0.45).
         """
         t0 = time.time()
         client = self._get_client_state(client_id)
@@ -271,13 +287,28 @@ class WebcamService:
         if faces_detected > 1:
             warnings.append(f"{faces_detected} faces detected; locked onto primary user face.")
 
-        # --- FACIAL CROP & PREPROCESSING ---
+        # --- FACIAL CROP & AFFINE EYE ALIGNMENT ---
         fx, fy, fw, fh = best_face_bbox
-        # Add 20% margin to include jaw, brow, and forehead cues
-        mx, my = int(fw * 0.20), int(fh * 0.20)
+        # Add 22% margin to include jaw, brow, and forehead cues
+        mx, my = int(fw * 0.22), int(fh * 0.22)
         x1, y1 = max(0, fx - mx), max(0, fy - my)
         x2, y2 = min(w, fx + fw + mx), min(h, fy + fh + my)
-        face_crop = img[y1:y2, x1:x2]
+
+        # Affine eye alignment: eliminate head tilt angle so facial geometry is canonical
+        aligned_img = img
+        eye_dist = 40.0
+        if len(raw_landmarks) == 5:
+            re, le = raw_landmarks[0], raw_landmarks[1]
+            dx = float(le[0] - re[0])
+            dy = float(le[1] - re[1])
+            eye_dist = max(2.0, float(np.hypot(dx, dy)))
+            tilt_angle = float(np.degrees(np.arctan2(dy, dx)))
+            if 2.0 < abs(tilt_angle) < 45.0:
+                eye_center = (float((re[0] + le[0]) / 2.0), float((re[1] + le[1]) / 2.0))
+                rot_mat = cv2.getRotationMatrix2D(eye_center, tilt_angle, 1.0)
+                aligned_img = cv2.warpAffine(img, rot_mat, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+
+        face_crop = aligned_img[y1:y2, x1:x2]
 
         if face_crop.shape[0] < 10 or face_crop.shape[1] < 10:
             face_crop = img # fallback to whole image if crop degenerates
@@ -323,7 +354,6 @@ class WebcamService:
         geom_logits = np.zeros(7, dtype=np.float32)
         if len(raw_landmarks) == 5:
             re, le, nt, rc, lc = [np.array(pt, dtype=np.float32) for pt in raw_landmarks]
-            eye_dist = np.hypot(le[0] - re[0], le[1] - re[1])
             if eye_dist > 2.0:
                 mouth_w = np.hypot(lc[0] - rc[0], lc[1] - rc[1])
                 mouth_ratio = mouth_w / eye_dist
@@ -363,20 +393,52 @@ class WebcamService:
                     geom_logits[4] += 0.5
 
         # --- CLASS PRIOR DE-BIASING ---
-        # Counteract training set imbalance where sadness bias was +0.0799
         prior_bias = np.array([-0.014, 0.005, -0.026, 0.002, -0.011, 0.080, 0.019], dtype=np.float32)
         adjusted_logits = resnet_logits - prior_bias + geom_logits
+
+        # --- PERSONAL RESTING FACE CALIBRATION (CANCELS RESTING BIAS) ---
+        calib_status = "idle"
+        if calibrate or client.get("is_calibrating", False):
+            client["calibration_buffer"].append(adjusted_logits.copy())
+            if len(client["calibration_buffer"]) >= 15:
+                client["baseline_logits"] = np.mean(client["calibration_buffer"], axis=0)
+                client["is_calibrating"] = False
+                client["calibration_buffer"] = []
+                calib_status = "complete"
+            else:
+                client["is_calibrating"] = True
+                calib_status = f"calibrating ({len(client['calibration_buffer'])}/15)"
+        elif client.get("baseline_logits") is not None:
+            calib_status = "active"
+            # Subtract resting baseline offset so real expression deviations stand out clearly
+            baseline_offset = client["baseline_logits"] - np.mean(client["baseline_logits"])
+            adjusted_logits = adjusted_logits - 0.45 * baseline_offset
+
         raw_probs = torch.softmax(torch.from_numpy(adjusted_logits), dim=-1).numpy()
         raw_pred_idx = int(np.argmax(raw_probs))
         raw_conf = float(raw_probs[raw_pred_idx])
 
-        # --- VELOCITY-ADAPTIVE TEMPORAL EMA SMOOTHING ---
+        # --- 3-TIER VELOCITY-ADAPTIVE TEMPORAL EMA SMOOTHING ---
         if apply_smoothing:
             if client["ema_probs"] is not None:
-                # Expression change velocity: L1 distance between instantaneous raw probs and smoothed state
-                velocity = float(np.sum(np.abs(raw_probs - client["ema_probs"])))
-                # Fast response (alpha=0.75) when expressions change, gentle smoothing (alpha=0.35) when steady
-                alpha = 0.75 if velocity > 0.28 else 0.35
+                # Landmark movement velocity
+                lm_velocity = 0.0
+                if client.get("last_landmarks") is not None and len(raw_landmarks) == 5:
+                    curr_pts = np.array(raw_landmarks, dtype=np.float32)
+                    prev_pts = np.array(client["last_landmarks"], dtype=np.float32)
+                    lm_velocity = float(np.mean(np.linalg.norm(curr_pts - prev_pts, axis=1))) / (eye_dist + 1e-4)
+
+                prob_velocity = float(np.sum(np.abs(raw_probs - client["ema_probs"])))
+                total_velocity = prob_velocity + lm_velocity * 1.5
+
+                # Fast attack (alpha=0.85) for sudden expressions, slow decay (alpha=0.20) for steady locks
+                if total_velocity > 0.30:
+                    alpha = 0.85  # Immediate reactive attack
+                elif total_velocity > 0.15:
+                    alpha = 0.55  # Medium transition
+                else:
+                    alpha = 0.20  # Rock-solid hold
+
                 smoothed_probs = alpha * raw_probs + (1.0 - alpha) * client["ema_probs"]
                 smoothed_probs /= np.sum(smoothed_probs)
             else:
@@ -384,6 +446,8 @@ class WebcamService:
             client["ema_probs"] = smoothed_probs
         else:
             smoothed_probs = raw_probs
+
+        client["last_landmarks"] = raw_landmarks
 
         # --- SHARPENED TEMPERATURE CALIBRATION (T*=0.45) ---
         log_p = np.log(np.clip(smoothed_probs, 1e-6, 1.0))
@@ -449,6 +513,8 @@ class WebcamService:
             "latency_ms": round(latency_ms, 1),
             "quality_status": quality_status,
             "smoothing_applied": apply_smoothing,
+            "is_calibrated": client.get("baseline_logits") is not None,
+            "calibration_status": calib_status,
             "disclaimer": "Apparent facial expression detected from visual cues. Does not determine internal affective state.",
             "history": client["history"][-10:],
             "warnings": warnings

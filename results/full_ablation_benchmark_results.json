@@ -13,7 +13,7 @@
     "ece": 0.1725,
     "brier_score": 0.8655,
     "nll": 1.9861,
-    "latency_ms": 0.14
+    "latency_ms": 0.35
   },
   {
     "configuration": "Video Only",
@@ -45,7 +45,7 @@
     "ece": 0.1903,
     "brier_score": 0.82,
     "nll": 1.9435,
-    "latency_ms": 0.02
+    "latency_ms": 0.03
   },
   {
     "configuration": "Audio + Video",
@@ -61,7 +61,7 @@
     "ece": 0.1606,
     "brier_score": 0.8745,
     "nll": 1.9841,
-    "latency_ms": 0.02
+    "latency_ms": 0.03
   },
   {
     "configuration": "Audio + Text",
@@ -77,7 +77,7 @@
     "ece": 0.1146,
     "brier_score": 0.7706,
     "nll": 1.7354,
-    "latency_ms": 0.08
+    "latency_ms": 0.14
   },
   {
     "configuration": "Video + Text",
@@ -93,7 +93,7 @@
     "ece": 0.1128,
     "brier_score": 0.814,
     "nll": 1.8302,
-    "latency_ms": 0.02
+    "latency_ms": 0.03
   },
   {
     "configuration": "Audio + Video + Text (Trimodal)",
@@ -109,6 +109,6 @@
     "ece": 0.0734,
     "brier_score": 0.7785,
     "nll": 1.7244,
-    "latency_ms": 0.09
+    "latency_ms": 0.19
   }
 ]

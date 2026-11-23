@@ -1975,6 +1975,45 @@ textarea:focus {
     cursor: not-allowed;
 }
 
+.btn-webcam-calibrate {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
+    border: none;
+    padding: 9px 18px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+.btn-webcam-calibrate:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+}
+
+.btn-webcam-calibrate:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-webcam-calibrate.calibrating {
+    animation: pulseGlow 1s infinite alternate;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+@keyframes pulseGlow {
+    from { box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+    to { box-shadow: 0 0 22px rgba(245, 158, 11, 0.85); }
+}
+
 .webcam-camera-picker {
     display: flex;
     align-items: center;

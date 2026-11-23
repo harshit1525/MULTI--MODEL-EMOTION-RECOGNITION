@@ -41,8 +41,31 @@ def test_webcam_session_reset():
     webcam_service.reset_session("test_unit")
     assert "test_unit" not in webcam_service.client_states
 
+def test_webcam_calibration():
+    sample_mp4 = "frontend/samples/dia0_utt0.mp4"
+    if not os.path.exists(sample_mp4):
+        return
+    cap = cv2.VideoCapture(sample_mp4)
+    ret, frame = cap.read()
+    cap.release()
+    assert ret
+    _, buf = cv2.imencode('.jpg', frame)
+
+    # Start calibration
+    webcam_service.start_calibration("test_calib")
+    client = webcam_service._get_client_state("test_calib")
+    assert client["is_calibrating"] is True
+
+    # Send 15 frames to complete calibration
+    for _ in range(15):
+        res = webcam_service.predict_frame(buf.tobytes(), client_id="test_calib", calibrate=True)
+    assert res["is_calibrated"] is True
+    assert client["baseline_logits"] is not None
+    webcam_service.reset_session("test_calib")
+
 if __name__ == "__main__":
     test_webcam_blank_frame_no_face()
     test_webcam_face_frame_detection()
     test_webcam_session_reset()
+    test_webcam_calibration()
     print("All webcam unit tests passed!")

@@ -923,8 +923,63 @@ let webcamState = {
     lastFrameTimestamp: 0,
     fpsHistory: [],
     selectedCameraId: '',
+    ws: null,
+    wsConnected: false,
+    lastWsSendTime: 0,
+    isCalibrating: false,
+    calibrateCount: 0,
     clientId: 'webcam_client_' + Math.floor(Math.random() * 1000000)
 };
+
+function connectWebcamWebSocket() {
+    try {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/predict/webcam/ws`;
+        const ws = new WebSocket(wsUrl);
+        ws.onopen = () => {
+            webcamState.ws = ws;
+            webcamState.wsConnected = true;
+            console.log('Real-time webcam WebSocket connected (Low Latency Mode)');
+        };
+        ws.onmessage = (evt) => {
+            try {
+                const data = JSON.parse(evt.data);
+                const roundtripMs = performance.now() - webcamState.lastWsSendTime;
+                renderWebcamInference(data, roundtripMs);
+            } catch (e) {
+                console.warn('WS message parse error:', e);
+            }
+        };
+        ws.onclose = () => {
+            webcamState.ws = null;
+            webcamState.wsConnected = false;
+        };
+        ws.onerror = (err) => {
+            console.warn('WebSocket error, falling back to HTTP transport:', err);
+            webcamState.ws = null;
+            webcamState.wsConnected = false;
+        };
+    } catch (err) {
+        console.warn('WebSocket init exception:', err);
+        webcamState.ws = null;
+        webcamState.wsConnected = false;
+    }
+}
+
+function startWebcamCalibration() {
+    if (!webcamState.isRunning) {
+        showToast('Please start the camera first.', 'warning');
+        return;
+    }
+    webcamState.isCalibrating = true;
+    webcamState.calibrateCount = 0;
+    const btn = document.getElementById('btn-calibrate-webcam');
+    if (btn) {
+        btn.classList.add('calibrating');
+        btn.innerHTML = '<span>⏳</span> HOLD NEUTRAL...';
+    }
+    showToast('Calibration started: Hold a steady neutral face for 2 seconds to subtract personal resting bias.', 'info');
+}
 
 async function populateWebcamDevices() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
@@ -1031,6 +1086,10 @@ async function startWebcam() {
         document.getElementById('btn-stop-webcam').disabled = false;
         const restartBtn = document.getElementById('btn-restart-webcam');
         if (restartBtn) restartBtn.disabled = false;
+        const calibBtn = document.getElementById('btn-calibrate-webcam');
+        if (calibBtn) calibBtn.disabled = false;
+
+        connectWebcamWebSocket();
         
         const camPill = document.getElementById('webcam-cam-pill');
         if (camPill) {
@@ -1122,6 +1181,19 @@ function stopWebcam() {
     document.getElementById('btn-stop-webcam').disabled = true;
     const restartBtn = document.getElementById('btn-restart-webcam');
     if (restartBtn) restartBtn.disabled = true;
+    const calibBtn = document.getElementById('btn-calibrate-webcam');
+    if (calibBtn) {
+        calibBtn.disabled = true;
+        calibBtn.classList.remove('calibrating');
+        calibBtn.innerHTML = '<span>🎯</span> CALIBRATE FACE';
+    }
+    webcamState.isCalibrating = false;
+
+    if (webcamState.ws) {
+        try { webcamState.ws.close(); } catch(e){}
+        webcamState.ws = null;
+        webcamState.wsConnected = false;
+    }
 
     const camPill = document.getElementById('webcam-cam-pill');
     if (camPill) {
@@ -1169,14 +1241,35 @@ async function captureAndProcessWebcamFrame() {
         sctx.drawImage(video, 0, 0, 480, 270);
         const dataUrl = snap.toDataURL('image/jpeg', 0.84);
 
+        const isCalib = webcamState.isCalibrating;
+        if (isCalib) {
+            webcamState.calibrateCount++;
+            const btn = document.getElementById('btn-calibrate-webcam');
+            if (btn) {
+                btn.innerHTML = `<span>🎯</span> CALIBRATING (${Math.min(15, webcamState.calibrateCount)}/15)...`;
+            }
+        }
+
+        const payload = {
+            frame: dataUrl,
+            client_id: webcamState.clientId,
+            apply_smoothing: true,
+            calibrate: isCalib
+        };
+
+        // Prefer WebSocket full-duplex stream for sub-10ms latency
+        if (webcamState.ws && webcamState.ws.readyState === WebSocket.OPEN) {
+            webcamState.lastWsSendTime = performance.now();
+            webcamState.ws.send(JSON.stringify(payload));
+            webcamState.isProcessing = false;
+            return;
+        }
+
+        // HTTP fallback transport
         const resp = await fetch('/predict/webcam/frame-json', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                frame: dataUrl,
-                client_id: webcamState.clientId,
-                apply_smoothing: true
-            })
+            body: JSON.stringify(payload)
         });
 
         if (!resp.ok) {
@@ -1201,6 +1294,17 @@ function renderWebcamInference(data, roundtripMs) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Check calibration completion status
+    if (data.calibration_status === 'complete' && webcamState.isCalibrating) {
+        webcamState.isCalibrating = false;
+        const btn = document.getElementById('btn-calibrate-webcam');
+        if (btn) {
+            btn.classList.remove('calibrating');
+            btn.innerHTML = '<span>✅</span> CALIBRATED';
+        }
+        showToast('🎯 Neutral face calibrated! Personal resting-face bias removed.', 'success');
+    }
+
     // Update FPS and Latency Pills
     const fpsPill = document.getElementById('webcam-fps-pill');
     if (fpsPill && data.fps) {
@@ -1208,7 +1312,8 @@ function renderWebcamInference(data, roundtripMs) {
     }
     const latPill = document.getElementById('webcam-latency-pill');
     if (latPill) {
-        latPill.innerHTML = `Latency: <strong>${Math.round(roundtripMs)} ms</strong>`;
+        const transportTag = (webcamState.ws && webcamState.ws.readyState === WebSocket.OPEN) ? ' (WS)' : '';
+        latPill.innerHTML = `Latency: <strong>${Math.round(roundtripMs)} ms${transportTag}</strong>`;
     }
 
     const facePill = document.getElementById('webcam-face-pill');
@@ -1242,7 +1347,8 @@ function renderWebcamInference(data, roundtripMs) {
 
     if (facePill) {
         const score = data.face_score ? Math.round(data.face_score * 100) : 95;
-        facePill.innerHTML = `Face: <strong>Locked (${score}%)</strong>`;
+        const calibTag = data.is_calibrated ? ' • CALIBRATED' : '';
+        facePill.innerHTML = `Face: <strong>Locked (${score}%)${calibTag}</strong>`;
         facePill.className = 'stat-pill locked';
     }
 
