@@ -11,11 +11,9 @@ from torchvision import transforms
 import torchvision.models as models
 
 from backend.models.video_model import VideoClassifier
-from backend.services.audio_service import AudioInferenceService
-from backend.services.text_service import TextInferenceService
-from backend.services.fusion_service import MultimodalFusionService, EMOTIONS
-from backend.services.transcription_service import TranscriptionService
 from backend.utils.file_utils import temporary_upload_file
+
+EMOTIONS = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
 
 logger = logging.getLogger("multimodal_backend.webcam")
 
@@ -64,10 +62,10 @@ class WebcamService:
         self.client_states: Dict[str, Dict[str, Any]] = {}
         
         # Multimodal sub-services (instantiated on demand for multimodal stream)
-        self._audio_service: Optional[AudioInferenceService] = None
-        self._text_service: Optional[TextInferenceService] = None
-        self._fusion_service: Optional[MultimodalFusionService] = None
-        self._transcription_service: Optional[TranscriptionService] = None
+        self._audio_service: Optional[Any] = None
+        self._text_service: Optional[Any] = None
+        self._fusion_service: Optional[Any] = None
+        self._transcription_service: Optional[Any] = None
         
         self.load_models()
 
@@ -165,7 +163,11 @@ class WebcamService:
                 "baseline_logits": None,
                 "is_calibrating": False,
                 "calibration_buffer": [],
-                "history": []
+                "history": [],
+                "current_label": None,
+                "candidate_label": None,
+                "candidate_count": 0,
+                "last_good_prediction": None
             }
         return self.client_states[client_id]
 
@@ -322,29 +324,41 @@ class WebcamService:
 
         # --- FACIAL CROP & AFFINE EYE ALIGNMENT ---
         fx, fy, fw, fh = best_face_bbox
-        # Add 22% margin to include jaw, brow, and forehead cues
-        mx, my = int(fw * 0.22), int(fh * 0.22)
-        x1, y1 = max(0, fx - mx), max(0, fy - my)
-        x2, y2 = min(w, fx + fw + mx), min(h, fy + fh + my)
-
-        # Affine eye alignment: eliminate head tilt angle so facial geometry is canonical
         aligned_img = img
         eye_dist = 40.0
+        tilt_angle = 0.0
+
         if len(raw_landmarks) == 5:
             re, le = raw_landmarks[0], raw_landmarks[1]
             dx = float(le[0] - re[0])
             dy = float(le[1] - re[1])
             eye_dist = max(2.0, float(np.hypot(dx, dy)))
             tilt_angle = float(np.degrees(np.arctan2(dy, dx)))
-            if 2.0 < abs(tilt_angle) < 45.0:
+            if 1.5 < abs(tilt_angle) < 45.0:
                 eye_center = (float((re[0] + le[0]) / 2.0), float((re[1] + le[1]) / 2.0))
                 rot_mat = cv2.getRotationMatrix2D(eye_center, tilt_angle, 1.0)
                 aligned_img = cv2.warpAffine(img, rot_mat, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
 
+        # Consistent square crop with 25% padding centered on face
+        cx = fx + fw // 2
+        cy = fy + fh // 2
+        crop_size = int(max(fw, fh) * 1.25)
+        x1 = max(0, cx - crop_size // 2)
+        y1 = max(0, cy - crop_size // 2)
+        x2 = min(w, x1 + crop_size)
+        y2 = min(h, y1 + crop_size)
         face_crop = aligned_img[y1:y2, x1:x2]
 
         if face_crop.shape[0] < 10 or face_crop.shape[1] < 10:
-            face_crop = img # fallback to whole image if crop degenerates
+            face_crop = img  # fallback to whole image if crop degenerates
+
+        # Quality assessment: blur (Laplacian variance), detection confidence, size, off-angle
+        gray_crop = cv2.cvtColor(face_crop, cv2.COLOR_BGR2GRAY) if face_crop.ndim == 3 else face_crop
+        laplacian_var = float(cv2.Laplacian(gray_crop, cv2.CV_64F).var()) if gray_crop.size > 0 else 0.0
+        is_blurry = laplacian_var < 30.0
+        is_low_conf = face_confidence < 0.50
+        is_too_small = (fw < 36 or fh < 36)
+        is_off_angle = abs(tilt_angle) >= 45.0
 
         # Lighting assessment & CLAHE enhancement
         try:
@@ -361,9 +375,21 @@ class WebcamService:
             contrast_std = 50.0
 
         quality_status = "optimal"
-        if mean_lum < 35.0:
+        if is_blurry:
+            quality_status = "motion_blur"
+            warnings.append("Blurry face detected; maintaining previous stable prediction.")
+        elif is_low_conf:
+            quality_status = "low_confidence"
+            warnings.append("Low face detection confidence; maintaining previous prediction.")
+        elif is_too_small:
+            quality_status = "face_too_small"
+            warnings.append("Face crop is small; expression confidence may be reduced.")
+        elif is_off_angle:
+            quality_status = "off_angle"
+            warnings.append("Extreme head angle detected.")
+        elif mean_lum < 35.0:
             quality_status = "low_light"
-            warnings.append("Low lighting detected; visual expression confidence may be reduced.")
+            warnings.append("Low lighting detected.")
         elif mean_lum > 225.0:
             quality_status = "overexposed"
             warnings.append("Harsh / overexposed lighting detected on face.")
@@ -371,8 +397,42 @@ class WebcamService:
             quality_status = "low_contrast"
             warnings.append("Low facial contrast detected.")
 
-        # --- DEEP VISION MODEL INFERENCE (EfficientNet-B0 or legacy ResNet-50) ---
-        img_size = self._img_size if hasattr(self, '_img_size') else 224
+        # If quality gate severely fails and a previous good prediction exists, hold it
+        if (is_blurry or is_low_conf) and client.get("last_good_prediction") is not None:
+            held = client["last_good_prediction"]
+            latency_ms = (time.time() - t0) * 1000.0
+            bbox_norm = {
+                "x": round(fx / w, 4),
+                "y": round(fy / h, 4),
+                "width": round(fw / w, 4),
+                "height": round(fh / h, 4),
+                "raw_px": [fx, fy, fw, fh]
+            }
+            return {
+                "status": "success",
+                "face_detected": True,
+                "faces_count": faces_detected,
+                "bbox": bbox_norm,
+                "landmarks": landmarks_norm,
+                "face_score": round(face_confidence, 3),
+                "apparent_expression": held["expression"],
+                "calibrated_confidence": round(held["conf"] * 0.95, 4),
+                "confidence_tier": held.get("tier", "Moderate"),
+                "raw_confidence": round(held.get("raw_conf", held["conf"]), 4),
+                "probabilities": held["probabilities"],
+                "fps": round(rolling_fps, 1),
+                "latency_ms": round(latency_ms, 1),
+                "quality_status": quality_status,
+                "smoothing_applied": apply_smoothing,
+                "is_calibrated": client.get("baseline_logits") is not None,
+                "calibration_status": "active" if client.get("baseline_logits") is not None else "idle",
+                "disclaimer": "Apparent facial expression detected from visual cues. Does not determine internal affective state.",
+                "history": client["history"][-10:],
+                "warnings": warnings
+            }
+
+        # --- DEEP VISION MODEL INFERENCE ---
+        img_size = self._img_size if hasattr(self, '_img_size') else 96
         resized = cv2.resize(face_enhanced, (img_size, img_size))
         rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
         tensor = torch.from_numpy(rgb).permute(2, 0, 1).float() / 255.0
@@ -380,84 +440,27 @@ class WebcamService:
 
         with torch.no_grad():
             if self._architecture == "efficientnet_b0":
-                # EfficientNet-B0: single forward pass, outputs 7-class logits
                 logits = self.backbone(tensor)
-                resnet_logits = logits[0].cpu().numpy()
+                model_logits = logits[0].cpu().numpy()
             else:
-                # Legacy: ResNet-50 feature extractor + VideoClassifier MLP head
                 feat = self.backbone(tensor)
                 logits = self.classifier(feat)
-                resnet_logits = logits[0].cpu().numpy()
+                model_logits = logits[0].cpu().numpy()
 
-        # --- BIOMETRIC FACIAL ACTION UNIT (FACS) GEOMETRY ---
-        # EMOTIONS: ['anger', 'disgust', 'fear', 'joy', 'neutral', 'sadness', 'surprise']
-        geom_logits = np.zeros(7, dtype=np.float32)
-        if len(raw_landmarks) == 5:
-            re, le, nt, rc, lc = [np.array(pt, dtype=np.float32) for pt in raw_landmarks]
-            if eye_dist > 2.0:
-                mouth_w = np.hypot(lc[0] - rc[0], lc[1] - rc[1])
-                mouth_ratio = mouth_w / eye_dist
-                mouth_cy = (rc[1] + lc[1]) / 2.0
-                nose_mouth_y = (mouth_cy - nt[1]) / eye_dist
-                eye_cy = (re[1] + le[1]) / 2.0
-                eye_mouth_ratio = (mouth_cy - eye_cy) / eye_dist
+        # Prior debiasing: minimal adjustment for blank frame
+        prior_bias = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
+        adjusted_logits = model_logits - prior_bias
 
-                # 1. NEUTRAL: Symmetrical resting baseline proportions
-                # In standard webcam view, resting mouth width ratio is ~0.76-0.93,
-                # vertical nose-to-mouth ratio is ~0.31-0.45, and eye-to-mouth is ~0.87-1.03.
-                is_resting = (0.75 <= mouth_ratio <= 0.93) and (0.31 <= nose_mouth_y <= 0.45) and (0.87 <= eye_mouth_ratio <= 1.03)
-                if is_resting:
-                    geom_logits[4] += 2.6  # Dominant boost for Neutral
-                    geom_logits[0] -= 1.8  # Suppress false Anger
-                    geom_logits[2] -= 1.8  # Suppress false Fear
-                    geom_logits[3] -= 0.8  # Dampen unearned Joy
-                    geom_logits[5] -= 1.8  # Suppress false Sadness
-
-                # 2. SURPRISE: Jaw drop / elongated nose-to-mouth and eye-to-mouth distance
-                if nose_mouth_y > 0.46 or eye_mouth_ratio > 1.04:
-                    jaw_drop = max(0.0, (nose_mouth_y - 0.46) * 12.0) + max(0.0, (eye_mouth_ratio - 1.04) * 10.0)
-                    geom_logits[6] += jaw_drop + 2.5  # Dominant boost for Surprise
-                    geom_logits[2] += jaw_drop * 0.3  # Mild fear association
-                    geom_logits[4] -= 1.5  # Suppress neutral
-                    geom_logits[0] -= 2.0  # Suppress anger
-                    geom_logits[5] -= 2.0  # Suppress sadness
-
-                # 3. JOY (Smiles): Mouth widening beyond resting width
-                if mouth_ratio > 0.93:
-                    smile_boost = (mouth_ratio - 0.93) * 8.0 + 1.5
-                    geom_logits[3] += smile_boost  # Dominant boost for Joy
-                    geom_logits[4] -= 1.0  # Suppress neutral
-                    geom_logits[0] -= 2.0  # Suppress anger
-                    geom_logits[5] -= 2.5  # Suppress sadness
-
-                # 4. ANGER: Tight mouth width and compressed face height
-                if mouth_ratio < 0.74 and nose_mouth_y < 0.38:
-                    geom_logits[0] += 1.2
-                    geom_logits[4] -= 0.8
-
-                # 5. DISGUST: Wrinkled nose & compressed upper lip (genuine nose scrunch)
-                if nose_mouth_y < 0.28:
-                    disgust_boost = (0.28 - nose_mouth_y) * 10.0 + 1.0
-                    geom_logits[1] += disgust_boost
-                    geom_logits[4] -= 0.8
-
-        # --- CLASS PRIOR DE-BIASING ---
-        # For the new EfficientNet model trained on face crops: minimal de-biasing needed
-        # For legacy ResNet+MLP (TV show trained): strong de-biasing required
-        if self._architecture == "efficientnet_b0":
-            # Trained on face crops — only small geometry assist, no prior correction needed
-            prior_bias = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
-        else:
-            # Legacy MELD-trained model: heavily biased toward JOY/SADNESS — apply full de-biasing
-            prior_bias = np.array([0.40, 0.0, 0.40, 0.0, -0.60, 0.40, 0.0], dtype=np.float32)
-        adjusted_logits = resnet_logits - prior_bias + geom_logits
-
-        # --- PERSONAL RESTING FACE CALIBRATION (CANCELS RESTING BIAS) ---
+        # --- PERSONAL RESTING FACE CALIBRATION (LOGIT-BIAS OFFSET) ---
         calib_status = "idle"
         if calibrate or client.get("is_calibrating", False):
             client["calibration_buffer"].append(adjusted_logits.copy())
             if len(client["calibration_buffer"]) >= 15:
-                client["baseline_logits"] = np.mean(client["calibration_buffer"], axis=0)
+                # Baseline neutral offset: compute mean resting face logits
+                mean_resting = np.mean(client["calibration_buffer"], axis=0)
+                target_neutral = np.zeros(7, dtype=np.float32)
+                target_neutral[4] = 1.0  # Class 4 is neutral
+                client["baseline_logits"] = mean_resting - target_neutral
                 client["is_calibrating"] = False
                 client["calibration_buffer"] = []
                 calib_status = "complete"
@@ -466,35 +469,17 @@ class WebcamService:
                 calib_status = f"calibrating ({len(client['calibration_buffer'])}/15)"
         elif client.get("baseline_logits") is not None:
             calib_status = "active"
-            # Subtract resting baseline offset so real expression deviations stand out clearly
-            baseline_offset = client["baseline_logits"] - np.mean(client["baseline_logits"])
-            adjusted_logits = adjusted_logits - 0.45 * baseline_offset
+            adjusted_logits = adjusted_logits - 0.50 * client["baseline_logits"]
 
         raw_probs = torch.softmax(torch.from_numpy(adjusted_logits), dim=-1).numpy()
         raw_pred_idx = int(np.argmax(raw_probs))
         raw_conf = float(raw_probs[raw_pred_idx])
 
-        # --- 3-TIER VELOCITY-ADAPTIVE TEMPORAL EMA SMOOTHING ---
+        # --- ADAPTIVE TEMPORAL SMOOTHING (CONFIDENCE-WEIGHTED EMA) ---
         if apply_smoothing:
             if client["ema_probs"] is not None:
-                # Landmark movement velocity
-                lm_velocity = 0.0
-                if client.get("last_landmarks") is not None and len(raw_landmarks) == 5:
-                    curr_pts = np.array(raw_landmarks, dtype=np.float32)
-                    prev_pts = np.array(client["last_landmarks"], dtype=np.float32)
-                    lm_velocity = float(np.mean(np.linalg.norm(curr_pts - prev_pts, axis=1))) / (eye_dist + 1e-4)
-
-                prob_velocity = float(np.sum(np.abs(raw_probs - client["ema_probs"])))
-                total_velocity = prob_velocity + lm_velocity * 1.5
-
-                # Fast attack (alpha=0.65) for intentional transitions, stable hold (alpha=0.18) for steady expressions
-                if total_velocity > 0.35:
-                    alpha = 0.65  # Clean responsive attack without erratic frame spikes
-                elif total_velocity > 0.18:
-                    alpha = 0.38  # Smooth transition
-                else:
-                    alpha = 0.18  # Rock-solid hold
-
+                # Dynamic alpha based on model confidence: confident frames react faster, uncertain frames hold
+                alpha = float(np.clip(0.20 + 0.35 * raw_conf, 0.18, 0.55))
                 smoothed_probs = alpha * raw_probs + (1.0 - alpha) * client["ema_probs"]
                 smoothed_probs /= np.sum(smoothed_probs)
             else:
@@ -505,7 +490,7 @@ class WebcamService:
 
         client["last_landmarks"] = raw_landmarks
 
-        # --- BALANCED TEMPERATURE CALIBRATION (T*=0.85) ---
+        # --- TEMPERATURE CALIBRATION ---
         log_p = np.log(np.clip(smoothed_probs, 1e-6, 1.0))
         centered_logits = log_p - np.mean(log_p)
         temperature = 0.85
@@ -513,9 +498,39 @@ class WebcamService:
         exp_logits = np.exp(scaled_logits - np.max(scaled_logits))
         calibrated_probs = exp_logits / np.sum(exp_logits)
 
-        cal_pred_idx = int(np.argmax(calibrated_probs))
-        predicted_expression = self.idx_to_label[cal_pred_idx].upper()
-        calibrated_conf = float(calibrated_probs[cal_pred_idx])
+        # --- HYSTERESIS STATE MACHINE ---
+        # Prevents flickering: switching requires candidate to beat current by margin for N=3 frames
+        top_idx = int(np.argmax(calibrated_probs))
+        top_label = self.idx_to_label[top_idx].upper()
+
+        if client.get("current_label") is None:
+            client["current_label"] = top_label
+            client["candidate_label"] = None
+            client["candidate_count"] = 0
+        else:
+            curr_label = client["current_label"]
+            curr_idx = self.label_mapping[curr_label.lower()]
+            curr_prob = float(calibrated_probs[curr_idx])
+            top_prob = float(calibrated_probs[top_idx])
+            margin = 0.12
+
+            if top_label != curr_label and (top_prob > curr_prob + margin):
+                if top_label == client.get("candidate_label"):
+                    client["candidate_count"] = client.get("candidate_count", 0) + 1
+                    if client["candidate_count"] >= 3:
+                        client["current_label"] = top_label
+                        client["candidate_label"] = None
+                        client["candidate_count"] = 0
+                else:
+                    client["candidate_label"] = top_label
+                    client["candidate_count"] = 1
+            else:
+                client["candidate_label"] = None
+                client["candidate_count"] = 0
+
+        predicted_expression = client["current_label"]
+        pred_idx = self.label_mapping[predicted_expression.lower()]
+        calibrated_conf = float(calibrated_probs[pred_idx])
 
         prob_dict = {
             self.idx_to_label[i]: round(float(calibrated_probs[i]), 4)
@@ -532,6 +547,16 @@ class WebcamService:
             warnings.append(f"Moderate expression intensity ({calibrated_conf:.1%}); expression cues appear subtle.")
 
         latency_ms = (time.time() - t0) * 1000.0
+
+        # Cache last good prediction for quality gating
+        if quality_status == "optimal":
+            client["last_good_prediction"] = {
+                "expression": predicted_expression,
+                "conf": calibrated_conf,
+                "raw_conf": raw_conf,
+                "tier": conf_tier,
+                "probabilities": prob_dict
+            }
 
         # Convert bbox and landmarks to normalized percentages for responsive frontend canvas scaling
         bbox_norm = {
@@ -615,12 +640,16 @@ class WebcamService:
 
         # 2. Instantiate audio & fusion services on demand if not yet loaded
         if self._audio_service is None:
+            from backend.services.audio_service import AudioInferenceService
             self._audio_service = AudioInferenceService()
         if self._text_service is None:
+            from backend.services.text_service import TextInferenceService
             self._text_service = TextInferenceService()
         if self._fusion_service is None:
+            from backend.services.fusion_service import MultimodalFusionService
             self._fusion_service = MultimodalFusionService()
         if self._transcription_service is None:
+            from backend.services.transcription_service import TranscriptionService
             self._transcription_service = TranscriptionService()
 
         # 3. Process live audio chunk
