@@ -1,0 +1,257 @@
+{
+  "pipeline": "original_baseline_v2",
+  "timestamp": "2026-11-24T18:29:17",
+  "clips": {
+    "Anger.mp4": {
+      "filename": "Anger.mp4",
+      "ground_truth": "anger",
+      "total_frames": 101,
+      "duration_sec": 6.72,
+      "native_fps": 15.03,
+      "frame_accuracy_pct": 0.0,
+      "mid60_accuracy_pct": 0.0,
+      "majority_vote_label": "surprise",
+      "majority_vote_correct": false,
+      "time_to_first_correct_ms": null,
+      "flicker_rate": 4.166,
+      "avg_correct_class_confidence": 0.0055,
+      "mean_latency_ms": 154.18,
+      "distribution": {
+        "surprise": 85,
+        "joy": 7,
+        "neutral": 9
+      }
+    },
+    "disgust.mp4": {
+      "filename": "disgust.mp4",
+      "ground_truth": "disgust",
+      "total_frames": 89,
+      "duration_sec": 5.92,
+      "native_fps": 15.03,
+      "frame_accuracy_pct": 0.0,
+      "mid60_accuracy_pct": 0.0,
+      "majority_vote_label": "surprise",
+      "majority_vote_correct": false,
+      "time_to_first_correct_ms": null,
+      "flicker_rate": 0.676,
+      "avg_correct_class_confidence": 0.0046,
+      "mean_latency_ms": 136.79,
+      "distribution": {
+        "surprise": 83,
+        "neutral": 5,
+        "sadness": 1
+      }
+    },
+    "Fear.mp4": {
+      "filename": "Fear.mp4",
+      "ground_truth": "fear",
+      "total_frames": 83,
+      "duration_sec": 5.52,
+      "native_fps": 15.03,
+      "frame_accuracy_pct": 0.0,
+      "mid60_accuracy_pct": 0.0,
+      "majority_vote_label": "surprise",
+      "majority_vote_correct": false,
+      "time_to_first_correct_ms": null,
+      "flicker_rate": 0.362,
+      "avg_correct_class_confidence": 0.0014,
+      "mean_latency_ms": 161.79,
+      "distribution": {
+        "surprise": 81,
+        "neutral": 2
+      }
+    },
+    "Joy.mp4": {
+      "filename": "Joy.mp4",
+      "ground_truth": "joy",
+      "total_frames": 115,
+      "duration_sec": 7.65,
+      "native_fps": 15.03,
+      "frame_accuracy_pct": 0.0,
+      "mid60_accuracy_pct": 0.0,
+      "majority_vote_label": "neutral",
+      "majority_vote_correct": false,
+      "time_to_first_correct_ms": null,
+      "flicker_rate": 0.0,
+      "avg_correct_class_confidence": 0.0319,
+      "mean_latency_ms": 140.26,
+      "distribution": {
+        "neutral": 115
+      }
+    },
+    "Neutal.mp4": {
+      "filename": "Neutal.mp4",
+      "ground_truth": "neutral",
+      "total_frames": 99,
+      "duration_sec": 6.58,
+      "native_fps": 15.05,
+      "frame_accuracy_pct": 1.01,
+      "mid60_accuracy_pct": 0.0,
+      "majority_vote_label": "surprise",
+      "majority_vote_correct": false,
+      "time_to_first_correct_ms": 597.9,
+      "flicker_rate": 0.304,
+      "avg_correct_class_confidence": 0.0235,
+      "mean_latency_ms": 135.16,
+      "distribution": {
+        "surprise": 98,
+        "neutral": 1
+      }
+    },
+    "sadness.mp4": {
+      "filename": "sadness.mp4",
+      "ground_truth": "sadness",
+      "total_frames": 93,
+      "duration_sec": 6.19,
+      "native_fps": 15.02,
+      "frame_accuracy_pct": 0.0,
+      "mid60_accuracy_pct": 0.0,
+      "majority_vote_label": "surprise",
+      "majority_vote_correct": false,
+      "time_to_first_correct_ms": null,
+      "flicker_rate": 0.0,
+      "avg_correct_class_confidence": 0.0031,
+      "mean_latency_ms": 172.04,
+      "distribution": {
+        "surprise": 93
+      }
+    },
+    "surprise.mp4": {
+      "filename": "surprise.mp4",
+      "ground_truth": "surprise",
+      "total_frames": 84,
+      "duration_sec": 6.26,
+      "native_fps": 13.42,
+      "frame_accuracy_pct": 85.71,
+      "mid60_accuracy_pct": 88.24,
+      "majority_vote_label": "surprise",
+      "majority_vote_correct": true,
+      "time_to_first_correct_ms": 74.5,
+      "flicker_rate": 2.237,
+      "avg_correct_class_confidence": 0.7382,
+      "mean_latency_ms": 139.59,
+      "distribution": {
+        "neutral": 11,
+        "surprise": 72,
+        "joy": 1
+      }
+    }
+  },
+  "summary": {
+    "pipeline_name": "original_baseline_v2",
+    "total_clips": 7,
+    "majority_correct_count": 1,
+    "majority_accuracy_pct": 14.29,
+    "mean_full_accuracy_pct": 12.39,
+    "mean_mid60_accuracy_pct": 12.61,
+    "overall_frame_accuracy_pct": 10.99,
+    "macro_f1": 0.0357,
+    "per_class_f1": {
+      "anger": 0.0,
+      "disgust": 0.0,
+      "fear": 0.0,
+      "joy": 0.0,
+      "neutral": 0.0083,
+      "sadness": 0.0,
+      "surprise": 0.2416
+    },
+    "per_class_precision": {
+      "anger": 0.0,
+      "disgust": 0.0,
+      "fear": 0.0,
+      "joy": 0.0,
+      "neutral": 0.007,
+      "sadness": 0.0,
+      "surprise": 0.1406
+    },
+    "per_class_recall": {
+      "anger": 0.0,
+      "disgust": 0.0,
+      "fear": 0.0,
+      "joy": 0.0,
+      "neutral": 0.0101,
+      "sadness": 0.0,
+      "surprise": 0.8571
+    },
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        7,
+        9,
+        0,
+        85
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        5,
+        1,
+        83
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        81
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        115,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        98
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        93
+      ],
+      [
+        0,
+        0,
+        0,
+        1,
+        11,
+        0,
+        72
+      ]
+    ],
+    "confusion_flags": {
+      "sadness_vs_neutral": {
+        "sadness_predicted_as_neutral_frames": 0,
+        "neutral_predicted_as_sadness_frames": 0,
+        "neutral_clip_sadness_fp_rate": 0.0
+      },
+      "fear_vs_surprise": {
+        "fear_predicted_as_surprise_frames": 81,
+        "surprise_predicted_as_fear_frames": 0
+      },
+      "disgust_vs_anger": {
+        "disgust_predicted_as_anger_frames": 0,
+        "anger_predicted_as_disgust_frames": 0
+      }
+    }
+  }
+}
