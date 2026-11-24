@@ -415,6 +415,12 @@ def map_filename_to_emotion(filename: str) -> Optional[str]:
         return "neutral"
     elif "surp" in stem:
         return "surprise"
+    elif "disgust" in stem:
+        return "disgust"
+    elif "fear" in stem:
+        return "fear"
+    elif "sad" in stem:
+        return "sadness"
     return None
 
 
@@ -437,7 +443,10 @@ def evaluate_user_clips(test_dir: str) -> Dict[str, Any]:
         print(f"[ERROR] Test dir {test_dir} not found.")
         return {"status": "error", "message": f"Test dir {test_dir} not found"}
 
-    video_files = sorted(list(test_path.glob("*.mp4")))
+    TARGET_CLIPS = ["anger.mp4", "joy.mp4", "neutal.mp4", "surprise.mp4"]
+    video_files = [f for f in sorted(list(test_path.glob("*.mp4"))) if f.name.lower() in TARGET_CLIPS]
+    if not video_files:
+        video_files = sorted(list(test_path.glob("*.mp4")))
     if not video_files:
         print(f"[ERROR] No MP4 files found in {test_dir}.")
         return {"status": "error", "message": f"No MP4 files in {test_dir}"}

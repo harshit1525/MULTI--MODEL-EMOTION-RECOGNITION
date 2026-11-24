@@ -161,8 +161,10 @@ class WebcamService:
                 "last_bbox": None,
                 "last_landmarks": None,
                 "baseline_logits": None,
+                "baseline_geom": None,
                 "is_calibrating": False,
                 "calibration_buffer": [],
+                "geom_calibration_buffer": [],
                 "history": [],
                 "current_label": None,
                 "candidate_label": None,
@@ -176,7 +178,9 @@ class WebcamService:
         client = self._get_client_state(client_id)
         client["is_calibrating"] = True
         client["calibration_buffer"] = []
+        client["geom_calibration_buffer"] = []
         client["baseline_logits"] = None
+        client["baseline_geom"] = None
         return {"status": "calibrating", "message": "Calibration started. Please hold a neutral facial expression."}
 
     def decode_frame(self, frame_data: Any) -> Optional[np.ndarray]:
@@ -360,15 +364,42 @@ class WebcamService:
         is_too_small = (fw < 36 or fh < 36)
         is_off_angle = abs(tilt_angle) >= 45.0
 
-        # Lighting assessment & CLAHE enhancement
+        # Extract facial landmark geometry ratios
+        geom_ratios = None
+        if len(raw_landmarks) == 5:
+            re, le = raw_landmarks[0], raw_landmarks[1]
+            nose = raw_landmarks[2]
+            rm, lm = raw_landmarks[3], raw_landmarks[4]
+            eye_center = (float(re[0] + le[0]) / 2.0, float(re[1] + le[1]) / 2.0)
+            eye_dist = max(5.0, float(np.hypot(le[0] - re[0], le[1] - re[1])))
+            mouth_center = (float(rm[0] + lm[0]) / 2.0, float(rm[1] + lm[1]) / 2.0)
+            mouth_w = float(np.hypot(lm[0] - rm[0], lm[1] - rm[1])) / eye_dist
+            eye_to_mouth = float(np.hypot(mouth_center[0] - eye_center[0], mouth_center[1] - eye_center[1])) / eye_dist
+            nose_to_mouth = float(np.hypot(mouth_center[0] - nose[0], mouth_center[1] - nose[1])) / eye_dist
+            geom_ratios = {
+                "mouth_w": mouth_w,
+                "eye_to_mouth": eye_to_mouth,
+                "nose_to_mouth": nose_to_mouth
+            }
+
+        # Lighting assessment & exposure normalization (mild gamma vs CLAHE)
+        # Avoids CLAHE shadow amplification on nasolabial folds which induces false disgust
         try:
-            lab = cv2.cvtColor(face_crop, cv2.COLOR_BGR2LAB)
-            l_channel, a_channel, b_channel = cv2.split(lab)
-            mean_lum = float(np.mean(l_channel))
-            contrast_std = float(np.std(l_channel))
-            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-            cl = clahe.apply(l_channel)
-            face_enhanced = cv2.cvtColor(cv2.merge((cl, a_channel, b_channel)), cv2.COLOR_LAB2BGR)
+            gray_l = cv2.cvtColor(face_crop, cv2.COLOR_BGR2GRAY) if face_crop.ndim == 3 else face_crop
+            mean_lum = float(np.mean(gray_l))
+            contrast_std = float(np.std(gray_l))
+            if mean_lum < 60.0:
+                gamma = 1.35
+                inv_gamma = 1.0 / gamma
+                table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+                face_enhanced = cv2.LUT(face_crop, table)
+            elif mean_lum > 195.0:
+                gamma = 0.75
+                inv_gamma = 1.0 / gamma
+                table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+                face_enhanced = cv2.LUT(face_crop, table)
+            else:
+                face_enhanced = face_crop
         except Exception:
             face_enhanced = face_crop
             mean_lum = 128.0
@@ -438,7 +469,7 @@ class WebcamService:
         tensor = torch.from_numpy(rgb).permute(2, 0, 1).float() / 255.0
         tensor = self.norm(tensor).unsqueeze(0).to(self.device)
 
-        with torch.no_grad():
+        with torch.inference_mode():
             if self._architecture == "efficientnet_b0":
                 logits = self.backbone(tensor)
                 model_logits = logits[0].cpu().numpy()
@@ -451,25 +482,71 @@ class WebcamService:
         prior_bias = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
         adjusted_logits = model_logits - prior_bias
 
-        # --- PERSONAL RESTING FACE CALIBRATION (LOGIT-BIAS OFFSET) ---
+        # --- PERSONAL RESTING FACE CALIBRATION (LOGIT-BIAS OFFSET & GEOMETRY) ---
         calib_status = "idle"
         if calibrate or client.get("is_calibrating", False):
             client["calibration_buffer"].append(adjusted_logits.copy())
+            if geom_ratios is not None:
+                client.setdefault("geom_calibration_buffer", []).append(geom_ratios)
             if len(client["calibration_buffer"]) >= 15:
                 # Baseline neutral offset: compute mean resting face logits
                 mean_resting = np.mean(client["calibration_buffer"], axis=0)
                 target_neutral = np.zeros(7, dtype=np.float32)
                 target_neutral[4] = 1.0  # Class 4 is neutral
                 client["baseline_logits"] = mean_resting - target_neutral
+                if client.get("geom_calibration_buffer"):
+                    g_buf = client["geom_calibration_buffer"]
+                    client["baseline_geom"] = {
+                        "mouth_w": float(np.mean([g["mouth_w"] for g in g_buf])),
+                        "eye_to_mouth": float(np.mean([g["eye_to_mouth"] for g in g_buf])),
+                        "nose_to_mouth": float(np.mean([g["nose_to_mouth"] for g in g_buf]))
+                    }
                 client["is_calibrating"] = False
                 client["calibration_buffer"] = []
+                client["geom_calibration_buffer"] = []
                 calib_status = "complete"
             else:
                 client["is_calibrating"] = True
                 calib_status = f"calibrating ({len(client['calibration_buffer'])}/15)"
         elif client.get("baseline_logits") is not None:
             calib_status = "active"
-            adjusted_logits = adjusted_logits - 0.50 * client["baseline_logits"]
+            adjusted_logits = adjusted_logits - 0.45 * client["baseline_logits"]
+
+        # --- RELATIVE ACTION UNIT ADJUSTMENTS ---
+        ref_geom = client.get("baseline_geom") or {
+            "mouth_w": 0.784,
+            "eye_to_mouth": 1.089,
+            "nose_to_mouth": 0.480
+        }
+        if geom_ratios is not None:
+            delta_mw = geom_ratios["mouth_w"] - ref_geom["mouth_w"]
+            delta_eym = geom_ratios["eye_to_mouth"] - ref_geom["eye_to_mouth"]
+            delta_nmy = geom_ratios["nose_to_mouth"] - ref_geom["nose_to_mouth"]
+
+            # AU12 Lip Corner Puller (Joy) - true smile widens mouth significantly
+            if delta_mw > 0.048 and delta_nmy < -0.025:
+                adjusted_logits[3] += 1.8  # Boost Joy
+                adjusted_logits[0] -= 0.8  # Suppress Anger
+                adjusted_logits[4] -= 0.8  # Suppress Neutral
+
+            # AU26 Jaw Drop / AU1+2 Brow Raiser (Surprise) - vertical elongation, not disgust
+            elif delta_eym > 0.024 or delta_nmy > 0.024:
+                adjusted_logits[6] += 2.2  # Boost Surprise
+                adjusted_logits[1] -= 1.8  # Suppress Disgust false positive
+                adjusted_logits[4] -= 0.8  # Suppress Neutral
+
+            # AU4 Brow Lowerer / AU23 Lip Tightener (Anger)
+            elif (delta_nmy < -0.008 or delta_eym < -0.012) and delta_mw < 0.040:
+                adjusted_logits[0] += 1.6  # Boost Anger
+                adjusted_logits[3] -= 0.8  # Suppress Joy
+                adjusted_logits[4] -= 0.6  # Suppress Neutral
+
+            # Resting Neutral State: facial geometry within resting tolerance
+            elif abs(delta_mw) < 0.035 and abs(delta_eym) < 0.015 and abs(delta_nmy) < 0.015:
+                adjusted_logits[4] += 1.2  # Boost Neutral
+                adjusted_logits[1] -= 1.4  # Suppress Disgust false positive
+                adjusted_logits[5] -= 1.0  # Suppress Sadness false positive
+                adjusted_logits[6] -= 1.0  # Suppress Surprise false positive
 
         raw_probs = torch.softmax(torch.from_numpy(adjusted_logits), dim=-1).numpy()
         raw_pred_idx = int(np.argmax(raw_probs))
@@ -512,12 +589,12 @@ class WebcamService:
             curr_idx = self.label_mapping[curr_label.lower()]
             curr_prob = float(calibrated_probs[curr_idx])
             top_prob = float(calibrated_probs[top_idx])
-            margin = 0.12
+            margin = 0.08
 
             if top_label != curr_label and (top_prob > curr_prob + margin):
                 if top_label == client.get("candidate_label"):
                     client["candidate_count"] = client.get("candidate_count", 0) + 1
-                    if client["candidate_count"] >= 3:
+                    if client["candidate_count"] >= 2:
                         client["current_label"] = top_label
                         client["candidate_label"] = None
                         client["candidate_count"] = 0
