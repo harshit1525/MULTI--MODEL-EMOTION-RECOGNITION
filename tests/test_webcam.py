@@ -162,6 +162,56 @@ def test_webcam_filename_normalization():
     assert map_filename_to_emotion("random_clip.mp4") is None
     assert map_filename_to_emotion("user_unknown_video.mp4") is None
 
+def test_rafdb_label_mapping_synthetic():
+    import tempfile, shutil
+    from pathlib import Path
+    from train_rafdb import RAF_FOLDER_TO_EMOTION, RAF_FOLDER_TO_IDX, LABEL_MAPPING
+
+    temp_dir = Path(tempfile.mkdtemp(prefix="test_synthetic_rafdb_"))
+    try:
+        # Create synthetic folders 1..7 with dummy jpg
+        for folder_id in range(1, 8):
+            fpath = temp_dir / str(folder_id)
+            fpath.mkdir()
+            (fpath / "sample.jpg").write_bytes(b"dummy")
+
+        expected_emotions = {
+            "1": "surprise",
+            "2": "fear",
+            "3": "disgust",
+            "4": "joy",
+            "5": "sadness",
+            "6": "anger",
+            "7": "neutral",
+        }
+        for folder_id, expected_emo in expected_emotions.items():
+            assert RAF_FOLDER_TO_EMOTION[folder_id] == expected_emo
+            assert RAF_FOLDER_TO_IDX[folder_id] == LABEL_MAPPING[expected_emo]
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+def test_webcam_model_loading_fallback():
+    from backend.services.webcam_service import WebcamService
+    # Test fallback when an invalid or missing checkpoint path is specified
+    service = WebcamService(video_ckpt="models/video_classifier/non_existent_dummy_model.pth")
+    assert service.is_loaded is True
+    assert service.backbone is not None
+    assert service.label_mapping is not None
+    assert len(service.label_mapping) == 7
+
+def test_emotion_class_order_consistency():
+    from backend.services.webcam_service import EMOTIONS as SERVICE_EMOTIONS
+    from train_rafdb import EMOTIONS as TRAIN_EMOTIONS, LABEL_MAPPING as TRAIN_MAPPING
+    from benchmark_webcam import EMOTIONS as BENCH_EMOTIONS
+
+    fixed_order = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
+    fixed_mapping = {emo: i for i, emo in enumerate(fixed_order)}
+
+    assert SERVICE_EMOTIONS == fixed_order, f"Service emotions mismatch: {SERVICE_EMOTIONS}"
+    assert TRAIN_EMOTIONS == fixed_order, f"Train emotions mismatch: {TRAIN_EMOTIONS}"
+    assert BENCH_EMOTIONS == fixed_order, f"Bench emotions mismatch: {BENCH_EMOTIONS}"
+    assert TRAIN_MAPPING == fixed_mapping, f"Label mapping mismatch: {TRAIN_MAPPING}"
+
 if __name__ == "__main__":
     test_webcam_blank_frame_no_face()
     test_webcam_face_frame_detection()
@@ -171,4 +221,7 @@ if __name__ == "__main__":
     test_webcam_hysteresis_smoothing()
     test_webcam_face_alignment()
     test_webcam_filename_normalization()
+    test_rafdb_label_mapping_synthetic()
+    test_webcam_model_loading_fallback()
+    test_emotion_class_order_consistency()
     print("All webcam unit tests passed!")

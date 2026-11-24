@@ -32,17 +32,31 @@ class WebcamService:
     """
     def __init__(
         self,
-        video_ckpt: str = "models/video_classifier/best_webcam_model.pth",
+        video_ckpt: Optional[str] = None,
         yunet_path: str = "models/face_detection_yunet_2023mar.onnx"
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # Prefer the new EfficientNet-B0 webcam model; fall back to old ResNet model
-        webcam_model = "models/video_classifier/best_webcam_model.pth"
-        legacy_model = "models/video_classifier/best_video_model.pth"
-        if os.path.exists(webcam_model):
-            self.video_ckpt = webcam_model
-        else:
-            self.video_ckpt = legacy_model
+        
+        # Resolve model path from config or parameter with robust fallback
+        candidate_ckpt = video_ckpt
+        if candidate_ckpt is None and os.path.exists("config.yaml"):
+            try:
+                import yaml
+                with open("config.yaml", "r", encoding="utf-8") as f:
+                    cfg = yaml.safe_load(f)
+                    candidate_ckpt = cfg.get("webcam_model_path")
+            except Exception:
+                pass
+
+        if candidate_ckpt is None or not os.path.exists(candidate_ckpt):
+            webcam_model = "models/video_classifier/best_webcam_model.pth"
+            legacy_model = "models/video_classifier/best_video_model.pth"
+            if os.path.exists(webcam_model):
+                candidate_ckpt = webcam_model
+            else:
+                candidate_ckpt = legacy_model
+
+        self.video_ckpt = candidate_ckpt
         self.yunet_path = yunet_path
         
         # Vision backbone — set by load_models() based on checkpoint architecture
@@ -80,6 +94,7 @@ class WebcamService:
         self._img_size = ckpt.get("img_size", 224)
 
         self.norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        self.calibrated_temperature = float(ckpt.get("calibrated_temperature", 0.85))
 
         if self._architecture == "efficientnet_b0":
             # ── NEW: End-to-end EfficientNet-B0 trained on face crops ──────────
@@ -102,6 +117,19 @@ class WebcamService:
             self.backbone = model
             self.classifier = None   # EfficientNet is end-to-end, no separate head needed
             logger.info(f"EfficientNet-B0 loaded. Val acc={ckpt.get('val_acc', 0):.1f}% (epoch {ckpt.get('epoch', '?')})")
+        elif self._architecture == "timm_tf_efficientnet_b0":
+            # ── timm tf_efficientnet_b0 backbone ──────────────────────────────
+            logger.info("Loading timm tf_efficientnet_b0 webcam facial expression model...")
+            import timm
+            model = timm.create_model("tf_efficientnet_b0", num_classes=len(self.label_mapping), pretrained=False)
+            model.load_state_dict(ckpt["model_state_dict"])
+            model.eval()
+            for p in model.parameters():
+                p.requires_grad = False
+            model.to(self.device)
+            self.backbone = model
+            self.classifier = None
+            logger.info(f"timm tf_efficientnet_b0 loaded. Val acc={ckpt.get('val_acc', 0):.1f}% (epoch {ckpt.get('epoch', '?')})")
         else:
             # ── LEGACY: ResNet-50 + VideoClassifier MLP head ─────────────────
             logger.info("Loading legacy ResNet-50 + VideoClassifier backbone...")
@@ -470,7 +498,7 @@ class WebcamService:
         tensor = self.norm(tensor).unsqueeze(0).to(self.device)
 
         with torch.inference_mode():
-            if self._architecture == "efficientnet_b0":
+            if self._architecture in ("efficientnet_b0", "timm_tf_efficientnet_b0"):
                 logits = self.backbone(tensor)
                 model_logits = logits[0].cpu().numpy()
             else:
@@ -570,7 +598,7 @@ class WebcamService:
         # --- TEMPERATURE CALIBRATION ---
         log_p = np.log(np.clip(smoothed_probs, 1e-6, 1.0))
         centered_logits = log_p - np.mean(log_p)
-        temperature = 0.85
+        temperature = getattr(self, "calibrated_temperature", 0.85)
         scaled_logits = centered_logits / temperature
         exp_logits = np.exp(scaled_logits - np.max(scaled_logits))
         calibrated_probs = exp_logits / np.sum(exp_logits)

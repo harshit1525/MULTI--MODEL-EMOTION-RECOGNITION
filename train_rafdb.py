@@ -461,10 +461,18 @@ def train_experiment(
                     {"params": model.classifier.parameters(), "lr": 7e-4},
                 ]
             else:
+                g1, g2, g3 = [], [], []
+                for n, p in model.named_parameters():
+                    if "classifier" in n:
+                        g3.append(p)
+                    elif n.startswith("conv_stem") or n.startswith("bn1.") or n.startswith("blocks.0.") or n.startswith("blocks.1."):
+                        g1.append(p)
+                    else:
+                        g2.append(p)
                 param_groups = [
-                    {"params": [p for n, p in model.named_parameters() if "conv_stem" in n or "bn1" in n or "blocks.0" in n or "blocks.1" in n], "lr": 3e-5},
-                    {"params": [p for n, p in model.named_parameters() if any(f"blocks.{b}" in n for b in range(2, 7)) or "conv_head" in n], "lr": 1e-4},
-                    {"params": model.classifier.parameters(), "lr": 7e-4},
+                    {"params": g1, "lr": 3e-5},
+                    {"params": g2, "lr": 1e-4},
+                    {"params": g3, "lr": 7e-4},
                 ]
             optimizer = optim.AdamW(param_groups, weight_decay=1e-2)
             scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=(epochs - stage1_epochs), eta_min=1e-6)

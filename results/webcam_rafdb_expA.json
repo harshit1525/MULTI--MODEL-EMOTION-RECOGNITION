@@ -1,0 +1,520 @@
+{
+  "candidate": "Exp_A",
+  "checkpoint": "models/video_classifier/best_webcam_model_rafdb_A.pth",
+  "timestamp": "2026-11-24 21:17:14",
+  "calibration": {
+    "optimal_temperature": 0.8697,
+    "validation_ece_before": 0.0498,
+    "validation_ece_after": 0.0389
+  },
+  "rafdb_test": {
+    "total_samples": 3068,
+    "accuracy_pct": 60.37,
+    "macro_f1": 0.4968,
+    "per_class_f1": {
+      "anger": 0.4576,
+      "disgust": 0.2515,
+      "fear": 0.3472,
+      "joy": 0.7855,
+      "neutral": 0.634,
+      "sadness": 0.3886,
+      "surprise": 0.6134
+    },
+    "per_class_precision": {
+      "anger": 0.4219,
+      "disgust": 0.1862,
+      "fear": 0.2336,
+      "joy": 0.8848,
+      "neutral": 0.5531,
+      "sadness": 0.6935,
+      "surprise": 0.662
+    },
+    "per_class_recall": {
+      "anger": 0.5,
+      "disgust": 0.3875,
+      "fear": 0.6757,
+      "joy": 0.7063,
+      "neutral": 0.7426,
+      "sadness": 0.2699,
+      "surprise": 0.5714
+    },
+    "confusion_matrix": [
+      [
+        81,
+        26,
+        18,
+        10,
+        14,
+        6,
+        7
+      ],
+      [
+        10,
+        62,
+        8,
+        11,
+        54,
+        8,
+        7
+      ],
+      [
+        2,
+        2,
+        50,
+        5,
+        9,
+        0,
+        6
+      ],
+      [
+        39,
+        86,
+        36,
+        837,
+        132,
+        20,
+        35
+      ],
+      [
+        14,
+        71,
+        16,
+        29,
+        505,
+        20,
+        25
+      ],
+      [
+        39,
+        70,
+        53,
+        42,
+        129,
+        129,
+        16
+      ],
+      [
+        7,
+        16,
+        33,
+        12,
+        70,
+        3,
+        188
+      ]
+    ]
+  },
+  "meld_heldout": {
+    "total_samples": 699,
+    "accuracy_pct": 17.45,
+    "macro_f1": 0.1462,
+    "per_class_f1": {
+      "anger": 0.2679,
+      "disgust": 0.1727,
+      "fear": 0.2085,
+      "joy": 0.0795,
+      "neutral": 0.2222,
+      "sadness": 0.0157,
+      "surprise": 0.0571
+    },
+    "per_class_precision": {
+      "anger": 0.2139,
+      "disgust": 0.1412,
+      "fear": 0.1274,
+      "joy": 0.1935,
+      "neutral": 0.2057,
+      "sadness": 0.1111,
+      "surprise": 0.2
+    },
+    "per_class_recall": {
+      "anger": 0.3583,
+      "disgust": 0.2222,
+      "fear": 0.5745,
+      "joy": 0.05,
+      "neutral": 0.2417,
+      "sadness": 0.0085,
+      "surprise": 0.0333
+    },
+    "confusion_matrix": [
+      [
+        43,
+        14,
+        35,
+        6,
+        18,
+        2,
+        2
+      ],
+      [
+        14,
+        12,
+        12,
+        1,
+        10,
+        4,
+        1
+      ],
+      [
+        11,
+        2,
+        27,
+        1,
+        6,
+        0,
+        0
+      ],
+      [
+        40,
+        13,
+        38,
+        6,
+        20,
+        0,
+        3
+      ],
+      [
+        31,
+        15,
+        30,
+        10,
+        29,
+        1,
+        4
+      ],
+      [
+        35,
+        16,
+        30,
+        3,
+        27,
+        1,
+        6
+      ],
+      [
+        27,
+        13,
+        40,
+        4,
+        31,
+        1,
+        4
+      ]
+    ]
+  },
+  "user_webcam_clips": {
+    "clips": {
+      "Anger.mp4": {
+        "filename": "Anger.mp4",
+        "ground_truth": "anger",
+        "total_frames": 101,
+        "duration_sec": 6.72,
+        "native_fps": 15.03,
+        "frame_accuracy_pct": 26.73,
+        "mid60_accuracy_pct": 26.67,
+        "majority_vote_label": "disgust",
+        "majority_vote_correct": false,
+        "time_to_first_correct_ms": 598.9,
+        "flicker_rate": 1.488,
+        "avg_correct_class_confidence": 0.2279,
+        "mean_latency_ms": 46.03,
+        "distribution": {
+          "disgust": 44,
+          "anger": 27,
+          "neutral": 16,
+          "surprise": 14
+        }
+      },
+      "Disgust (2).mp4": {
+        "filename": "Disgust (2).mp4",
+        "ground_truth": "disgust",
+        "total_frames": 172,
+        "duration_sec": 11.54,
+        "native_fps": 14.91,
+        "frame_accuracy_pct": 72.67,
+        "mid60_accuracy_pct": 61.17,
+        "majority_vote_label": "disgust",
+        "majority_vote_correct": true,
+        "time_to_first_correct_ms": 201.2,
+        "flicker_rate": 0.953,
+        "avg_correct_class_confidence": 0.3684,
+        "mean_latency_ms": 45.61,
+        "distribution": {
+          "anger": 3,
+          "disgust": 125,
+          "surprise": 35,
+          "joy": 9
+        }
+      },
+      "disgust.mp4": {
+        "filename": "disgust.mp4",
+        "ground_truth": "disgust",
+        "total_frames": 89,
+        "duration_sec": 5.92,
+        "native_fps": 15.03,
+        "frame_accuracy_pct": 55.06,
+        "mid60_accuracy_pct": 79.63,
+        "majority_vote_label": "disgust",
+        "majority_vote_correct": true,
+        "time_to_first_correct_ms": 399.2,
+        "flicker_rate": 1.013,
+        "avg_correct_class_confidence": 0.3248,
+        "mean_latency_ms": 46.63,
+        "distribution": {
+          "neutral": 6,
+          "disgust": 49,
+          "surprise": 34
+        }
+      },
+      "Fear (2).mp4": {
+        "filename": "Fear (2).mp4",
+        "ground_truth": "fear",
+        "total_frames": 80,
+        "duration_sec": 5.31,
+        "native_fps": 15.06,
+        "frame_accuracy_pct": 0.0,
+        "mid60_accuracy_pct": 0.0,
+        "majority_vote_label": "surprise",
+        "majority_vote_correct": false,
+        "time_to_first_correct_ms": null,
+        "flicker_rate": 0.376,
+        "avg_correct_class_confidence": 0.0239,
+        "mean_latency_ms": 46.22,
+        "distribution": {
+          "surprise": 65,
+          "disgust": 15
+        }
+      },
+      "Fear.mp4": {
+        "filename": "Fear.mp4",
+        "ground_truth": "fear",
+        "total_frames": 83,
+        "duration_sec": 5.52,
+        "native_fps": 15.03,
+        "frame_accuracy_pct": 0.0,
+        "mid60_accuracy_pct": 0.0,
+        "majority_vote_label": "disgust",
+        "majority_vote_correct": false,
+        "time_to_first_correct_ms": null,
+        "flicker_rate": 1.449,
+        "avg_correct_class_confidence": 0.0126,
+        "mean_latency_ms": 46.85,
+        "distribution": {
+          "disgust": 36,
+          "surprise": 32,
+          "anger": 11,
+          "neutral": 4
+        }
+      },
+      "Joy.mp4": {
+        "filename": "Joy.mp4",
+        "ground_truth": "joy",
+        "total_frames": 115,
+        "duration_sec": 7.65,
+        "native_fps": 15.03,
+        "frame_accuracy_pct": 100.0,
+        "mid60_accuracy_pct": 100.0,
+        "majority_vote_label": "joy",
+        "majority_vote_correct": true,
+        "time_to_first_correct_ms": 0.0,
+        "flicker_rate": 0.0,
+        "avg_correct_class_confidence": 0.5384,
+        "mean_latency_ms": 46.27,
+        "distribution": {
+          "joy": 115
+        }
+      },
+      "Neutal.mp4": {
+        "filename": "Neutal.mp4",
+        "ground_truth": "neutral",
+        "total_frames": 99,
+        "duration_sec": 6.58,
+        "native_fps": 15.05,
+        "frame_accuracy_pct": 83.84,
+        "mid60_accuracy_pct": 88.33,
+        "majority_vote_label": "neutral",
+        "majority_vote_correct": true,
+        "time_to_first_correct_ms": 398.6,
+        "flicker_rate": 1.064,
+        "avg_correct_class_confidence": 0.4726,
+        "mean_latency_ms": 46.0,
+        "distribution": {
+          "surprise": 16,
+          "neutral": 83
+        }
+      },
+      "sadness.mp4": {
+        "filename": "sadness.mp4",
+        "ground_truth": "sadness",
+        "total_frames": 93,
+        "duration_sec": 6.19,
+        "native_fps": 15.02,
+        "frame_accuracy_pct": 0.0,
+        "mid60_accuracy_pct": 0.0,
+        "majority_vote_label": "neutral",
+        "majority_vote_correct": false,
+        "time_to_first_correct_ms": null,
+        "flicker_rate": 1.292,
+        "avg_correct_class_confidence": 0.0861,
+        "mean_latency_ms": 48.68,
+        "distribution": {
+          "surprise": 22,
+          "anger": 24,
+          "neutral": 44,
+          "disgust": 3
+        }
+      },
+      "surprise.mp4": {
+        "filename": "surprise.mp4",
+        "ground_truth": "surprise",
+        "total_frames": 84,
+        "duration_sec": 6.26,
+        "native_fps": 13.42,
+        "frame_accuracy_pct": 67.86,
+        "mid60_accuracy_pct": 74.51,
+        "majority_vote_label": "surprise",
+        "majority_vote_correct": true,
+        "time_to_first_correct_ms": 1042.9,
+        "flicker_rate": 0.799,
+        "avg_correct_class_confidence": 0.5062,
+        "mean_latency_ms": 44.74,
+        "distribution": {
+          "disgust": 11,
+          "neutral": 13,
+          "surprise": 57,
+          "anger": 3
+        }
+      }
+    },
+    "pooled_summary": {
+      "num_clips": 9,
+      "majority_correct_count": 5,
+      "majority_accuracy_pct": 55.56,
+      "mean_full_accuracy_pct": 45.13,
+      "mean_mid60_accuracy_pct": 47.81,
+      "overall_frame_accuracy_pct": 49.78,
+      "macro_f1": 0.4093,
+      "per_class_f1": {
+        "anger": 0.3195,
+        "disgust": 0.6397,
+        "fear": 0.0,
+        "joy": 0.9623,
+        "neutral": 0.6264,
+        "sadness": 0.0,
+        "surprise": 0.3175
+      },
+      "per_class_precision": {
+        "anger": 0.3971,
+        "disgust": 0.6148,
+        "fear": 0.0,
+        "joy": 0.9274,
+        "neutral": 0.5,
+        "sadness": 0.0,
+        "surprise": 0.2073
+      },
+      "per_class_recall": {
+        "anger": 0.2673,
+        "disgust": 0.6667,
+        "fear": 0.0,
+        "joy": 1.0,
+        "neutral": 0.8384,
+        "sadness": 0.0,
+        "surprise": 0.6786
+      },
+      "per_class_pooled_acc": {
+        "anger": 26.73,
+        "disgust": 66.67,
+        "fear": 0.0,
+        "joy": 100.0,
+        "neutral": 83.84,
+        "sadness": 0.0,
+        "surprise": 67.86
+      },
+      "confusion_matrix": [
+        [
+          27,
+          44,
+          0,
+          0,
+          16,
+          0,
+          14
+        ],
+        [
+          3,
+          174,
+          0,
+          9,
+          6,
+          0,
+          69
+        ],
+        [
+          11,
+          51,
+          0,
+          0,
+          4,
+          0,
+          97
+        ],
+        [
+          0,
+          0,
+          0,
+          115,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          83,
+          0,
+          16
+        ],
+        [
+          24,
+          3,
+          0,
+          0,
+          44,
+          0,
+          22
+        ],
+        [
+          3,
+          11,
+          0,
+          0,
+          13,
+          0,
+          57
+        ]
+      ],
+      "confusion_flags": {
+        "sadness_vs_neutral": {
+          "sadness_predicted_as_neutral_frames": 44,
+          "neutral_predicted_as_sadness_frames": 0,
+          "neutral_clip_sadness_fp_rate": 0.0
+        },
+        "fear_vs_surprise": {
+          "fear_predicted_as_surprise_frames": 97,
+          "surprise_predicted_as_fear_frames": 0
+        },
+        "disgust_vs_anger": {
+          "disgust_predicted_as_anger_frames": 3,
+          "anger_predicted_as_disgust_frames": 44
+        }
+      }
+    }
+  },
+  "latency": {
+    "mean_latency_ms": 6.56,
+    "p50_latency_ms": 6.5,
+    "p95_latency_ms": 7.22,
+    "effective_fps": 152.4
+  }
+}

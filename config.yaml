@@ -51,6 +51,7 @@ text:
 webcam_test_dir: "New folder"
 webcam_extra_data: false
 rafdb_dir: "DATASET"
+webcam_model_path: "models/video_classifier/best_webcam_model.pth"
 video:
   num_frames_sampled: 8
   input_resolution: [224, 224]
