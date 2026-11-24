@@ -48,6 +48,7 @@ text:
     type: "calibrated_logistic_regression"
 
 # Modality 3: Video Pipeline
+webcam_test_dir: "New folder"
 video:
   num_frames_sampled: 8
   input_resolution: [224, 224]

@@ -13,8 +13,13 @@ data/*.pt
 *.wav
 *.mp4
 archive/
+models/video_classifier/face_crops_cache/
+models/video_classifier/*_backup.pth
+Project_Report/
 
 # OS metadata
 .DS_Store
 ._*
 Thumbs.db
+*.log
+

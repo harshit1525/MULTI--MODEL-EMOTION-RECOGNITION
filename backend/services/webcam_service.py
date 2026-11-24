@@ -34,16 +34,24 @@ class WebcamService:
     """
     def __init__(
         self,
-        video_ckpt: str = "models/video_classifier/best_video_model.pth",
+        video_ckpt: str = "models/video_classifier/best_webcam_model.pth",
         yunet_path: str = "models/face_detection_yunet_2023mar.onnx"
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.video_ckpt = video_ckpt
+        # Prefer the new EfficientNet-B0 webcam model; fall back to old ResNet model
+        webcam_model = "models/video_classifier/best_webcam_model.pth"
+        legacy_model = "models/video_classifier/best_video_model.pth"
+        if os.path.exists(webcam_model):
+            self.video_ckpt = webcam_model
+        else:
+            self.video_ckpt = legacy_model
         self.yunet_path = yunet_path
         
-        # Vision backbone and classifier
-        self.resnet: Optional[nn.Module] = None
-        self.classifier: Optional[nn.Module] = None
+        # Vision backbone — set by load_models() based on checkpoint architecture
+        self.backbone: Optional[nn.Module] = None   # EfficientNet-B0 (end-to-end) OR ResNet-50
+        self.classifier: Optional[nn.Module] = None  # Only used for legacy ResNet+MLP path
+        self._architecture: str = "unknown"
+        self._img_size: int = 224
         self.norm: Optional[transforms.Normalize] = None
         self.label_mapping: Optional[Dict[str, int]] = None
         self.idx_to_label: Optional[Dict[int, str]] = None
@@ -67,30 +75,55 @@ class WebcamService:
         if not os.path.exists(self.video_ckpt):
             raise FileNotFoundError(f"Video classifier checkpoint not found at {self.video_ckpt}")
             
-        # 1. ResNet-50 Backbone
-        logger.info("Initializing ResNet-50 backbone for real-time webcam inference...")
-        weights = models.ResNet50_Weights.DEFAULT
-        self.resnet = models.resnet50(weights=weights)
-        self.resnet.fc = nn.Identity()
-        self.resnet.eval()
-        for p in self.resnet.parameters():
-            p.requires_grad = False
-        self.resnet.to(self.device)
-        
-        self.norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        
-        # 2. Facial Classifier Checkpoint
         ckpt = torch.load(self.video_ckpt, map_location=self.device, weights_only=False)
         self.label_mapping = ckpt["label_mapping"]
         self.idx_to_label = {v: k for k, v in self.label_mapping.items()}
-        input_dim = ckpt.get("input_dim", 2048)
-        
-        self.classifier = VideoClassifier(input_dim=input_dim, num_classes=len(self.label_mapping))
-        self.classifier.load_state_dict(ckpt["model_state_dict"])
-        self.classifier.to(self.device)
-        self.classifier.eval()
-        for p in self.classifier.parameters():
-            p.requires_grad = False
+        self._architecture = ckpt.get("architecture", "resnet50_mlp")
+        self._img_size = ckpt.get("img_size", 224)
+
+        self.norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+
+        if self._architecture == "efficientnet_b0":
+            # ── NEW: End-to-end EfficientNet-B0 trained on face crops ──────────
+            logger.info("Loading EfficientNet-B0 webcam facial expression model...")
+            from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
+            model = efficientnet_b0(weights=None)
+            in_features = model.classifier[1].in_features  # 1280
+            model.classifier = nn.Sequential(
+                nn.Dropout(p=0.35, inplace=True),
+                nn.Linear(in_features, 256),
+                nn.SiLU(),
+                nn.Dropout(p=0.25),
+                nn.Linear(256, len(self.label_mapping)),
+            )
+            model.load_state_dict(ckpt["model_state_dict"])
+            model.eval()
+            for p in model.parameters():
+                p.requires_grad = False
+            model.to(self.device)
+            self.backbone = model
+            self.classifier = None   # EfficientNet is end-to-end, no separate head needed
+            logger.info(f"EfficientNet-B0 loaded. Val acc={ckpt.get('val_acc', 0):.1f}% (epoch {ckpt.get('epoch', '?')})")
+        else:
+            # ── LEGACY: ResNet-50 + VideoClassifier MLP head ─────────────────
+            logger.info("Loading legacy ResNet-50 + VideoClassifier backbone...")
+            weights = models.ResNet50_Weights.DEFAULT
+            resnet = models.resnet50(weights=weights)
+            resnet.fc = nn.Identity()
+            resnet.eval()
+            for p in resnet.parameters():
+                p.requires_grad = False
+            resnet.to(self.device)
+            self.backbone = resnet   # stored as backbone for inference
+
+            input_dim = ckpt.get("input_dim", 2048)
+            self.classifier = VideoClassifier(input_dim=input_dim, num_classes=len(self.label_mapping))
+            self.classifier.load_state_dict(ckpt["model_state_dict"])
+            self.classifier.to(self.device)
+            self.classifier.eval()
+            for p in self.classifier.parameters():
+                p.requires_grad = False
+            logger.info("Legacy ResNet-50+MLP loaded. Note: accuracy may be lower for webcam faces.")
             
         # 3. OpenCV YuNet Face Detector
         if os.path.exists(self.yunet_path):
@@ -184,7 +217,7 @@ class WebcamService:
         5. Classifies facial expression using ResNet-50 + VideoClassifier.
         6. Dynamic personal baseline subtraction to cancel resting face bias.
         7. Stabilizes output via 3-tier Fast-Attack / Slow-Decay Velocity-Adaptive EMA.
-        8. Calibrates probabilities with Centered Bayesian Logit Consensus (T*=0.45).
+        8. Calibrates probabilities with Centered Bayesian Logit Consensus (T*=0.85).
         """
         t0 = time.time()
         client = self._get_client_state(client_id)
@@ -338,16 +371,23 @@ class WebcamService:
             quality_status = "low_contrast"
             warnings.append("Low facial contrast detected.")
 
-        # --- DEEP RESNET-50 INFERENCE ---
-        resized = cv2.resize(face_enhanced, (224, 224))
+        # --- DEEP VISION MODEL INFERENCE (EfficientNet-B0 or legacy ResNet-50) ---
+        img_size = self._img_size if hasattr(self, '_img_size') else 224
+        resized = cv2.resize(face_enhanced, (img_size, img_size))
         rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
         tensor = torch.from_numpy(rgb).permute(2, 0, 1).float() / 255.0
         tensor = self.norm(tensor).unsqueeze(0).to(self.device)
 
         with torch.no_grad():
-            feat = self.resnet(tensor)
-            logits = self.classifier(feat)
-            resnet_logits = logits[0].cpu().numpy()
+            if self._architecture == "efficientnet_b0":
+                # EfficientNet-B0: single forward pass, outputs 7-class logits
+                logits = self.backbone(tensor)
+                resnet_logits = logits[0].cpu().numpy()
+            else:
+                # Legacy: ResNet-50 feature extractor + VideoClassifier MLP head
+                feat = self.backbone(tensor)
+                logits = self.classifier(feat)
+                resnet_logits = logits[0].cpu().numpy()
 
         # --- BIOMETRIC FACIAL ACTION UNIT (FACS) GEOMETRY ---
         # EMOTIONS: ['anger', 'disgust', 'fear', 'joy', 'neutral', 'sadness', 'surprise']
@@ -359,41 +399,57 @@ class WebcamService:
                 mouth_ratio = mouth_w / eye_dist
                 mouth_cy = (rc[1] + lc[1]) / 2.0
                 nose_mouth_y = (mouth_cy - nt[1]) / eye_dist
+                eye_cy = (re[1] + le[1]) / 2.0
+                eye_mouth_ratio = (mouth_cy - eye_cy) / eye_dist
 
-                # 1. JOY (Smiles): Mouth widening and cheek elevation
-                if mouth_ratio > 0.88:
-                    joy_boost = (mouth_ratio - 0.88) * 4.5 + 0.6
-                    geom_logits[3] += joy_boost
-                    geom_logits[4] -= 0.6  # suppress neutral
-                    geom_logits[5] -= 1.4  # suppress sadness
-                if mouth_ratio > 0.96:
-                    geom_logits[3] += 1.4
-                    geom_logits[5] -= 1.8
+                # 1. NEUTRAL: Symmetrical resting baseline proportions
+                # In standard webcam view, resting mouth width ratio is ~0.76-0.93,
+                # vertical nose-to-mouth ratio is ~0.31-0.45, and eye-to-mouth is ~0.87-1.03.
+                is_resting = (0.75 <= mouth_ratio <= 0.93) and (0.31 <= nose_mouth_y <= 0.45) and (0.87 <= eye_mouth_ratio <= 1.03)
+                if is_resting:
+                    geom_logits[4] += 2.6  # Dominant boost for Neutral
+                    geom_logits[0] -= 1.8  # Suppress false Anger
+                    geom_logits[2] -= 1.8  # Suppress false Fear
+                    geom_logits[3] -= 0.8  # Dampen unearned Joy
+                    geom_logits[5] -= 1.8  # Suppress false Sadness
 
-                # 2. SURPRISE: Jaw drop / elongated nose-to-mouth distance
-                if nose_mouth_y > 0.72:
-                    jaw_drop = (nose_mouth_y - 0.72) * 5.0
-                    geom_logits[6] += jaw_drop
-                    geom_logits[2] += jaw_drop * 0.4
+                # 2. SURPRISE: Jaw drop / elongated nose-to-mouth and eye-to-mouth distance
+                if nose_mouth_y > 0.46 or eye_mouth_ratio > 1.04:
+                    jaw_drop = max(0.0, (nose_mouth_y - 0.46) * 12.0) + max(0.0, (eye_mouth_ratio - 1.04) * 10.0)
+                    geom_logits[6] += jaw_drop + 2.5  # Dominant boost for Surprise
+                    geom_logits[2] += jaw_drop * 0.3  # Mild fear association
+                    geom_logits[4] -= 1.5  # Suppress neutral
+                    geom_logits[0] -= 2.0  # Suppress anger
+                    geom_logits[5] -= 2.0  # Suppress sadness
+
+                # 3. JOY (Smiles): Mouth widening beyond resting width
+                if mouth_ratio > 0.93:
+                    smile_boost = (mouth_ratio - 0.93) * 8.0 + 1.5
+                    geom_logits[3] += smile_boost  # Dominant boost for Joy
+                    geom_logits[4] -= 1.0  # Suppress neutral
+                    geom_logits[0] -= 2.0  # Suppress anger
+                    geom_logits[5] -= 2.5  # Suppress sadness
+
+                # 4. ANGER: Tight mouth width and compressed face height
+                if mouth_ratio < 0.74 and nose_mouth_y < 0.38:
+                    geom_logits[0] += 1.2
                     geom_logits[4] -= 0.8
-                    geom_logits[5] -= 1.2
 
-                # 3. ANGER: Tight mouth width & compressed face height
-                if mouth_ratio < 0.72 and nose_mouth_y < 0.54:
-                    geom_logits[0] += 1.0
-                    geom_logits[4] -= 0.5
-
-                # 4. DISGUST: Wrinkled nose & compressed upper lip
-                if nose_mouth_y < 0.48:
-                    geom_logits[1] += 0.9
-                    geom_logits[4] -= 0.4
-
-                # 5. NEUTRAL: Symmetrical resting baseline proportions
-                if 0.76 <= mouth_ratio <= 0.86 and 0.52 <= nose_mouth_y <= 0.66:
-                    geom_logits[4] += 0.5
+                # 5. DISGUST: Wrinkled nose & compressed upper lip (genuine nose scrunch)
+                if nose_mouth_y < 0.28:
+                    disgust_boost = (0.28 - nose_mouth_y) * 10.0 + 1.0
+                    geom_logits[1] += disgust_boost
+                    geom_logits[4] -= 0.8
 
         # --- CLASS PRIOR DE-BIASING ---
-        prior_bias = np.array([-0.014, 0.005, -0.026, 0.002, -0.011, 0.080, 0.019], dtype=np.float32)
+        # For the new EfficientNet model trained on face crops: minimal de-biasing needed
+        # For legacy ResNet+MLP (TV show trained): strong de-biasing required
+        if self._architecture == "efficientnet_b0":
+            # Trained on face crops — only small geometry assist, no prior correction needed
+            prior_bias = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
+        else:
+            # Legacy MELD-trained model: heavily biased toward JOY/SADNESS — apply full de-biasing
+            prior_bias = np.array([0.40, 0.0, 0.40, 0.0, -0.60, 0.40, 0.0], dtype=np.float32)
         adjusted_logits = resnet_logits - prior_bias + geom_logits
 
         # --- PERSONAL RESTING FACE CALIBRATION (CANCELS RESTING BIAS) ---
@@ -431,13 +487,13 @@ class WebcamService:
                 prob_velocity = float(np.sum(np.abs(raw_probs - client["ema_probs"])))
                 total_velocity = prob_velocity + lm_velocity * 1.5
 
-                # Fast attack (alpha=0.85) for sudden expressions, slow decay (alpha=0.20) for steady locks
-                if total_velocity > 0.30:
-                    alpha = 0.85  # Immediate reactive attack
-                elif total_velocity > 0.15:
-                    alpha = 0.55  # Medium transition
+                # Fast attack (alpha=0.65) for intentional transitions, stable hold (alpha=0.18) for steady expressions
+                if total_velocity > 0.35:
+                    alpha = 0.65  # Clean responsive attack without erratic frame spikes
+                elif total_velocity > 0.18:
+                    alpha = 0.38  # Smooth transition
                 else:
-                    alpha = 0.20  # Rock-solid hold
+                    alpha = 0.18  # Rock-solid hold
 
                 smoothed_probs = alpha * raw_probs + (1.0 - alpha) * client["ema_probs"]
                 smoothed_probs /= np.sum(smoothed_probs)
@@ -449,10 +505,10 @@ class WebcamService:
 
         client["last_landmarks"] = raw_landmarks
 
-        # --- SHARPENED TEMPERATURE CALIBRATION (T*=0.45) ---
+        # --- BALANCED TEMPERATURE CALIBRATION (T*=0.85) ---
         log_p = np.log(np.clip(smoothed_probs, 1e-6, 1.0))
         centered_logits = log_p - np.mean(log_p)
-        temperature = 0.45
+        temperature = 0.85
         scaled_logits = centered_logits / temperature
         exp_logits = np.exp(scaled_logits - np.max(scaled_logits))
         calibrated_probs = exp_logits / np.sum(exp_logits)
