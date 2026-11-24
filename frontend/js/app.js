@@ -1106,8 +1106,8 @@ async function startWebcam() {
             body: JSON.stringify({ client_id: webcamState.clientId })
         }).catch(e => console.warn('Reset session error:', e));
 
-        // Start frame capture loop (~10 FPS: every 100ms)
-        webcamState.intervalId = setInterval(captureAndProcessWebcamFrame, 100);
+        // Start frame capture loop (~20 FPS: every 50ms, with isProcessing lock dropping stale frames)
+        webcamState.intervalId = setInterval(captureAndProcessWebcamFrame, 50);
 
         // Check if microphone is already toggled on
         if (webcamState.micEnabled) {
@@ -1233,13 +1233,16 @@ async function captureAndProcessWebcamFrame() {
     const t0 = performance.now();
 
     try {
-        // Fast offscreen canvas snapshot (16:9 native 480x270 aspect ratio preserving true facial proportions)
-        const snap = document.createElement('canvas');
-        snap.width = 480;
-        snap.height = 270;
+        // Fast offscreen canvas snapshot (16:9 native 320x180 aspect ratio preserving facial proportions with low latency)
+        if (!webcamState.snapCanvas) {
+            webcamState.snapCanvas = document.createElement('canvas');
+            webcamState.snapCanvas.width = 320;
+            webcamState.snapCanvas.height = 180;
+        }
+        const snap = webcamState.snapCanvas;
         const sctx = snap.getContext('2d');
-        sctx.drawImage(video, 0, 0, 480, 270);
-        const dataUrl = snap.toDataURL('image/jpeg', 0.84);
+        sctx.drawImage(video, 0, 0, 320, 180);
+        const dataUrl = snap.toDataURL('image/jpeg', 0.72);
 
         const isCalib = webcamState.isCalibrating;
         if (isCalib) {
