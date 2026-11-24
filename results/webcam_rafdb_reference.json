@@ -1,0 +1,238 @@
+{
+  "description": "Zero-shot reference evaluation of current production model on RAF-DB test set + 9-clip live webcam benchmark",
+  "checkpoint": "models/video_classifier/best_webcam_model.pth",
+  "rafdb_test": {
+    "total_samples": 3068,
+    "accuracy_pct": 20.4,
+    "macro_f1": 0.1544,
+    "per_class_f1": {
+      "anger": 0.0785,
+      "disgust": 0.1347,
+      "fear": 0.037,
+      "joy": 0.3919,
+      "neutral": 0.1729,
+      "sadness": 0.1295,
+      "surprise": 0.1365
+    },
+    "per_class_precision": {
+      "anger": 0.059,
+      "disgust": 0.0886,
+      "fear": 0.0204,
+      "joy": 0.5101,
+      "neutral": 0.2493,
+      "sadness": 0.2074,
+      "surprise": 0.1902
+    },
+    "per_class_recall": {
+      "anger": 0.1173,
+      "disgust": 0.2812,
+      "fear": 0.2027,
+      "joy": 0.3181,
+      "neutral": 0.1324,
+      "sadness": 0.0941,
+      "surprise": 0.1064
+    },
+    "confusion_matrix": [
+      [
+        19,
+        21,
+        28,
+        48,
+        29,
+        11,
+        6
+      ],
+      [
+        17,
+        45,
+        32,
+        26,
+        18,
+        13,
+        9
+      ],
+      [
+        6,
+        10,
+        15,
+        29,
+        7,
+        3,
+        4
+      ],
+      [
+        102,
+        155,
+        323,
+        377,
+        119,
+        50,
+        59
+      ],
+      [
+        73,
+        146,
+        154,
+        102,
+        90,
+        69,
+        46
+      ],
+      [
+        47,
+        82,
+        117,
+        98,
+        64,
+        45,
+        25
+      ],
+      [
+        58,
+        49,
+        68,
+        59,
+        34,
+        26,
+        35
+      ]
+    ],
+    "emotions_order": [
+      "anger",
+      "disgust",
+      "fear",
+      "joy",
+      "neutral",
+      "sadness",
+      "surprise"
+    ]
+  },
+  "webcam_current_v3_summary": {
+    "full_9_clips": {},
+    "original_7_clips": {
+      "num_clips": 7,
+      "majority_correct_count": 4,
+      "majority_accuracy_pct": 57.14,
+      "mean_full_accuracy_pct": 40.08,
+      "mean_mid60_accuracy_pct": 39.82,
+      "overall_frame_accuracy_pct": 43.22,
+      "macro_f1": 0.3119,
+      "per_class_f1": {
+        "anger": 0.3898,
+        "disgust": 0.0,
+        "fear": 0.0,
+        "joy": 0.8127,
+        "neutral": 0.6241,
+        "sadness": 0.0,
+        "surprise": 0.3568
+      },
+      "per_class_precision": {
+        "anger": 0.3407,
+        "disgust": 0.0,
+        "fear": 0.0,
+        "joy": 0.6845,
+        "neutral": 0.497,
+        "sadness": 0.0,
+        "surprise": 0.2739
+      },
+      "per_class_recall": {
+        "anger": 0.4554,
+        "disgust": 0.0,
+        "fear": 0.0,
+        "joy": 1.0,
+        "neutral": 0.8384,
+        "sadness": 0.0,
+        "surprise": 0.5119
+      },
+      "per_class_pooled_acc": {
+        "anger": 45.54,
+        "disgust": 0.0,
+        "fear": 0.0,
+        "joy": 100.0,
+        "neutral": 83.84,
+        "sadness": 0.0,
+        "surprise": 51.19
+      },
+      "confusion_matrix": [
+        [
+          46,
+          30,
+          0,
+          4,
+          21,
+          0,
+          0
+        ],
+        [
+          23,
+          0,
+          0,
+          2,
+          12,
+          0,
+          52
+        ],
+        [
+          8,
+          0,
+          0,
+          42,
+          1,
+          4,
+          28
+        ],
+        [
+          0,
+          0,
+          0,
+          115,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          83,
+          0,
+          16
+        ],
+        [
+          33,
+          0,
+          0,
+          0,
+          42,
+          0,
+          18
+        ],
+        [
+          25,
+          3,
+          0,
+          5,
+          8,
+          0,
+          43
+        ]
+      ],
+      "confusion_flags": {
+        "sadness_vs_neutral": {
+          "sadness_predicted_as_neutral_frames": 42,
+          "neutral_predicted_as_sadness_frames": 0,
+          "neutral_clip_sadness_fp_rate": 0.0
+        },
+        "fear_vs_surprise": {
+          "fear_predicted_as_surprise_frames": 28,
+          "surprise_predicted_as_fear_frames": 0
+        },
+        "disgust_vs_anger": {
+          "disgust_predicted_as_anger_frames": 23,
+          "anger_predicted_as_disgust_frames": 30
+        }
+      }
+    }
+  }
+}
