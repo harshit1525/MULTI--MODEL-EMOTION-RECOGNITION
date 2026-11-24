@@ -6,6 +6,7 @@ __pycache__/
 *.pyo
 
 # Datasets and heavy binary files
+DATASET/
 audio_data/
 audio_embeddings/
 MELD.Raw/
