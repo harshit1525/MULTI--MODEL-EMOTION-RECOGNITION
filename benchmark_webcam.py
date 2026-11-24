@@ -23,6 +23,7 @@ Usage:
 
 import os
 import sys
+import re
 import time
 import json
 import random
@@ -398,29 +399,47 @@ def evaluate_temporal_stability(n_frames: int = 60, target_fps: float = 15.0) ->
 
 
 # ─── SECTION F: USER WEBCAM VIDEO CLIPS BENCHMARK ─────────────────────────────
-def map_filename_to_emotion(filename: str) -> Optional[str]:
+def normalize_filename_stem(filename: str) -> str:
     """
-    Derives ground truth emotion from filename (case-insensitive, tolerating typos).
-    Anger.mp4    -> anger
-    Joy.mp4      -> joy
-    Neutal.mp4   -> neutral  (handles typo)
-    surprise.mp4 -> surprise
+    Normalizes a video filename stem: lowercases and strips trailing duplicate suffixes
+    such as ' (2)', ' (3)', '_2', '-2', ' - Copy'.
     """
     stem = Path(filename).stem.strip().lower()
-    if "anger" in stem:
+    stem = re.sub(r'[\s_\-]+copy$', '', stem, flags=re.IGNORECASE)
+    stem = re.sub(r'[\s_\-]*\(\d+\)$', '', stem)
+    stem = re.sub(r'[\s_\-]+\d+$', '', stem)
+    return stem.strip()
+
+
+def map_filename_to_emotion(filename: str) -> Optional[str]:
+    """
+    Derives ground truth emotion from filename (case-insensitive, tolerating typos and suffixes).
+    Anger.mp4        -> anger
+    Disgust (2).mp4  -> disgust
+    disgust.mp4      -> disgust
+    Fear (2).mp4     -> fear
+    Fear.mp4         -> fear
+    Joy.mp4          -> joy
+    Neutal.mp4       -> neutral  (handles typo)
+    sadness.mp4      -> sadness
+    surprise.mp4     -> surprise
+    """
+    clean_stem = normalize_filename_stem(filename)
+    if "anger" in clean_stem:
         return "anger"
-    elif "joy" in stem:
-        return "joy"
-    elif "neut" in stem:  # Matches 'neutral', 'neutal', etc.
-        return "neutral"
-    elif "surp" in stem:
-        return "surprise"
-    elif "disgust" in stem:
+    elif "disgust" in clean_stem:
         return "disgust"
-    elif "fear" in stem:
+    elif "fear" in clean_stem:
         return "fear"
-    elif "sad" in stem:
+    elif "joy" in clean_stem:
+        return "joy"
+    elif "neut" in clean_stem:  # Matches 'neutral', 'neutal', etc.
+        return "neutral"
+    elif "sad" in clean_stem:
         return "sadness"
+    elif "surp" in clean_stem:
+        return "surprise"
+    print(f"[WARN] Unknown filename '{filename}' cannot be mapped to any emotion. Skipping.")
     return None
 
 

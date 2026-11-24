@@ -136,6 +136,32 @@ def test_webcam_face_alignment():
     assert res["status"] == "success"
     webcam_service.reset_session("test_align")
 
+def test_webcam_filename_normalization():
+    from benchmark_webcam import normalize_filename_stem, map_filename_to_emotion
+
+    # Test normalization of stems with duplicate suffixes
+    assert normalize_filename_stem("Disgust (2).mp4") == "disgust"
+    assert normalize_filename_stem("Fear (2).mp4") == "fear"
+    assert normalize_filename_stem("Fear_2.mp4") == "fear"
+    assert normalize_filename_stem("Joy - Copy.mp4") == "joy"
+    assert normalize_filename_stem("Neutal.mp4") == "neutal"
+    assert normalize_filename_stem("Anger.mp4") == "anger"
+
+    # Test mapping to ground-truth emotion classes
+    assert map_filename_to_emotion("Anger.mp4") == "anger"
+    assert map_filename_to_emotion("Disgust (2).mp4") == "disgust"
+    assert map_filename_to_emotion("disgust.mp4") == "disgust"
+    assert map_filename_to_emotion("Fear (2).mp4") == "fear"
+    assert map_filename_to_emotion("Fear.mp4") == "fear"
+    assert map_filename_to_emotion("Joy.mp4") == "joy"
+    assert map_filename_to_emotion("Neutal.mp4") == "neutral"
+    assert map_filename_to_emotion("sadness.mp4") == "sadness"
+    assert map_filename_to_emotion("surprise.mp4") == "surprise"
+
+    # Unknown files should return None
+    assert map_filename_to_emotion("random_clip.mp4") is None
+    assert map_filename_to_emotion("user_unknown_video.mp4") is None
+
 if __name__ == "__main__":
     test_webcam_blank_frame_no_face()
     test_webcam_face_frame_detection()
@@ -144,4 +170,5 @@ if __name__ == "__main__":
     test_webcam_quality_gating()
     test_webcam_hysteresis_smoothing()
     test_webcam_face_alignment()
+    test_webcam_filename_normalization()
     print("All webcam unit tests passed!")
