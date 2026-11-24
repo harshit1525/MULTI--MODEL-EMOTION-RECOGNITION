@@ -211,6 +211,16 @@ class WebcamService:
         client["baseline_geom"] = None
         return {"status": "calibrating", "message": "Calibration started. Please hold a neutral facial expression."}
 
+    def reset_calibration(self, client_id: str = "default"):
+        """Resets baseline face calibration buffer and removes resting bias from memory."""
+        client = self._get_client_state(client_id)
+        client["is_calibrating"] = False
+        client["calibration_buffer"] = []
+        client["geom_calibration_buffer"] = []
+        client["baseline_logits"] = None
+        client["baseline_geom"] = None
+        return {"status": "success", "message": f"Neutral baseline calibration for client '{client_id}' reset."}
+
     def decode_frame(self, frame_data: Any) -> Optional[np.ndarray]:
         """
         Decodes raw bytes, ndarray, or Base64 data URL string into an OpenCV BGR ndarray.
@@ -240,7 +250,8 @@ class WebcamService:
         frame_data: Any,
         client_id: str = "default",
         apply_smoothing: bool = True,
-        calibrate: bool = False
+        calibrate: bool = False,
+        return_trace: bool = False
     ) -> Dict[str, Any]:
         """
         Processes a single live webcam frame:
@@ -371,15 +382,15 @@ class WebcamService:
                 rot_mat = cv2.getRotationMatrix2D(eye_center, tilt_angle, 1.0)
                 aligned_img = cv2.warpAffine(img, rot_mat, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
 
-        # Consistent square crop with 25% padding centered on face
+        # Aspect-preserving square crop with 25% padding centered on face (reflection-padded at frame borders)
         cx = fx + fw // 2
         cy = fy + fh // 2
         crop_size = int(max(fw, fh) * 1.25)
-        x1 = max(0, cx - crop_size // 2)
-        y1 = max(0, cy - crop_size // 2)
-        x2 = min(w, x1 + crop_size)
-        y2 = min(h, y1 + crop_size)
-        face_crop = aligned_img[y1:y2, x1:x2]
+        pad_needed = crop_size // 2
+        padded = cv2.copyMakeBorder(aligned_img, pad_needed, pad_needed, pad_needed, pad_needed, cv2.BORDER_REFLECT)
+        pcx, pcy = cx + pad_needed, cy + pad_needed
+        face_crop = padded[pcy - crop_size // 2 : pcy + (crop_size - crop_size // 2),
+                           pcx - crop_size // 2 : pcx + (crop_size - crop_size // 2)]
 
         if face_crop.shape[0] < 10 or face_crop.shape[1] < 10:
             face_crop = img  # fallback to whole image if crop degenerates
@@ -483,6 +494,9 @@ class WebcamService:
                 "latency_ms": round(latency_ms, 1),
                 "quality_status": quality_status,
                 "smoothing_applied": apply_smoothing,
+                "is_uncertain": held.get("is_uncertain", False),
+                "uncertainty_reason": held.get("uncertainty_reason", None),
+                "confidence_margin": held.get("confidence_margin", 0.0),
                 "is_calibrated": client.get("baseline_logits") is not None,
                 "calibration_status": "active" if client.get("baseline_logits") is not None else "idle",
                 "disclaimer": "Apparent facial expression detected from visual cues. Does not determine internal affective state.",
@@ -506,9 +520,12 @@ class WebcamService:
                 logits = self.classifier(feat)
                 model_logits = logits[0].cpu().numpy()
 
+        stage1_logits = model_logits.copy()
+
         # Prior debiasing: minimal adjustment for blank frame
         prior_bias = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
         adjusted_logits = model_logits - prior_bias
+        stage2_logits = adjusted_logits.copy()
 
         # --- PERSONAL RESTING FACE CALIBRATION (LOGIT-BIAS OFFSET & GEOMETRY) ---
         calib_status = "idle"
@@ -540,12 +557,15 @@ class WebcamService:
             calib_status = "active"
             adjusted_logits = adjusted_logits - 0.45 * client["baseline_logits"]
 
+        stage3_logits = adjusted_logits.copy()
+
         # --- RELATIVE ACTION UNIT ADJUSTMENTS ---
         ref_geom = client.get("baseline_geom") or {
             "mouth_w": 0.784,
             "eye_to_mouth": 1.089,
             "nose_to_mouth": 0.480
         }
+        delta_mw, delta_eym, delta_nmy = 0.0, 0.0, 0.0
         if geom_ratios is not None:
             delta_mw = geom_ratios["mouth_w"] - ref_geom["mouth_w"]
             delta_eym = geom_ratios["eye_to_mouth"] - ref_geom["eye_to_mouth"]
@@ -557,8 +577,8 @@ class WebcamService:
                 adjusted_logits[0] -= 0.8  # Suppress Anger
                 adjusted_logits[4] -= 0.8  # Suppress Neutral
 
-            # AU26 Jaw Drop / AU1+2 Brow Raiser (Surprise) - vertical elongation, not disgust
-            elif delta_eym > 0.024 or delta_nmy > 0.024:
+            # AU26 Jaw Drop / AU1+2 Brow Raiser (Surprise) - true vertical elongation (outside resting physiological variance)
+            elif delta_eym > 0.042 or delta_nmy > 0.035:
                 adjusted_logits[6] += 2.2  # Boost Surprise
                 adjusted_logits[1] -= 1.8  # Suppress Disgust false positive
                 adjusted_logits[4] -= 0.8  # Suppress Neutral
@@ -570,11 +590,13 @@ class WebcamService:
                 adjusted_logits[4] -= 0.6  # Suppress Neutral
 
             # Resting Neutral State: facial geometry within resting tolerance
-            elif abs(delta_mw) < 0.035 and abs(delta_eym) < 0.015 and abs(delta_nmy) < 0.015:
+            elif abs(delta_mw) < 0.040 and abs(delta_eym) < 0.035 and abs(delta_nmy) < 0.035:
                 adjusted_logits[4] += 1.2  # Boost Neutral
                 adjusted_logits[1] -= 1.4  # Suppress Disgust false positive
                 adjusted_logits[5] -= 1.0  # Suppress Sadness false positive
                 adjusted_logits[6] -= 1.0  # Suppress Surprise false positive
+
+        stage4_logits = adjusted_logits.copy()
 
         raw_probs = torch.softmax(torch.from_numpy(adjusted_logits), dim=-1).numpy()
         raw_pred_idx = int(np.argmax(raw_probs))
@@ -651,6 +673,21 @@ class WebcamService:
             conf_tier = "Subtle / Ambiguous"
             warnings.append(f"Moderate expression intensity ({calibrated_conf:.1%}); expression cues appear subtle.")
 
+        # Principled Uncertainty Estimation:
+        # Flagged when top-1 confidence is low (< 0.38) or margin between top-2 classes is ambiguous (< 0.08)
+        sorted_probs = np.sort(calibrated_probs)[::-1]
+        p_top1 = float(sorted_probs[0])
+        p_top2 = float(sorted_probs[1]) if len(sorted_probs) > 1 else 0.0
+        conf_margin = float(p_top1 - p_top2)
+
+        is_uncertain = bool(p_top1 < 0.38 or conf_margin < 0.08)
+        uncertainty_reason = None
+        if is_uncertain:
+            if p_top1 < 0.38:
+                uncertainty_reason = f"Low top-1 confidence ({p_top1:.1%})"
+            else:
+                uncertainty_reason = f"Ambiguous margin between top classes ({conf_margin:.1%})"
+
         latency_ms = (time.time() - t0) * 1000.0
 
         # Cache last good prediction for quality gating
@@ -660,7 +697,10 @@ class WebcamService:
                 "conf": calibrated_conf,
                 "raw_conf": raw_conf,
                 "tier": conf_tier,
-                "probabilities": prob_dict
+                "probabilities": prob_dict,
+                "is_uncertain": is_uncertain,
+                "uncertainty_reason": uncertainty_reason,
+                "confidence_margin": round(conf_margin, 4)
             }
 
         # Convert bbox and landmarks to normalized percentages for responsive frontend canvas scaling
@@ -683,7 +723,7 @@ class WebcamService:
         if len(client["history"]) > 30:
             client["history"].pop(0)
 
-        return {
+        out_res = {
             "status": "success",
             "face_detected": True,
             "faces_count": faces_detected,
@@ -699,12 +739,36 @@ class WebcamService:
             "latency_ms": round(latency_ms, 1),
             "quality_status": quality_status,
             "smoothing_applied": apply_smoothing,
+            "is_uncertain": is_uncertain,
+            "uncertainty_reason": uncertainty_reason,
+            "confidence_margin": round(conf_margin, 4),
             "is_calibrated": client.get("baseline_logits") is not None,
             "calibration_status": calib_status,
             "disclaimer": "Apparent facial expression detected from visual cues. Does not determine internal affective state.",
             "history": client["history"][-10:],
             "warnings": warnings
         }
+
+        if return_trace:
+            def _to_probs(arr):
+                e = np.exp(arr - np.max(arr))
+                return (e / np.sum(e)).tolist()
+            p1 = _to_probs(stage1_logits)
+            p2 = _to_probs(stage2_logits)
+            p3 = _to_probs(stage3_logits)
+            p4 = _to_probs(stage4_logits)
+            out_res["trace"] = {
+                "stage1_raw_cnn": {"logits": [round(float(v), 4) for v in stage1_logits], "probs": [round(float(v), 4) for v in p1], "top": EMOTIONS[int(np.argmax(p1))]},
+                "stage2_prior": {"logits": [round(float(v), 4) for v in stage2_logits], "probs": [round(float(v), 4) for v in p2], "top": EMOTIONS[int(np.argmax(p2))]},
+                "stage3_user_baseline": {"logits": [round(float(v), 4) for v in stage3_logits], "probs": [round(float(v), 4) for v in p3], "top": EMOTIONS[int(np.argmax(p3))]},
+                "stage4_geometry": {"logits": [round(float(v), 4) for v in stage4_logits], "probs": [round(float(v), 4) for v in p4], "top": EMOTIONS[int(np.argmax(p4))],
+                                    "delta_eym": round(float(delta_eym), 4), "delta_nmy": round(float(delta_nmy), 4), "delta_mw": round(float(delta_mw), 4)},
+                "stage5_smoothed": {"probs": [round(float(v), 4) for v in smoothed_probs], "top": EMOTIONS[int(np.argmax(smoothed_probs))]},
+                "stage6_calibrated": {"probs": [round(float(v), 4) for v in calibrated_probs], "top": EMOTIONS[int(np.argmax(calibrated_probs))]},
+                "stage7_final": {"expression": predicted_expression.lower()}
+            }
+
+        return out_res
 
     # --- REAL-TIME MULTIMODAL INFERENCE (WEBCAM + MICROPHONE AUDIO + SPEECH) ---
     def predict_multimodal_stream(

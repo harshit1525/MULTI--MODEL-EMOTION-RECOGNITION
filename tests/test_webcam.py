@@ -212,6 +212,73 @@ def test_emotion_class_order_consistency():
     assert BENCH_EMOTIONS == fixed_order, f"Bench emotions mismatch: {BENCH_EMOTIONS}"
     assert TRAIN_MAPPING == fixed_mapping, f"Label mapping mismatch: {TRAIN_MAPPING}"
 
+def test_webcam_uncertainty_flag():
+    # Verify uncertainty flag on ambiguous or low-confidence outputs
+    client_id = "test_uncertainty"
+    webcam_service.reset_session(client_id)
+    sample_mp4 = "frontend/samples/dia0_utt0.mp4"
+    if os.path.exists(sample_mp4):
+        cap = cv2.VideoCapture(sample_mp4)
+        ret, frame = cap.read()
+        cap.release()
+        if ret:
+            _, buf = cv2.imencode('.jpg', frame)
+            res = webcam_service.predict_frame(buf.tobytes(), client_id=client_id)
+            assert "is_uncertain" in res
+            assert isinstance(res["is_uncertain"], bool)
+            assert "uncertainty_reason" in res
+            assert "confidence_margin" in res
+            assert isinstance(res["confidence_margin"], float)
+    webcam_service.reset_session(client_id)
+
+def test_aspect_preserving_square_crop():
+    # Verify square padding reflection logic near frame boundaries
+    img = np.zeros((480, 640, 3), dtype=np.uint8)
+    # Simulate face box near the top-left boundary where naive clamping would squash aspect ratio
+    fx, fy, fw, fh = 10, 10, 120, 120
+    cx, cy = fx + fw // 2, fy + fh // 2
+    crop_size = int(max(fw, fh) * 1.25)
+    pad_needed = crop_size // 2
+    padded = cv2.copyMakeBorder(img, pad_needed, pad_needed, pad_needed, pad_needed, cv2.BORDER_REFLECT)
+    pcx, pcy = cx + pad_needed, cy + pad_needed
+    face_crop = padded[pcy - crop_size // 2 : pcy + (crop_size - crop_size // 2),
+                       pcx - crop_size // 2 : pcx + (crop_size - crop_size // 2)]
+    
+    assert face_crop.shape[0] == face_crop.shape[1], f"Crop must be strictly square: {face_crop.shape}"
+    assert face_crop.shape[0] == crop_size
+
+def test_webcam_reset_calibration():
+    client_id = "test_reset_calib"
+    webcam_service.start_calibration(client_id)
+    client = webcam_service._get_client_state(client_id)
+    assert client["is_calibrating"] is True
+    res = webcam_service.reset_calibration(client_id)
+    assert res["status"] == "success"
+    assert client["is_calibrating"] is False
+    assert client["baseline_logits"] is None
+    webcam_service.reset_session(client_id)
+
+def test_webcam_mirror_handling():
+    # Verify that unmirrored frame produces valid normalized bbox and landmark coordinates
+    sample_mp4 = "frontend/samples/dia0_utt0.mp4"
+    if not os.path.exists(sample_mp4):
+        return
+    cap = cv2.VideoCapture(sample_mp4)
+    ret, frame = cap.read()
+    cap.release()
+    if ret:
+        res = webcam_service.predict_frame(frame, client_id="test_mirror")
+        if res["face_detected"]:
+            bbox = res["bbox"]
+            assert 0.0 <= bbox["x"] <= 1.0
+            assert 0.0 <= bbox["y"] <= 1.0
+            assert 0.0 <= bbox["width"] <= 1.0
+            assert 0.0 <= bbox["height"] <= 1.0
+            # Display coordinates mapped to mirrored video must also stay inside [0, 1]
+            bx_mirrored = 1.0 - (bbox["x"] + bbox["width"])
+            assert 0.0 <= bx_mirrored <= 1.0
+        webcam_service.reset_session("test_mirror")
+
 if __name__ == "__main__":
     test_webcam_blank_frame_no_face()
     test_webcam_face_frame_detection()
@@ -224,4 +291,8 @@ if __name__ == "__main__":
     test_rafdb_label_mapping_synthetic()
     test_webcam_model_loading_fallback()
     test_emotion_class_order_consistency()
+    test_webcam_uncertainty_flag()
+    test_aspect_preserving_square_crop()
+    test_webcam_reset_calibration()
+    test_webcam_mirror_handling()
     print("All webcam unit tests passed!")

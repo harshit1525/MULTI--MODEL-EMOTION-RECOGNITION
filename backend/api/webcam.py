@@ -94,6 +94,14 @@ def calibrate_webcam(payload: SessionResetPayload):
     res = webcam_service.start_calibration(payload.client_id)
     return res
 
+@router.post("/reset-calibration")
+def reset_webcam_calibration(payload: SessionResetPayload):
+    """
+    Resets personal resting-face baseline calibration from memory for the specified client.
+    """
+    res = webcam_service.reset_calibration(payload.client_id)
+    return res
+
 @router.websocket("/ws")
 @router.websocket("/ws/webcam")
 async def websocket_webcam_stream(websocket: WebSocket):

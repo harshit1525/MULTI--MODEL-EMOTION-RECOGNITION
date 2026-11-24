@@ -72,6 +72,8 @@ def parse_args():
                         help="Train/val split ratio (val = 1.0 - split_ratio)")
     parser.add_argument("--max_per_class", type=int, default=1200,
                         help="Max samples per class in crop cache")
+    parser.add_argument("--trace", action="store_true",
+                        help="Record per-frame probabilities and top class after each pipeline stage")
     return parser.parse_args()
 
 
@@ -443,7 +445,7 @@ def map_filename_to_emotion(filename: str) -> Optional[str]:
     return None
 
 
-def evaluate_user_clips(test_dir: str) -> Dict[str, Any]:
+def evaluate_user_clips(test_dir: str, trace: bool = False) -> Dict[str, Any]:
     """
     Evaluates real webcam MP4 clips in `test_dir`.
     Rules:
@@ -503,6 +505,7 @@ def evaluate_user_clips(test_dir: str) -> Dict[str, Any]:
         frame_confidences: List[float] = []
         gt_class_confidences: List[float] = []
         frame_latencies: List[float] = []
+        clip_traces: List[Dict[str, Any]] = []
 
         frame_idx = 0
         first_correct_ms: Optional[float] = None
@@ -517,9 +520,11 @@ def evaluate_user_clips(test_dir: str) -> Dict[str, Any]:
             raw_bytes = buf.tobytes()
 
             t_start = time.perf_counter()
-            res = webcam_service.predict_frame(raw_bytes, client_id=clip_id, apply_smoothing=True)
+            res = webcam_service.predict_frame(raw_bytes, client_id=clip_id, apply_smoothing=True, return_trace=trace)
             lat_ms = (time.perf_counter() - t_start) * 1000.0
             frame_latencies.append(lat_ms)
+            if trace and res.get("trace"):
+                clip_traces.append(res["trace"])
 
             pred_exp = res["apparent_expression"].lower() if res["apparent_expression"] else "no_face"
             conf = float(res["calibrated_confidence"])
@@ -547,6 +552,27 @@ def evaluate_user_clips(test_dir: str) -> Dict[str, Any]:
         n_frames = len(frame_predictions)
         if n_frames == 0:
             continue
+
+        if trace and clip_traces:
+            print(f"\n--- STAGE TRACE FOR {vpath.name} ({len(clip_traces)} frames) ---")
+            stages = ["stage1_raw_cnn", "stage2_prior", "stage3_user_baseline", "stage4_geometry", "stage5_smoothed", "stage6_calibrated"]
+            first_overtake_stage = None
+            for st in stages:
+                valid_probs = [tr[st]["probs"] for tr in clip_traces if tr and st in tr]
+                if not valid_probs:
+                    continue
+                mean_p = np.mean(valid_probs, axis=0)
+                neu_p = mean_p[4] * 100
+                surp_p = mean_p[6] * 100
+                top_emo = EMOTIONS[int(np.argmax(mean_p))]
+                if surp_p > neu_p and first_overtake_stage is None:
+                    first_overtake_stage = st
+                marker = " <-- SURPRISE > NEUTRAL" if surp_p > neu_p else ""
+                print(f"  {st:22s} | Top: {top_emo:8s} | Neutral: {neu_p:5.1f}% | Surprise: {surp_p:5.1f}%{marker}")
+            if first_overtake_stage:
+                print(f"  => First stage where Surprise overtakes Neutral: {first_overtake_stage}")
+            else:
+                print(f"  => Surprise never overtakes Neutral across all stages.")
 
         duration_sec = n_frames / native_fps
 
@@ -670,7 +696,7 @@ def main():
     stability_metrics = evaluate_temporal_stability(n_frames=60, target_fps=15.0)
 
     # 6. Section F: User Webcam Video Clips
-    user_clips_metrics = evaluate_user_clips(test_dir=test_dir)
+    user_clips_metrics = evaluate_user_clips(test_dir=test_dir, trace=args.trace)
 
     # 7. Assemble Full Benchmark Record
     full_benchmark = {

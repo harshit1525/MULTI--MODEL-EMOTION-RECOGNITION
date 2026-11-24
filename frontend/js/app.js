@@ -927,6 +927,7 @@ let webcamState = {
     wsConnected: false,
     lastWsSendTime: 0,
     isCalibrating: false,
+    hasCalibratedOnce: false,
     calibrateCount: 0,
     clientId: 'webcam_client_' + Math.floor(Math.random() * 1000000)
 };
@@ -978,7 +979,28 @@ function startWebcamCalibration() {
         btn.classList.add('calibrating');
         btn.innerHTML = '<span>⏳</span> HOLD NEUTRAL...';
     }
-    showToast('Calibration started: Hold a steady neutral face for 2 seconds to subtract personal resting bias.', 'info');
+    showToast('Calibration started: Relax your face and look at the screen for 2-3 seconds.', 'info');
+}
+
+async function resetWebcamCalibration() {
+    webcamState.hasCalibratedOnce = false;
+    webcamState.isCalibrating = false;
+    webcamState.calibrateCount = 0;
+    const btn = document.getElementById('btn-calibrate-webcam');
+    if (btn) {
+        btn.classList.remove('calibrating');
+        btn.innerHTML = '<span>🎯</span> CALIBRATE FACE';
+    }
+    try {
+        await fetch('/predict/webcam/reset-calibration', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ client_id: webcamState.clientId })
+        });
+    } catch (e) {
+        console.warn('Reset calibration request failed:', e);
+    }
+    showToast('Neutral face calibration reset.', 'info');
 }
 
 async function populateWebcamDevices() {
@@ -1088,6 +1110,8 @@ async function startWebcam() {
         if (restartBtn) restartBtn.disabled = false;
         const calibBtn = document.getElementById('btn-calibrate-webcam');
         if (calibBtn) calibBtn.disabled = false;
+        const resetCalibBtn = document.getElementById('btn-reset-calib-webcam');
+        if (resetCalibBtn) resetCalibBtn.disabled = false;
 
         connectWebcamWebSocket();
         
@@ -1105,6 +1129,15 @@ async function startWebcam() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ client_id: webcamState.clientId })
         }).catch(e => console.warn('Reset session error:', e));
+
+        // Auto-run neutral resting face calibration on first camera start
+        if (!webcamState.hasCalibratedOnce) {
+            setTimeout(() => {
+                if (webcamState.isRunning && !webcamState.isCalibrating && !webcamState.hasCalibratedOnce) {
+                    startWebcamCalibration();
+                }
+            }, 1200);
+        }
 
         // Start frame capture loop (~20 FPS: every 50ms, with isProcessing lock dropping stale frames)
         webcamState.intervalId = setInterval(captureAndProcessWebcamFrame, 50);
@@ -1187,6 +1220,8 @@ function stopWebcam() {
         calibBtn.classList.remove('calibrating');
         calibBtn.innerHTML = '<span>🎯</span> CALIBRATE FACE';
     }
+    const resetCalibBtn = document.getElementById('btn-reset-calib-webcam');
+    if (resetCalibBtn) resetCalibBtn.disabled = true;
     webcamState.isCalibrating = false;
 
     if (webcamState.ws) {
@@ -1355,8 +1390,8 @@ function renderWebcamInference(data, roundtripMs) {
         facePill.className = 'stat-pill locked';
     }
 
-    // Bounding Box coordinates on canvas
-    const bx = data.bbox.x * canvas.width;
+    // Bounding Box coordinates on canvas (mapped to mirrored video display coordinates)
+    const bx = canvas.width - (data.bbox.x + data.bbox.width) * canvas.width;
     const by = data.bbox.y * canvas.height;
     const bw = data.bbox.width * canvas.width;
     const bh = data.bbox.height * canvas.height;
@@ -1392,10 +1427,10 @@ function renderWebcamInference(data, roundtripMs) {
     ctx.moveTo(bx + cLen, by + bh); ctx.lineTo(bx, by + bh); ctx.lineTo(bx, by + bh - cLen);
     ctx.stroke();
 
-    // Render 5 Facial Landmarks (Eyes, Nose Tip, Mouth Corners)
+    // Render 5 Facial Landmarks (Eyes, Nose Tip, Mouth Corners) mapped to mirrored video display coordinates
     if (data.landmarks && Array.isArray(data.landmarks) && data.landmarks.length > 0) {
         data.landmarks.forEach(([lx, ly]) => {
-            const px = lx * canvas.width;
+            const px = canvas.width - lx * canvas.width;
             const py = ly * canvas.height;
             ctx.beginPath();
             ctx.arc(px, py, 3.5, 0, 2 * Math.PI);
@@ -1412,8 +1447,11 @@ function renderWebcamInference(data, roundtripMs) {
         });
     }
 
-    // Floating Tag Above Face
-    const tagText = `${emoji} ${expr} ${(conf * 100).toFixed(1)}%`;
+    // Floating Tag Above Face (Text rendered unmirrored from left to right)
+    let tagText = `${emoji} ${expr} ${(conf * 100).toFixed(1)}%`;
+    if (data.is_uncertain) {
+        tagText = `❓ UNCERTAIN (${expr} ${(conf * 100).toFixed(1)}%)`;
+    }
     ctx.font = 'bold 15px Inter, sans-serif';
     const textWidth = ctx.measureText(tagText).width;
     const tagH = 26;
@@ -1421,7 +1459,7 @@ function renderWebcamInference(data, roundtripMs) {
 
     ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
     ctx.fillRect(bx, tagY, textWidth + 18, tagH);
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = data.is_uncertain ? '#f59e0b' : color;
     ctx.lineWidth = 1.5;
     ctx.strokeRect(bx, tagY, textWidth + 18, tagH);
 
@@ -1438,14 +1476,19 @@ function renderWebcamInference(data, roundtripMs) {
 
     const tierBadge = document.getElementById('webcam-tier-badge');
     if (tierBadge) {
-        const tier = data.confidence_tier || (conf >= 0.65 ? 'Robust' : conf >= 0.50 ? 'Moderate' : 'Subtle / Ambiguous');
-        tierBadge.textContent = `${tier.toUpperCase()} CONFIDENCE`;
-        if (conf >= 0.65) {
-            tierBadge.className = 'tier-badge tier-robust';
-        } else if (conf >= 0.50) {
-            tierBadge.className = 'tier-badge tier-moderate';
-        } else {
+        if (data.is_uncertain) {
+            tierBadge.textContent = 'UNCERTAIN / AMBIGUOUS';
             tierBadge.className = 'tier-badge tier-subtle';
+        } else {
+            const tier = data.confidence_tier || (conf >= 0.65 ? 'Robust' : conf >= 0.50 ? 'Moderate' : 'Subtle / Ambiguous');
+            tierBadge.textContent = `${tier.toUpperCase()} CONFIDENCE`;
+            if (conf >= 0.65) {
+                tierBadge.className = 'tier-badge tier-robust';
+            } else if (conf >= 0.50) {
+                tierBadge.className = 'tier-badge tier-moderate';
+            } else {
+                tierBadge.className = 'tier-badge tier-subtle';
+            }
         }
     }
 
