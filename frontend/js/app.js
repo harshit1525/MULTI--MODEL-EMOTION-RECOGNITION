@@ -1277,7 +1277,7 @@ async function captureAndProcessWebcamFrame() {
         const snap = webcamState.snapCanvas;
         const sctx = snap.getContext('2d');
         sctx.drawImage(video, 0, 0, 320, 180);
-        const dataUrl = snap.toDataURL('image/jpeg', 0.72);
+        const dataUrl = snap.toDataURL('image/jpeg', 0.85);
 
         const isCalib = webcamState.isCalibrating;
         if (isCalib) {
@@ -1385,7 +1385,7 @@ function renderWebcamInference(data, roundtripMs) {
 
     if (facePill) {
         const score = data.face_score ? Math.round(data.face_score * 100) : 95;
-        const calibTag = data.is_calibrated ? ' • CALIBRATED' : '';
+        const calibTag = data.is_calibrated ? ' • <span style="color:#10b981;">CALIBRATED FOR USER</span>' : '';
         facePill.innerHTML = `Face: <strong>Locked (${score}%)${calibTag}</strong>`;
         facePill.className = 'stat-pill locked';
     }
@@ -1683,10 +1683,10 @@ async function sendMultimodalStreamChunk(audioBlob) {
 
     try {
         const snap = document.createElement('canvas');
-        snap.width = 360;
-        snap.height = 270;
+        snap.width = 320;
+        snap.height = 180;
         const sctx = snap.getContext('2d');
-        sctx.drawImage(video, 0, 0, 360, 270);
+        sctx.drawImage(video, 0, 0, 320, 180);
         
         snap.toBlob(async (frameBlob) => {
             if (!frameBlob) return;
@@ -1740,6 +1740,19 @@ function renderMultimodalStreamResult(data) {
     }
     if (explEl && data.unified_explanation) {
         explEl.textContent = data.unified_explanation;
+    }
+}
+
+async function saveWebcamDebugFrames() {
+    try {
+        const res = await fetch('/predict/webcam/debug-capture?num_frames=150', { method: 'POST' });
+        if (res.ok) {
+            showToast('📸 Debug capture active: Saving next 150 frames to results/live_debug/', 'info');
+        } else {
+            showToast('Failed to trigger debug capture', 'danger');
+        }
+    } catch (e) {
+        showToast('Error triggering debug capture: ' + e.message, 'danger');
     }
 }
 

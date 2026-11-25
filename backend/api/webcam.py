@@ -59,7 +59,7 @@ async def predict_webcam_frame_form(
         raise HTTPException(status_code=400, detail="Empty frame uploaded.")
         
     try:
-        result = webcam_service.predict_frame(content, client_id=client_id, apply_smoothing=apply_smoothing)
+        result = webcam_service.process_frame(content, session_state_or_client_id=client_id, apply_smoothing=apply_smoothing)
         return result
     except Exception as e:
         logger.error(f"Error processing webcam frame: {e}", exc_info=True)
@@ -75,9 +75,9 @@ async def predict_webcam_frame_json(payload: WebcamFramePayload):
         raise HTTPException(status_code=400, detail="Empty frame payload provided.")
         
     try:
-        result = webcam_service.predict_frame(
+        result = webcam_service.process_frame(
             payload.frame,
-            client_id=payload.client_id,
+            session_state_or_client_id=payload.client_id,
             apply_smoothing=payload.apply_smoothing,
             calibrate=payload.calibrate
         )
@@ -85,6 +85,14 @@ async def predict_webcam_frame_json(payload: WebcamFramePayload):
     except Exception as e:
         logger.error(f"Error processing webcam JSON frame: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Webcam JSON inference error: {str(e)}")
+
+@router.post("/debug-capture")
+def trigger_debug_capture(num_frames: int = 150):
+    """
+    Activates opt-in rolling debug capture (up to 150 frames) saved to results/live_debug/.
+    """
+    res = webcam_service.trigger_debug_capture(num_frames=num_frames)
+    return res
 
 @router.post("/calibrate")
 def calibrate_webcam(payload: SessionResetPayload):
@@ -114,8 +122,10 @@ async def websocket_webcam_stream(websocket: WebSocket):
     try:
         while True:
             message = await websocket.receive()
+            if message.get("type") == "websocket.disconnect":
+                break
             if "bytes" in message and message["bytes"]:
-                result = webcam_service.predict_frame(message["bytes"], client_id=client_id)
+                result = webcam_service.process_frame(message["bytes"], session_state_or_client_id=client_id)
                 await websocket.send_json(result)
             elif "text" in message and message["text"]:
                 try:
@@ -124,9 +134,9 @@ async def websocket_webcam_stream(websocket: WebSocket):
                     cid = data.get("client_id", client_id)
                     apply_sm = data.get("apply_smoothing", True)
                     calib = data.get("calibrate", False)
-                    result = webcam_service.predict_frame(
+                    result = webcam_service.process_frame(
                         frame_data,
-                        client_id=cid,
+                        session_state_or_client_id=cid,
                         apply_smoothing=apply_sm,
                         calibrate=calib
                     )
@@ -134,6 +144,8 @@ async def websocket_webcam_stream(websocket: WebSocket):
                 except Exception as inner_e:
                     await websocket.send_json({"status": "error", "message": str(inner_e)})
     except WebSocketDisconnect:
+        pass
+    finally:
         webcam_service.reset_session(client_id)
         logger.info(f"WebSocket client {client_id} disconnected.")
 

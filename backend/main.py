@@ -40,6 +40,8 @@ app.include_router(webcam.router)
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])
 def health_check():
+    import hashlib
+    import yaml
     device = "cuda" if torch.cuda.is_available() else "cpu"
     models_loaded = {
         "audio": os.path.exists("models/audio_classifier/best_audio_model.pth"),
@@ -48,12 +50,31 @@ def health_check():
         "fusion": os.path.exists("models/fusion_classifier/best_fusion_model.pth"),
         "webcam_yunet": os.path.exists("models/face_detection_yunet_2023mar.onnx")
     }
+    
+    ckpt_path = "models/video_classifier/best_webcam_model.pth"
+    if os.path.exists("config.yaml"):
+        try:
+            with open("config.yaml", "r", encoding="utf-8") as f:
+                cfg = yaml.safe_load(f)
+                ckpt_path = cfg.get("webcam_model_path", ckpt_path)
+        except Exception:
+            pass
+
+    ckpt_sha = None
+    if os.path.exists(ckpt_path):
+        try:
+            ckpt_sha = hashlib.sha256(open(ckpt_path, "rb").read()).hexdigest()
+        except Exception:
+            pass
+
     return HealthResponse(
         status="healthy",
         device=device,
         models_loaded=models_loaded,
         supported_emotions=['anger', 'disgust', 'fear', 'joy', 'neutral', 'sadness', 'surprise'],
-        version="2.1.0"
+        version="2.1.0",
+        webcam_model_path=ckpt_path,
+        webcam_model_sha256=ckpt_sha
     )
 
 # Mount frontend static files if directory exists

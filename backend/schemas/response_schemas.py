@@ -36,3 +36,5 @@ class HealthResponse(BaseModel):
     models_loaded: Dict[str, bool]
     supported_emotions: List[str]
     version: str = "2.0.0"
+    webcam_model_path: Optional[str] = None
+    webcam_model_sha256: Optional[str] = None

@@ -23,4 +23,10 @@ Project_Report/
 ._*
 Thumbs.db
 *.log
+results/live_debug/
+
+# Personal and external data (never upload)
+personal_data/
+personal_crops/
+external_models/
 

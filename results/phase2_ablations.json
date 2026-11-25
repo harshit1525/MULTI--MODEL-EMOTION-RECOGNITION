@@ -1,0 +1,136 @@
+{
+  "combined_val": {
+    "Baseline (All rules active)": {
+      "acc": 22.14,
+      "macro_f1": 0.1737,
+      "per_class_f1": {
+        "anger": 0.2055,
+        "disgust": 0.1829,
+        "fear": 0.3276,
+        "joy": 0.0593,
+        "neutral": 0.2882,
+        "sadness": 0.1435,
+        "surprise": 0.009
+      }
+    },
+    "Ablate (a): Geometry rules entirely": {
+      "acc": 28.7,
+      "macro_f1": 0.2861,
+      "per_class_f1": {
+        "anger": 0.2905,
+        "disgust": 0.3378,
+        "fear": 0.2957,
+        "joy": 0.2931,
+        "neutral": 0.1784,
+        "sadness": 0.3436,
+        "surprise": 0.2633
+      }
+    },
+    "Ablate (b): Resting neutral boost only": {
+      "acc": 28.7,
+      "macro_f1": 0.2861,
+      "per_class_f1": {
+        "anger": 0.2905,
+        "disgust": 0.3378,
+        "fear": 0.2957,
+        "joy": 0.2931,
+        "neutral": 0.1784,
+        "sadness": 0.3436,
+        "surprise": 0.2633
+      }
+    },
+    "Ablate (c): Prior debiasing": {
+      "acc": 22.14,
+      "macro_f1": 0.1737,
+      "per_class_f1": {
+        "anger": 0.2055,
+        "disgust": 0.1829,
+        "fear": 0.3276,
+        "joy": 0.0593,
+        "neutral": 0.2882,
+        "sadness": 0.1435,
+        "surprise": 0.009
+      }
+    },
+    "Combined: Pure Vision Model (No Geometry Hacks)": {
+      "acc": 28.7,
+      "macro_f1": 0.2861,
+      "per_class_f1": {
+        "anger": 0.2905,
+        "disgust": 0.3378,
+        "fear": 0.2957,
+        "joy": 0.2931,
+        "neutral": 0.1784,
+        "sadness": 0.3436,
+        "surprise": 0.2633
+      }
+    }
+  },
+  "meld_val": {
+    "Baseline (All rules active)": {
+      "acc": 29.47,
+      "macro_f1": 0.2872,
+      "per_class_f1": {
+        "anger": 0.3146,
+        "disgust": 0.4384,
+        "fear": 0.6306,
+        "joy": 0.0484,
+        "neutral": 0.3267,
+        "sadness": 0.2353,
+        "surprise": 0.0165
+      }
+    },
+    "Ablate (a): Geometry rules entirely": {
+      "acc": 38.34,
+      "macro_f1": 0.3868,
+      "per_class_f1": {
+        "anger": 0.39,
+        "disgust": 0.443,
+        "fear": 0.5503,
+        "joy": 0.266,
+        "neutral": 0.2143,
+        "sadness": 0.5062,
+        "surprise": 0.3378
+      }
+    },
+    "Ablate (b): Resting neutral boost only": {
+      "acc": 38.34,
+      "macro_f1": 0.3868,
+      "per_class_f1": {
+        "anger": 0.39,
+        "disgust": 0.443,
+        "fear": 0.5503,
+        "joy": 0.266,
+        "neutral": 0.2143,
+        "sadness": 0.5062,
+        "surprise": 0.3378
+      }
+    },
+    "Ablate (c): Prior debiasing": {
+      "acc": 29.47,
+      "macro_f1": 0.2872,
+      "per_class_f1": {
+        "anger": 0.3146,
+        "disgust": 0.4384,
+        "fear": 0.6306,
+        "joy": 0.0484,
+        "neutral": 0.3267,
+        "sadness": 0.2353,
+        "surprise": 0.0165
+      }
+    },
+    "Combined: Pure Vision Model (No Geometry Hacks)": {
+      "acc": 38.34,
+      "macro_f1": 0.3868,
+      "per_class_f1": {
+        "anger": 0.39,
+        "disgust": 0.443,
+        "fear": 0.5503,
+        "joy": 0.266,
+        "neutral": 0.2143,
+        "sadness": 0.5062,
+        "surprise": 0.3378
+      }
+    }
+  }
+}

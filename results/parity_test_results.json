@@ -1,0 +1,162 @@
+{
+  "overall_parity_pct": 100.0,
+  "total_frames": 916,
+  "matched_frames": 916,
+  "clips": {
+    "Anger.mp4": {
+      "n_frames": 101,
+      "matches": 101,
+      "parity_pct": 100.0,
+      "max_prob_diff": 0.0,
+      "bench_maj": "neutral",
+      "api_maj": "neutral",
+      "native_1280x720_agree_pct": 75.25,
+      "bench_counts": {
+        "disgust": 8,
+        "neutral": 93
+      },
+      "api_counts": {
+        "disgust": 8,
+        "neutral": 93
+      },
+      "form_parity_pct": 100.0,
+      "ws_parity_pct": 100.0
+    },
+    "Disgust (2).mp4": {
+      "n_frames": 172,
+      "matches": 172,
+      "parity_pct": 100.0,
+      "max_prob_diff": 0.0,
+      "bench_maj": "joy",
+      "api_maj": "joy",
+      "native_1280x720_agree_pct": 26.16,
+      "bench_counts": {
+        "joy": 106,
+        "neutral": 66
+      },
+      "api_counts": {
+        "joy": 106,
+        "neutral": 66
+      }
+    },
+    "disgust.mp4": {
+      "n_frames": 89,
+      "matches": 89,
+      "parity_pct": 100.0,
+      "max_prob_diff": 0.0,
+      "bench_maj": "joy",
+      "api_maj": "joy",
+      "native_1280x720_agree_pct": 10.11,
+      "bench_counts": {
+        "neutral": 9,
+        "joy": 80
+      },
+      "api_counts": {
+        "neutral": 9,
+        "joy": 80
+      }
+    },
+    "Fear (2).mp4": {
+      "n_frames": 80,
+      "matches": 80,
+      "parity_pct": 100.0,
+      "max_prob_diff": 0.0,
+      "bench_maj": "disgust",
+      "api_maj": "disgust",
+      "native_1280x720_agree_pct": 88.75,
+      "bench_counts": {
+        "disgust": 80
+      },
+      "api_counts": {
+        "disgust": 80
+      }
+    },
+    "Fear.mp4": {
+      "n_frames": 83,
+      "matches": 83,
+      "parity_pct": 100.0,
+      "max_prob_diff": 0.0,
+      "bench_maj": "disgust",
+      "api_maj": "disgust",
+      "native_1280x720_agree_pct": 14.46,
+      "bench_counts": {
+        "joy": 37,
+        "disgust": 46
+      },
+      "api_counts": {
+        "joy": 37,
+        "disgust": 46
+      }
+    },
+    "Joy.mp4": {
+      "n_frames": 115,
+      "matches": 115,
+      "parity_pct": 100.0,
+      "max_prob_diff": 0.0,
+      "bench_maj": "joy",
+      "api_maj": "joy",
+      "native_1280x720_agree_pct": 38.26,
+      "bench_counts": {
+        "joy": 115
+      },
+      "api_counts": {
+        "joy": 115
+      }
+    },
+    "Neutal.mp4": {
+      "n_frames": 99,
+      "matches": 99,
+      "parity_pct": 100.0,
+      "max_prob_diff": 0.0,
+      "bench_maj": "disgust",
+      "api_maj": "disgust",
+      "native_1280x720_agree_pct": 0.0,
+      "bench_counts": {
+        "disgust": 93,
+        "joy": 6
+      },
+      "api_counts": {
+        "disgust": 93,
+        "joy": 6
+      }
+    },
+    "sadness.mp4": {
+      "n_frames": 93,
+      "matches": 93,
+      "parity_pct": 100.0,
+      "max_prob_diff": 0.0,
+      "bench_maj": "sadness",
+      "api_maj": "sadness",
+      "native_1280x720_agree_pct": 29.03,
+      "bench_counts": {
+        "neutral": 37,
+        "fear": 6,
+        "sadness": 50
+      },
+      "api_counts": {
+        "neutral": 37,
+        "fear": 6,
+        "sadness": 50
+      }
+    },
+    "surprise.mp4": {
+      "n_frames": 84,
+      "matches": 84,
+      "parity_pct": 100.0,
+      "max_prob_diff": 0.0,
+      "bench_maj": "disgust",
+      "api_maj": "disgust",
+      "native_1280x720_agree_pct": 50.0,
+      "bench_counts": {
+        "joy": 8,
+        "disgust": 69,
+        "neutral": 7
+      },
+      "api_counts": {
+        "joy": 8,
+        "disgust": 69,
+        "neutral": 7
+      }
+    }
+  }
+}

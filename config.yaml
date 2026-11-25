@@ -52,6 +52,9 @@ webcam_test_dir: "New folder"
 webcam_extra_data: false
 rafdb_dir: "DATASET"
 webcam_model_path: "models/video_classifier/best_webcam_model.pth"
+webcam_backbone: "efficientnet_current"
+webcam_resnet18_raf_path: "external_models/resnet18_raf/best_resnet18.pt"
+webcam_unified_uses_webcam_engine: true
 video:
   num_frames_sampled: 8
   input_resolution: [224, 224]

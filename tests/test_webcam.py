@@ -56,8 +56,8 @@ def test_webcam_calibration():
     client = webcam_service._get_client_state("test_calib")
     assert client["is_calibrating"] is True
 
-    # Send 15 frames to complete calibration
-    for _ in range(15):
+    # Send 25 frames to complete calibration (CALIBRATION_FRAMES = 25)
+    for _ in range(25):
         res = webcam_service.predict_frame(buf.tobytes(), client_id="test_calib", calibrate=True)
     assert res["is_calibrated"] is True
     assert client["baseline_logits"] is not None
@@ -279,6 +279,155 @@ def test_webcam_mirror_handling():
             assert 0.0 <= bx_mirrored <= 1.0
         webcam_service.reset_session("test_mirror")
 
+def test_single_engine_parity_synthetic():
+    # Verify parity across direct engine process_frame, POST /frame, POST /frame-json, and WebSocket /ws/webcam
+    from fastapi.testclient import TestClient
+    from backend.main import app
+    import base64
+
+    client = TestClient(app)
+    sample_mp4 = "frontend/samples/dia0_utt0.mp4"
+    if os.path.exists(sample_mp4):
+        cap = cv2.VideoCapture(sample_mp4)
+        ret, frame = cap.read()
+        cap.release()
+    else:
+        frame = np.full((180, 320, 3), 128, dtype=np.uint8)
+
+    frame_small = cv2.resize(frame, (320, 180))
+    _, buf = cv2.imencode(".jpg", frame_small, [cv2.IMWRITE_JPEG_QUALITY, 85])
+    jpeg_bytes = buf.tobytes()
+    b64_str = base64.b64encode(jpeg_bytes).decode("ascii")
+    data_url = f"data:image/jpeg;base64,{b64_str}"
+    frame_decoded = cv2.imdecode(buf, cv2.IMREAD_COLOR)
+
+    # 1. Direct engine call
+    webcam_service.reset_session("test_synth_direct")
+    res_direct = webcam_service.process_frame(frame_decoded, "test_synth_direct", apply_smoothing=False)
+
+    # 2. POST /predict/webcam/frame-json
+    webcam_service.reset_session("test_synth_json")
+    resp_json = client.post("/predict/webcam/frame-json", json={
+        "frame": data_url, "client_id": "test_synth_json", "apply_smoothing": False,
+    })
+    assert resp_json.status_code == 200
+    res_json = resp_json.json()
+
+    # 3. POST /predict/webcam/frame (multipart)
+    webcam_service.reset_session("test_synth_form")
+    resp_form = client.post(
+        "/predict/webcam/frame",
+        files={"file": ("frame.jpg", jpeg_bytes, "image/jpeg")},
+        data={"client_id": "test_synth_form", "apply_smoothing": "false"},
+    )
+    assert resp_form.status_code == 200
+    res_form = resp_form.json()
+
+    # 4. WebSocket /predict/webcam/ws/webcam
+    webcam_service.reset_session("test_synth_ws")
+    with client.websocket_connect("/predict/webcam/ws/webcam") as ws:
+        ws.send_json({"frame": data_url, "client_id": "test_synth_ws", "apply_smoothing": False})
+        res_ws = ws.receive_json()
+
+    for name, res_ep in [("frame-json", res_json), ("frame", res_form), ("ws", res_ws)]:
+        assert res_direct["face_detected"] == res_ep["face_detected"], f"{name} face_detected mismatch"
+        assert res_direct["apparent_expression"] == res_ep["apparent_expression"], f"{name} expr mismatch"
+        for k in res_direct["probabilities"]:
+            assert abs(res_direct["probabilities"][k] - res_ep["probabilities"][k]) < 1e-4, f"{name} prob mismatch on {k}"
+
+
+def test_resnet18_raf_class_name_mapping():
+    """Verify RAF_TO_CANONICAL maps every RAF-DB class name to the correct canonical index."""
+    from backend.services.webcam_service import WebcamService, EMOTIONS
+    expected = {
+        "Anger": 0, "Disgust": 1, "Fear": 2, "Happiness": 3,
+        "Neutral": 4, "Sadness": 5, "Surprise": 6,
+    }
+    assert WebcamService.RAF_TO_CANONICAL == expected
+    for name, idx in expected.items():
+        assert EMOTIONS[idx] == name.lower().replace("happiness", "joy"), \
+            f"RAF '{name}' maps to idx {idx} but EMOTIONS[{idx}]={EMOTIONS[idx]}"
+
+
+def test_resnet18_raf_synthetic_checkpoint():
+    """Create tiny synthetic ResNet-18 checkpoints in RAF order, run real face forward pass + verify remapping."""
+    import tempfile, torch
+    from torchvision.models import resnet18
+    import torch.nn as nn
+    from backend.services.webcam_service import WebcamService, EMOTIONS
+
+    raf_classes = ["Surprise", "Fear", "Disgust", "Happiness", "Sadness", "Anger", "Neutral"]
+
+    # Pick a frame with a real face from sample video (fallback to synthetic only if absent)
+    sample_mp4 = "frontend/samples/dia0_utt0.mp4"
+    face_frame = None
+    if os.path.exists(sample_mp4):
+        cap = cv2.VideoCapture(sample_mp4)
+        for _ in range(15):
+            ret, frm = cap.read()
+            if not ret:
+                break
+            face_frame = frm
+            break
+        cap.release()
+
+    for raf_target_idx, expected_canon_expr in [(0, "SURPRISE"), (3, "JOY")]:
+        model = resnet18(weights=None)
+        model.fc = nn.Linear(model.fc.in_features, 7)
+        with torch.no_grad():
+            model.fc.weight.zero_()
+            model.fc.bias.zero_()
+            model.fc.bias[raf_target_idx] = 8.0
+        model.eval()
+
+        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as f:
+            torch.save({
+                "model_state_dict": model.state_dict(),
+                "class_names": raf_classes,
+                "img_size": 224,
+            }, f.name)
+            ckpt_path = f.name
+
+        try:
+            svc = WebcamService(video_ckpt=ckpt_path, backbone="resnet18_raf")
+            assert svc._architecture == "resnet18_raf"
+            assert svc.is_loaded
+            assert svc._raf_index_map == [6, 2, 1, 3, 5, 0, 4]
+
+            if face_frame is not None:
+                res = svc.process_frame(face_frame, f"test_r18_{raf_target_idx}", apply_smoothing=False)
+                assert res["status"] == "success"
+                if res["face_detected"]:
+                    assert res["apparent_expression"] == expected_canon_expr, (
+                        f"Expected {expected_canon_expr}, got {res['apparent_expression']}"
+                    )
+                    assert set(res["probabilities"].keys()) == set(EMOTIONS)
+        finally:
+            os.unlink(ckpt_path)
+
+
+def test_eval_clips_stem_parsing():
+    """Verify eval_clips.py parse_stem handles all expected filename patterns."""
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    from eval_clips import parse_stem
+
+    # Normal cases
+    assert parse_stem("Anger.mp4") == ("anger", False)
+    assert parse_stem("disgust.mp4") == ("disgust", False)
+    assert parse_stem("Neutal.mp4") == ("neutral", False)
+    assert parse_stem("sadness.mp4") == ("sadness", False)
+    assert parse_stem("sad.mp4") == ("sadness", False)
+    assert parse_stem("Joy.mp4") == ("joy", False)
+
+    # Suffix cases
+    assert parse_stem("Fear (2).mp4") == ("fear", False)
+    assert parse_stem("Disgust (2).mp4") == ("disgust", False)
+    assert parse_stem("surprise (3).mp4") == ("surprise", True)
+
+    # Unknown
+    assert parse_stem("random_clip.mp4") == (None, False)
+
+
 if __name__ == "__main__":
     test_webcam_blank_frame_no_face()
     test_webcam_face_frame_detection()
@@ -295,4 +444,8 @@ if __name__ == "__main__":
     test_aspect_preserving_square_crop()
     test_webcam_reset_calibration()
     test_webcam_mirror_handling()
+    test_single_engine_parity_synthetic()
+    test_resnet18_raf_class_name_mapping()
+    test_resnet18_raf_synthetic_checkpoint()
+    test_eval_clips_stem_parsing()
     print("All webcam unit tests passed!")

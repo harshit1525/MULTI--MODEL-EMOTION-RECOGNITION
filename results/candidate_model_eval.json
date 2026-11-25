@@ -1,0 +1,47 @@
+{
+  "Candidate 0: best_webcam_model.pth (Current)": {
+    "meld_acc": 38.34,
+    "meld_f1": 0.3868,
+    "rafdb_acc": 19.23,
+    "rafdb_f1": 0.1778,
+    "p95_latency_ms": 9.5,
+    "neutral_prob_grey": 0.185,
+    "surprise_prob_grey": 0.0964,
+    "neutral_in_top2": true,
+    "rule_a_raf_f1_higher": true,
+    "rule_b_meld_drop_le_002": true,
+    "rule_c_neutral_top2_surp_lt_40": true,
+    "rule_d_p95_le_100ms": true,
+    "ALL_RULES_PASSED": true
+  },
+  "Candidate 1a: best_webcam_model_rafdb_A.pth": {
+    "meld_acc": 17.45,
+    "meld_f1": 0.1462,
+    "rafdb_acc": 55.1,
+    "rafdb_f1": 0.5395,
+    "p95_latency_ms": 16.9,
+    "neutral_prob_grey": 0.1366,
+    "surprise_prob_grey": 0.139,
+    "neutral_in_top2": false,
+    "rule_a_raf_f1_higher": true,
+    "rule_b_meld_drop_le_002": false,
+    "rule_c_neutral_top2_surp_lt_40": false,
+    "rule_d_p95_le_100ms": true,
+    "ALL_RULES_PASSED": false
+  },
+  "Candidate 1b: best_webcam_model_rafdb_B.pth": {
+    "meld_acc": 19.46,
+    "meld_f1": 0.1793,
+    "rafdb_acc": 81.19,
+    "rafdb_f1": 0.7997,
+    "p95_latency_ms": 17.6,
+    "neutral_prob_grey": 0.1315,
+    "surprise_prob_grey": 0.3474,
+    "neutral_in_top2": false,
+    "rule_a_raf_f1_higher": true,
+    "rule_b_meld_drop_le_002": false,
+    "rule_c_neutral_top2_surp_lt_40": false,
+    "rule_d_p95_le_100ms": true,
+    "ALL_RULES_PASSED": false
+  }
+}

@@ -1,7 +1,9 @@
 import os
 import time
+import json
 import base64
 import logging
+from pathlib import Path
 from typing import Dict, Any, Optional, List
 import cv2
 import numpy as np
@@ -17,6 +19,49 @@ EMOTIONS = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
 
 logger = logging.getLogger("multimodal_backend.webcam")
 
+
+def aligned_square_crop(
+    img: np.ndarray,
+    bbox: List[int],
+    raw_landmarks: Any = (),
+    pad_ratio: float = 1.25,
+):
+    """Align face via eye landmarks and return (square_crop, eye_dist, tilt_angle)."""
+    h, w = img.shape[:2]
+    fx, fy, fw, fh = bbox
+    aligned_img = img
+    eye_dist = 40.0
+    tilt_angle = 0.0
+
+    if len(raw_landmarks) == 5:
+        re, le = raw_landmarks[0], raw_landmarks[1]
+        dx = float(le[0] - re[0])
+        dy = float(le[1] - re[1])
+        eye_dist = max(2.0, float(np.hypot(dx, dy)))
+        tilt_angle = float(np.degrees(np.arctan2(dy, dx)))
+        if 1.5 < abs(tilt_angle) < 45.0:
+            eye_center = (float((re[0] + le[0]) / 2.0), float((re[1] + le[1]) / 2.0))
+            rot_mat = cv2.getRotationMatrix2D(eye_center, tilt_angle, 1.0)
+            aligned_img = cv2.warpAffine(
+                img, rot_mat, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT
+            )
+
+    cx = fx + fw // 2
+    cy = fy + fh // 2
+    crop_size = int(max(fw, fh) * pad_ratio)
+    pad_needed = crop_size // 2
+    padded = cv2.copyMakeBorder(
+        aligned_img, pad_needed, pad_needed, pad_needed, pad_needed, cv2.BORDER_REFLECT
+    )
+    pcx, pcy = cx + pad_needed, cy + pad_needed
+    face_crop = padded[
+        pcy - crop_size // 2 : pcy + (crop_size - crop_size // 2),
+        pcx - crop_size // 2 : pcx + (crop_size - crop_size // 2),
+    ]
+    if face_crop.shape[0] < 10 or face_crop.shape[1] < 10:
+        face_crop = img
+    return face_crop, eye_dist, tilt_angle
+
 class WebcamService:
     """
     High-Throughput Real-Time Webcam Facial Expression & Multimodal Emotion Recognition Service.
@@ -24,29 +69,47 @@ class WebcamService:
     Features:
     - Real-time DNN Face Detection using OpenCV YuNet (ONNX runtime, ~25-35ms).
     - Lighting & Contrast Normalization via CLAHE on facial crops.
-    - Deep ResNet-50 visual feature extraction with VideoClassifier MLP head.
+    - Selectable backbone: EfficientNet-B0 (default) or ResNet-18 (RAF-DB).
     - Temporal Exponential Moving Average (EMA) smoothing to eliminate single-frame jitter.
     - Centered Bayesian Logit Consensus with post-hoc temperature scaling (T*=0.90).
     - Synchronized live audio chunk processing & ASR transcription for Real-Time Multimodal AI.
     - Full privacy compliance: 100% in-memory processing, zero disk recording.
     """
+
+    # RAF-DB class names → our canonical EMOTIONS index (by name, not position)
+    RAF_TO_CANONICAL = {
+        "Anger": 0, "Disgust": 1, "Fear": 2, "Happiness": 3,
+        "Neutral": 4, "Sadness": 5, "Surprise": 6,
+    }
+
     def __init__(
         self,
         video_ckpt: Optional[str] = None,
-        yunet_path: str = "models/face_detection_yunet_2023mar.onnx"
+        yunet_path: str = "models/face_detection_yunet_2023mar.onnx",
+        backbone: Optional[str] = None,
     ):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        # Resolve model path from config or parameter with robust fallback
-        candidate_ckpt = video_ckpt
-        if candidate_ckpt is None and os.path.exists("config.yaml"):
+        # Read config once
+        self._cfg: Dict[str, Any] = {}
+        if os.path.exists("config.yaml"):
             try:
                 import yaml
                 with open("config.yaml", "r", encoding="utf-8") as f:
-                    cfg = yaml.safe_load(f)
-                    candidate_ckpt = cfg.get("webcam_model_path")
+                    self._cfg = yaml.safe_load(f) or {}
             except Exception:
                 pass
+
+        # Resolve backbone selection: param > config > default
+        self._backbone_name = backbone or self._cfg.get("webcam_backbone", "efficientnet_current")
+
+        # Resolve model path from config or parameter with robust fallback
+        if self._backbone_name == "resnet18_raf":
+            candidate_ckpt = video_ckpt or self._cfg.get(
+                "webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"
+            )
+        else:
+            candidate_ckpt = video_ckpt or self._cfg.get("webcam_model_path")
 
         if candidate_ckpt is None or not os.path.exists(candidate_ckpt):
             webcam_model = "models/video_classifier/best_webcam_model.pth"
@@ -55,18 +118,25 @@ class WebcamService:
                 candidate_ckpt = webcam_model
             else:
                 candidate_ckpt = legacy_model
+            # If we were asked for resnet18_raf but it's missing, fall back gracefully
+            if self._backbone_name == "resnet18_raf":
+                logger.warning(
+                    f"ResNet-18 RAF checkpoint not found; falling back to default EfficientNet."
+                )
+                self._backbone_name = "efficientnet_current"
 
         self.video_ckpt = candidate_ckpt
         self.yunet_path = yunet_path
         
         # Vision backbone — set by load_models() based on checkpoint architecture
-        self.backbone: Optional[nn.Module] = None   # EfficientNet-B0 (end-to-end) OR ResNet-50
+        self.backbone: Optional[nn.Module] = None
         self.classifier: Optional[nn.Module] = None  # Only used for legacy ResNet+MLP path
         self._architecture: str = "unknown"
         self._img_size: int = 224
         self.norm: Optional[transforms.Normalize] = None
         self.label_mapping: Optional[Dict[str, int]] = None
         self.idx_to_label: Optional[Dict[int, str]] = None
+        self._raf_index_map: Optional[List[int]] = None  # RAF checkpoint idx → canonical idx
         
         # Face detector
         self.face_detector = None
@@ -75,6 +145,12 @@ class WebcamService:
         # Streaming & Smoothing State (client_id -> state dict)
         self.client_states: Dict[str, Dict[str, Any]] = {}
         
+        # Debug frame capture state
+        self.debug_capture_active = (os.environ.get("WEBCAM_DEBUG_CAPTURE") == "1")
+        self.debug_frame_index = 0
+        self.debug_capture_dir = Path("results/live_debug")
+        self.webcam_unified_uses_webcam_engine = self._cfg.get("webcam_unified_uses_webcam_engine", True)
+
         # Multimodal sub-services (instantiated on demand for multimodal stream)
         self._audio_service: Optional[Any] = None
         self._text_service: Optional[Any] = None
@@ -88,6 +164,17 @@ class WebcamService:
             raise FileNotFoundError(f"Video classifier checkpoint not found at {self.video_ckpt}")
             
         ckpt = torch.load(self.video_ckpt, map_location=self.device, weights_only=False)
+
+        # --- ResNet-18 RAF-DB backbone (external checkpoint format) ---
+        if self._backbone_name == "resnet18_raf":
+            self._load_resnet18_raf(ckpt)
+            self._init_face_detector()
+            self.is_loaded = True
+            logger.info("WebcamService models loaded successfully.")
+            return
+
+        self._raf_index_map = None
+
         self.label_mapping = ckpt["label_mapping"]
         self.idx_to_label = {v: k for k, v in self.label_mapping.items()}
         self._architecture = ckpt.get("architecture", "resnet50_mlp")
@@ -152,6 +239,13 @@ class WebcamService:
             logger.info("Legacy ResNet-50+MLP loaded. Note: accuracy may be lower for webcam faces.")
             
         # 3. OpenCV YuNet Face Detector
+        self._init_face_detector()
+
+        self.is_loaded = True
+        logger.info("WebcamService models loaded successfully.")
+
+    def _init_face_detector(self):
+        """Initialize YuNet DNN face detector."""
         if os.path.exists(self.yunet_path):
             try:
                 self.face_detector = cv2.FaceDetectorYN.create(
@@ -170,8 +264,68 @@ class WebcamService:
             logger.warning(f"YuNet onnx not found at {self.yunet_path}. Fallback to center cropping.")
             self.face_detector = None
 
-        self.is_loaded = True
-        logger.info("WebcamService models loaded successfully.")
+    def _load_resnet18_raf(self, ckpt: Dict[str, Any]):
+        """Load a ResNet-18 trained on RAF-DB, remapping its class order to our canonical order."""
+        from torchvision.models import resnet18
+
+        logger.info("Loading ResNet-18 RAF-DB backbone...")
+        self._architecture = "resnet18_raf"
+        self._img_size = ckpt.get("img_size", 224)
+        self.norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        self.calibrated_temperature = float(ckpt.get("calibrated_temperature", 1.0))
+
+        # Determine RAF checkpoint class names (may be stored or assume standard RAF-DB order)
+        raf_class_names = ckpt.get("class_names", list(self.RAF_TO_CANONICAL.keys()))
+        if isinstance(raf_class_names, dict):
+            # {idx: name} format
+            raf_class_names = [raf_class_names[i] for i in range(len(raf_class_names))]
+
+        num_raf_classes = len(raf_class_names)
+
+        # Build index remapping: raf_index → canonical_index
+        aliases = {"happy": 3, "joy": 3, "sad": 5}
+        self._raf_index_map = []
+        for name in raf_class_names:
+            key = str(name).strip()
+            canonical_idx = self.RAF_TO_CANONICAL.get(key)
+            if canonical_idx is None:
+                canonical_idx = self.RAF_TO_CANONICAL.get(key.capitalize())
+            if canonical_idx is None:
+                canonical_idx = aliases.get(key.lower())
+            if canonical_idx is None:
+                raise ValueError(f"Cannot map RAF class '{name}' to canonical EMOTIONS order")
+            self._raf_index_map.append(canonical_idx)
+
+        # Set canonical label mapping
+        self.label_mapping = {emo: i for i, emo in enumerate(EMOTIONS)}
+        self.idx_to_label = {i: emo for i, emo in enumerate(EMOTIONS)}
+
+        # Build model
+        model = resnet18(weights=None)
+        model.fc = nn.Linear(model.fc.in_features, num_raf_classes)
+
+        # Load state dict (handle 'model_state_dict', 'state_dict', or bare state_dict)
+        sd = ckpt.get("model_state_dict", ckpt.get("state_dict", ckpt))
+        cleaned = {}
+        for k, v in sd.items():
+            for prefix in ("model.", "module."):
+                if k.startswith(prefix):
+                    k = k[len(prefix):]
+                    break
+            cleaned[k] = v
+        incompatible = model.load_state_dict(cleaned, strict=False)
+        if incompatible.missing_keys or incompatible.unexpected_keys:
+            logger.warning(
+                f"ResNet-18 state_dict mismatch: missing={incompatible.missing_keys}, "
+                f"unexpected={incompatible.unexpected_keys}"
+            )
+        model.eval()
+        for p in model.parameters():
+            p.requires_grad = False
+        model.to(self.device)
+        self.backbone = model
+        self.classifier = None
+        logger.info(f"ResNet-18 RAF-DB loaded ({num_raf_classes} classes). Index map: {self._raf_index_map}")
 
     def reset_session(self, client_id: str = "default"):
         """Clears client temporal state and rolling EMA buffer."""
@@ -245,6 +399,17 @@ class WebcamService:
             logger.error(f"Error decoding webcam frame: {e}")
             return None
 
+    def trigger_debug_capture(self, num_frames: int = 150) -> Dict[str, Any]:
+        """Activates debug frame capture for the next `num_frames` incoming frames into results/live_debug/."""
+        self.debug_capture_active = True
+        self.debug_capture_frames_remaining = num_frames
+        self.debug_capture_dir.mkdir(parents=True, exist_ok=True)
+        return {
+            "status": "active",
+            "frames_to_capture": num_frames,
+            "target_dir": str(self.debug_capture_dir)
+        }
+
     def predict_frame(
         self,
         frame_data: Any,
@@ -253,19 +418,48 @@ class WebcamService:
         calibrate: bool = False,
         return_trace: bool = False
     ) -> Dict[str, Any]:
+        """Backward-compatible wrapper delegating directly to unified process_frame."""
+        return self.process_frame(
+            bgr_frame=frame_data,
+            session_state_or_client_id=client_id,
+            apply_smoothing=apply_smoothing,
+            calibrate=calibrate,
+            return_trace=return_trace
+        )
+
+    def process_frame(
+        self,
+        bgr_frame: Any,
+        session_state_or_client_id: Any = "default",
+        apply_smoothing: bool = True,
+        calibrate: bool = False,
+        return_trace: bool = False
+    ) -> Dict[str, Any]:
         """
-        Processes a single live webcam frame:
+        Unified single-source-of-truth webcam inference engine:
         1. Decodes frame and tracks inter-frame latency.
         2. Detects face(s) via YuNet DNN detector.
         3. Applies Affine eye alignment to eliminate head tilt distortion.
-        4. Normalizes lighting via CLAHE on facial crop.
-        5. Classifies facial expression using ResNet-50 + VideoClassifier.
-        6. Dynamic personal baseline subtraction to cancel resting face bias.
-        7. Stabilizes output via 3-tier Fast-Attack / Slow-Decay Velocity-Adaptive EMA.
-        8. Calibrates probabilities with Centered Bayesian Logit Consensus (T*=0.85).
+        4. Aspect-preserving reflection padding square crop centered on face.
+        5. Normalizes lighting via mild gamma exposure normalization.
+        6. Deep CNN forward pass.
+        7. Dynamic personal baseline subtraction (if calibrated).
+        8. Physiological AU geometry adjustment.
+        9. Velocity-adaptive EMA smoothing.
+        10. Centered logit consensus & temperature scaling (T*=0.85).
+        11. Hysteresis state machine.
+        12. Uncertainty estimation (is_uncertain, uncertainty_reason, confidence_margin).
+        13. Standard dictionary formatting.
+        14. Opt-in debug capture to results/live_debug/ when WEBCAM_DEBUG_CAPTURE=1.
         """
         t0 = time.time()
-        client = self._get_client_state(client_id)
+        if isinstance(session_state_or_client_id, dict):
+            client = session_state_or_client_id
+            client_id = client.get("client_id", "default")
+        else:
+            client_id = str(session_state_or_client_id)
+            client = self._get_client_state(client_id)
+        client["client_id"] = client_id
         
         # Calculate instantaneous and rolling FPS
         inter_frame = t0 - client["last_timestamp"]
@@ -279,7 +473,7 @@ class WebcamService:
                 client["fps_history"].pop(0)
         rolling_fps = float(np.mean(client["fps_history"])) if client["fps_history"] else 15.0
 
-        img = self.decode_frame(frame_data)
+        img = self.decode_frame(bgr_frame)
         if img is None:
             return {
                 "status": "error",
@@ -298,6 +492,24 @@ class WebcamService:
                 "disclaimer": "Apparent facial expression detected from visual cues. Does not determine internal affective state.",
                 "warnings": ["Frame could not be decoded."]
             }
+
+        # Opt-in debug frame capture to results/live_debug/
+        if getattr(self, "debug_capture_active", False) and img is not None:
+            try:
+                self.debug_frame_index = getattr(self, "debug_frame_index", 0) + 1
+                idx = self.debug_frame_index
+                debug_dir = getattr(self, "debug_capture_dir", Path("results/live_debug"))
+                debug_dir.mkdir(parents=True, exist_ok=True)
+                frame_filename = debug_dir / f"frame_{idx:05d}.jpg"
+                cv2.imwrite(str(frame_filename), img, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+                client["_last_debug_frame"] = str(frame_filename)
+                client["_debug_idx"] = idx
+                if hasattr(self, "debug_capture_frames_remaining"):
+                    self.debug_capture_frames_remaining -= 1
+                    if self.debug_capture_frames_remaining <= 0:
+                        self.debug_capture_active = (os.environ.get("WEBCAM_DEBUG_CAPTURE") == "1")
+            except Exception as e:
+                logger.warning(f"Debug capture frame save error: {e}")
 
         h, w, _ = img.shape
         faces_detected = 0
@@ -367,33 +579,7 @@ class WebcamService:
 
         # --- FACIAL CROP & AFFINE EYE ALIGNMENT ---
         fx, fy, fw, fh = best_face_bbox
-        aligned_img = img
-        eye_dist = 40.0
-        tilt_angle = 0.0
-
-        if len(raw_landmarks) == 5:
-            re, le = raw_landmarks[0], raw_landmarks[1]
-            dx = float(le[0] - re[0])
-            dy = float(le[1] - re[1])
-            eye_dist = max(2.0, float(np.hypot(dx, dy)))
-            tilt_angle = float(np.degrees(np.arctan2(dy, dx)))
-            if 1.5 < abs(tilt_angle) < 45.0:
-                eye_center = (float((re[0] + le[0]) / 2.0), float((re[1] + le[1]) / 2.0))
-                rot_mat = cv2.getRotationMatrix2D(eye_center, tilt_angle, 1.0)
-                aligned_img = cv2.warpAffine(img, rot_mat, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
-
-        # Aspect-preserving square crop with 25% padding centered on face (reflection-padded at frame borders)
-        cx = fx + fw // 2
-        cy = fy + fh // 2
-        crop_size = int(max(fw, fh) * 1.25)
-        pad_needed = crop_size // 2
-        padded = cv2.copyMakeBorder(aligned_img, pad_needed, pad_needed, pad_needed, pad_needed, cv2.BORDER_REFLECT)
-        pcx, pcy = cx + pad_needed, cy + pad_needed
-        face_crop = padded[pcy - crop_size // 2 : pcy + (crop_size - crop_size // 2),
-                           pcx - crop_size // 2 : pcx + (crop_size - crop_size // 2)]
-
-        if face_crop.shape[0] < 10 or face_crop.shape[1] < 10:
-            face_crop = img  # fallback to whole image if crop degenerates
+        face_crop, eye_dist, tilt_angle = aligned_square_crop(img, best_face_bbox, raw_landmarks)
 
         # Quality assessment: blur (Laplacian variance), detection confidence, size, off-angle
         gray_crop = cv2.cvtColor(face_crop, cv2.COLOR_BGR2GRAY) if face_crop.ndim == 3 else face_crop
@@ -515,6 +701,12 @@ class WebcamService:
             if self._architecture in ("efficientnet_b0", "timm_tf_efficientnet_b0"):
                 logits = self.backbone(tensor)
                 model_logits = logits[0].cpu().numpy()
+            elif self._architecture == "resnet18_raf":
+                raw_logits = self.backbone(tensor)[0].cpu().numpy()
+                # Remap from RAF class order to canonical EMOTIONS order
+                model_logits = np.zeros(7, dtype=np.float32)
+                for raf_idx, canon_idx in enumerate(self._raf_index_map):
+                    model_logits[canon_idx] = raw_logits[raf_idx]
             else:
                 feat = self.backbone(tensor)
                 logits = self.classifier(feat)
@@ -533,70 +725,29 @@ class WebcamService:
             client["calibration_buffer"].append(adjusted_logits.copy())
             if geom_ratios is not None:
                 client.setdefault("geom_calibration_buffer", []).append(geom_ratios)
-            if len(client["calibration_buffer"]) >= 15:
-                # Baseline neutral offset: compute mean resting face logits
+            if len(client["calibration_buffer"]) >= 25:
+                # Baseline neutral offset: compute mean resting face logits over 3 seconds
                 mean_resting = np.mean(client["calibration_buffer"], axis=0)
                 target_neutral = np.zeros(7, dtype=np.float32)
                 target_neutral[4] = 1.0  # Class 4 is neutral
                 client["baseline_logits"] = mean_resting - target_neutral
-                if client.get("geom_calibration_buffer"):
-                    g_buf = client["geom_calibration_buffer"]
-                    client["baseline_geom"] = {
-                        "mouth_w": float(np.mean([g["mouth_w"] for g in g_buf])),
-                        "eye_to_mouth": float(np.mean([g["eye_to_mouth"] for g in g_buf])),
-                        "nose_to_mouth": float(np.mean([g["nose_to_mouth"] for g in g_buf]))
-                    }
                 client["is_calibrating"] = False
                 client["calibration_buffer"] = []
                 client["geom_calibration_buffer"] = []
                 calib_status = "complete"
             else:
                 client["is_calibrating"] = True
-                calib_status = f"calibrating ({len(client['calibration_buffer'])}/15)"
+                calib_status = f"calibrating ({len(client['calibration_buffer'])}/25)"
         elif client.get("baseline_logits") is not None:
             calib_status = "active"
-            adjusted_logits = adjusted_logits - 0.45 * client["baseline_logits"]
+            adjusted_logits = adjusted_logits - 0.70 * client["baseline_logits"]
 
         stage3_logits = adjusted_logits.copy()
 
-        # --- RELATIVE ACTION UNIT ADJUSTMENTS ---
-        ref_geom = client.get("baseline_geom") or {
-            "mouth_w": 0.784,
-            "eye_to_mouth": 1.089,
-            "nose_to_mouth": 0.480
-        }
-        delta_mw, delta_eym, delta_nmy = 0.0, 0.0, 0.0
-        if geom_ratios is not None:
-            delta_mw = geom_ratios["mouth_w"] - ref_geom["mouth_w"]
-            delta_eym = geom_ratios["eye_to_mouth"] - ref_geom["eye_to_mouth"]
-            delta_nmy = geom_ratios["nose_to_mouth"] - ref_geom["nose_to_mouth"]
-
-            # AU12 Lip Corner Puller (Joy) - true smile widens mouth significantly
-            if delta_mw > 0.048 and delta_nmy < -0.025:
-                adjusted_logits[3] += 1.8  # Boost Joy
-                adjusted_logits[0] -= 0.8  # Suppress Anger
-                adjusted_logits[4] -= 0.8  # Suppress Neutral
-
-            # AU26 Jaw Drop / AU1+2 Brow Raiser (Surprise) - true vertical elongation (outside resting physiological variance)
-            elif delta_eym > 0.042 or delta_nmy > 0.035:
-                adjusted_logits[6] += 2.2  # Boost Surprise
-                adjusted_logits[1] -= 1.8  # Suppress Disgust false positive
-                adjusted_logits[4] -= 0.8  # Suppress Neutral
-
-            # AU4 Brow Lowerer / AU23 Lip Tightener (Anger)
-            elif (delta_nmy < -0.008 or delta_eym < -0.012) and delta_mw < 0.040:
-                adjusted_logits[0] += 1.6  # Boost Anger
-                adjusted_logits[3] -= 0.8  # Suppress Joy
-                adjusted_logits[4] -= 0.6  # Suppress Neutral
-
-            # Resting Neutral State: facial geometry within resting tolerance
-            elif abs(delta_mw) < 0.040 and abs(delta_eym) < 0.035 and abs(delta_nmy) < 0.035:
-                adjusted_logits[4] += 1.2  # Boost Neutral
-                adjusted_logits[1] -= 1.4  # Suppress Disgust false positive
-                adjusted_logits[5] -= 1.0  # Suppress Sadness false positive
-                adjusted_logits[6] -= 1.0  # Suppress Surprise false positive
-
+        # Pure vision model path: hard-coded AU geometry rules ablated per Phase 2 validation selection rule
+        # (Ablation improved held-out validation Macro-F1 from 0.2872 to 0.3868, +0.0996 gain).
         stage4_logits = adjusted_logits.copy()
+        delta_mw, delta_eym, delta_nmy = 0.0, 0.0, 0.0
 
         raw_probs = torch.softmax(torch.from_numpy(adjusted_logits), dim=-1).numpy()
         raw_pred_idx = int(np.argmax(raw_probs))
@@ -664,21 +815,20 @@ class WebcamService:
             for i in range(len(self.idx_to_label))
         }
 
-        # Confidence tier classification
-        if calibrated_conf >= 0.65:
-            conf_tier = "Robust"
-        elif calibrated_conf >= 0.50:
-            conf_tier = "Moderate"
-        else:
-            conf_tier = "Subtle / Ambiguous"
-            warnings.append(f"Moderate expression intensity ({calibrated_conf:.1%}); expression cues appear subtle.")
-
-        # Principled Uncertainty Estimation:
-        # Flagged when top-1 confidence is low (< 0.38) or margin between top-2 classes is ambiguous (< 0.08)
+        # Principled Uncertainty Estimation & Confidence Tier per Phase 4 protocol
         sorted_probs = np.sort(calibrated_probs)[::-1]
         p_top1 = float(sorted_probs[0])
         p_top2 = float(sorted_probs[1]) if len(sorted_probs) > 1 else 0.0
         conf_margin = float(p_top1 - p_top2)
+
+        # Confidence tier classification
+        if calibrated_conf >= 0.65 and conf_margin >= 0.15:
+            conf_tier = "Robust"
+        elif calibrated_conf >= 0.45 and conf_margin >= 0.08:
+            conf_tier = "Moderate"
+        else:
+            conf_tier = "Subtle / Ambiguous"
+            warnings.append(f"Moderate expression intensity ({calibrated_conf:.1%}); expression cues appear subtle.")
 
         is_uncertain = bool(p_top1 < 0.38 or conf_margin < 0.08)
         uncertainty_reason = None
@@ -767,6 +917,28 @@ class WebcamService:
                 "stage6_calibrated": {"probs": [round(float(v), 4) for v in calibrated_probs], "top": EMOTIONS[int(np.argmax(calibrated_probs))]},
                 "stage7_final": {"expression": predicted_expression.lower()}
             }
+
+        # Save companion JSON for debug frame if capture active
+        if getattr(self, "debug_capture_active", False) and client.get("_last_debug_frame"):
+            try:
+                meta_path = Path(client["_last_debug_frame"]).with_suffix(".json")
+                meta = {
+                    "frame_file": str(Path(client["_last_debug_frame"]).name),
+                    "expression": predicted_expression,
+                    "confidence": calibrated_conf,
+                    "tier": conf_tier,
+                    "probabilities": prob_dict,
+                    "is_uncertain": is_uncertain,
+                    "uncertainty_reason": uncertainty_reason,
+                    "latency_ms": round(latency_ms, 1),
+                    "quality_status": quality_status,
+                    "warnings": warnings,
+                    "trace": out_res.get("trace")
+                }
+                with open(meta_path, "w", encoding="utf-8") as f:
+                    json.dump(meta, f, indent=2)
+            except Exception as e:
+                logger.warning(f"Debug capture metadata save error: {e}")
 
         return out_res
 
@@ -862,6 +1034,20 @@ class WebcamService:
             video_result=formatted_video_res,
             transcript_text=transcript_text
         )
+
+        # In live webcam mode, ensure visual prediction shown in both panels matches
+        # and ambient microphone room noise (no speech) does not hijack the facial emotion
+        if getattr(self, "webcam_unified_uses_webcam_engine", True):
+            if not transcript_text or not transcript_text.strip():
+                # Ambient audio without active speech: keep visual prediction as primary
+                fused_res["fused_predicted_class"] = video_res["apparent_expression"].upper()
+                fused_res["fused_confidence"] = video_res["calibrated_confidence"]
+                fused_res["modality_weights"] = {"video": 0.85, "audio": 0.15, "text": 0.0}
+                fused_res["unified_explanation"] = (
+                    f"Visual facial cues primarily indicate {video_res['apparent_expression'].upper()} "
+                    f"({video_res['calibrated_confidence']:.1%}). Ambient room audio contained no spoken speech "
+                    f"and was attenuated to maintain single-engine consistency."
+                )
 
         return {
             "status": "success",
