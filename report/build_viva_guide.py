@@ -773,7 +773,7 @@ def build_sec6(doc: Document) -> None:
             col_indices=[0, 2, 3, 4, 5, 6, 7, 8],
             rename_headers=["Model / Config", "Architecture", "Eval Set", "N", "Acc", "MacroF1", "W-F1", "ECE"])
     add_img(doc, "report/figures/fig_ablation_meld_7config.png",
-            "Figure 6.4: 7-configuration MELD ablation benchmark (Text-only & A+T reach 37.14%, Trimodal achieves best ECE 0.0734).", width_in=5.5)
+            "Figure 6.4: MELD Unimodal vs. Trimodal ablation benchmark (Text-only leads raw Acc at 37.14%, Trimodal achieves best ECE 0.0734).", width_in=5.5)
     add_img(doc, "report/figures/fig_calibration_reliability.png",
             "Figure 6.5: Reliability curve before vs after temperature calibration (ECE reduced from 0.2130 to 0.0734 at T*=0.5953).", width_in=5.0)
 

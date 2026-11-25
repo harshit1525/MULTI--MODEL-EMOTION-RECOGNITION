@@ -25,7 +25,7 @@
 | FIG-21 | report/figures/fig_webcam_backbone_comparison.png | Per-clip frame accuracy, pooled accuracy, and majority-vote clips correct across 3 webcam backbones (9 clips, 916 frames). | results/eval_efficientnet_current.json + eval_resnet18_raf.json + eval_resnet18_ravdess.json |
 | FIG-22 | report/figures/fig_class_dist_datasets.png | Class distribution across splits for RAF-DB, RAVDESS crops, and MELD. | DATASET/ + ravdess_crops/ + MELD.Raw/ |
 | FIG-23 | report/figures/fig_latency_comparison.png | Unified 200-frame CPU p50/p95 latency across the 3 webcam backbones (earlier single-run numbers are not comparable). | New folder/Disgust (2).mp4 + WebcamService |
-| FIG-24 | report/figures/fig_ablation_meld_7config.png | 7-configuration MELD multimodal ablation benchmark showing accuracy, macro-F1, and ECE. | results/full_ablation_benchmark_results.json |
+| FIG-24 | report/figures/fig_ablation_meld_7config.png | Unimodal vs. Trimodal MELD multimodal ablation benchmark (Audio Only, Video Only, Text Only, Trimodal A+V+T) showing accuracy, macro-F1, and ECE. | results/full_ablation_benchmark_results.json |
 | FIG-25 | report/figures/fig_ablation_audio_improvement.png | Comparison of MELD audio classifier imbalance strategies across accuracy, macro-F1, and weighted-F1. | results/audio_classifier_improvement/comparison.csv |
 | FIG-26 | report/figures/fig_ablation_fusion_optimization.png | Baseline vs. optimized multimodal fusion system across accuracy, macro-F1, ECE, Brier score, and NLL. | results/metrics/multimodal_optimization_comparison.json |
 | FIG-27 | report/figures/fig_calibration_reliability.png | Reliability diagram comparing uncalibrated vs. temperature-scaled multimodal probabilities. | results/metrics/multimodal_calibration_report.json |
