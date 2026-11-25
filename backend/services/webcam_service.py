@@ -101,15 +101,24 @@ class WebcamService:
         self._fusion_service: Optional[Any] = None
         self._transcription_service: Optional[Any] = None
         
-        self.load_models()
+        self.load_models(allow_fallback=True)
 
-    def load_models(self):
+    def load_models(self, allow_fallback: bool = False):
         if not os.path.exists(self.video_ckpt):
             raise FileNotFoundError(f"Video classifier checkpoint not found at {self.video_ckpt}")
 
-        # --- ResNet-18 RAF-DB backbone (external checkpoint format) ---
-        if self._backbone_name == "resnet18_raf":
-            self._load_resnet18_raf()
+        # --- ResNet-18 RAF-DB / RAVDESS backbones (external checkpoint format) ---
+        if self._backbone_name in ("resnet18_raf", "resnet18_ravdess"):
+            try:
+                self._load_resnet18_raf()
+            except Exception as exc:
+                if self._backbone_name == "resnet18_ravdess" and allow_fallback:
+                    logger.warning(f"Failed loading resnet18_ravdess ({exc}); falling back to resnet18_raf.")
+                    self._backbone_name, self.video_ckpt = self._resolve_backbone_ckpt(
+                        "resnet18_raf", allow_fallback=True
+                    )
+                    return self.load_models(allow_fallback=True)
+                raise
             if self.face_detector is None:
                 self._init_face_detector()
             self.is_loaded = True
@@ -194,18 +203,24 @@ class WebcamService:
         self, backbone_name: str, video_ckpt: Optional[str] = None, allow_fallback: bool = True
     ):
         """Resolve (backbone_name, checkpoint_path) with optional graceful fallback."""
-        valid = ("efficientnet_current", "resnet18_raf")
+        valid = ("efficientnet_current", "resnet18_raf", "resnet18_ravdess")
         if backbone_name not in valid:
             raise ValueError(f"Unsupported webcam backbone '{backbone_name}'. Choose from {valid}.")
 
-        if backbone_name == "resnet18_raf":
-            candidate = video_ckpt or self._cfg.get(
-                "webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"
-            )
+        resnet_defaults = {
+            "resnet18_ravdess": ("webcam_resnet18_ravdess_path", "external_models/ravdess/best_resnet18_ravdess.pt"),
+            "resnet18_raf": ("webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"),
+        }
+        if backbone_name in resnet_defaults:
+            cfg_key, default_path = resnet_defaults[backbone_name]
+            candidate = video_ckpt or self._cfg.get(cfg_key, default_path)
             if os.path.exists(candidate):
-                return "resnet18_raf", candidate
+                return backbone_name, candidate
             if not allow_fallback:
-                raise FileNotFoundError(f"ResNet-18 RAF checkpoint not found at {candidate}")
+                raise FileNotFoundError(f"{backbone_name} checkpoint not found at {candidate}")
+            if backbone_name == "resnet18_ravdess":
+                logger.warning("resnet18_ravdess checkpoint not found; falling back to resnet18_raf.")
+                return self._resolve_backbone_ckpt("resnet18_raf", video_ckpt=None, allow_fallback=True)
             logger.warning("ResNet-18 RAF checkpoint not found; falling back to default EfficientNet.")
             backbone_name = "efficientnet_current"
 
@@ -219,22 +234,23 @@ class WebcamService:
     def get_available_backbones(self) -> List[Dict[str, Any]]:
         """Return supported webcam backbones and whether their checkpoints exist on disk."""
         _, eff_path = self._resolve_backbone_ckpt("efficientnet_current", allow_fallback=True)
-        raf_path = self._cfg.get(
-            "webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"
-        )
+        specs = [
+            ("efficientnet_current", "EfficientNet-B0 (96px)", eff_path),
+            ("resnet18_raf", "ResNet-18 (RAF-DB 128px)", self._cfg.get(
+                "webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"
+            )),
+            ("resnet18_ravdess", "ResNet-18 (RAF+RAVDESS 128px)", self._cfg.get(
+                "webcam_resnet18_ravdess_path", "external_models/ravdess/best_resnet18_ravdess.pt"
+            )),
+        ]
         return [
             {
-                "id": "efficientnet_current",
-                "label": "EfficientNet-B0 (96px, Default)",
-                "available": os.path.exists(eff_path),
-                "active": self._backbone_name == "efficientnet_current",
-            },
-            {
-                "id": "resnet18_raf",
-                "label": "ResNet-18 (RAF-DB 128px)",
-                "available": os.path.exists(raf_path),
-                "active": self._backbone_name == "resnet18_raf",
-            },
+                "id": bid,
+                "label": label,
+                "available": os.path.exists(path),
+                "active": self._backbone_name == bid,
+            }
+            for bid, label, path in specs
         ]
 
     def switch_backbone(self, backbone_name: str) -> Dict[str, Any]:
@@ -273,13 +289,16 @@ class WebcamService:
             self.face_detector = None
 
     def _load_resnet18_raf(self):
-        """Load RAF-DB ResNet-18 via live_resnet18_demo.load_model and remap classes by name."""
-        logger.info("Loading ResNet-18 RAF-DB backbone...")
-        self._architecture = "resnet18_raf"
+        """Load ResNet-18 checkpoint via live_resnet18_demo.load_model and remap classes by name."""
+        logger.info(f"Loading {self._backbone_name} backbone...")
+        self._architecture = self._backbone_name
         self.calibrated_temperature = 1.0
 
         model, prep, raf_class_names = load_model(self.video_ckpt)
         self._raf_prep = prep
+        rz = next((t for t in getattr(prep, "transforms", []) if isinstance(t, transforms.Resize)), None)
+        if rz is not None:
+            self._eval_resize = rz.size[0] if isinstance(rz.size, (tuple, list)) else int(rz.size)
         cc = next((t for t in getattr(prep, "transforms", []) if isinstance(t, transforms.CenterCrop)), None)
         if cc is not None:
             self._img_size = cc.size[0] if isinstance(cc.size, (tuple, list)) else int(cc.size)
@@ -562,7 +581,7 @@ class WebcamService:
 
         # --- FACIAL CROP & AFFINE EYE ALIGNMENT ---
         fx, fy, fw, fh = best_face_bbox
-        pad = 1.10 if self._architecture == "resnet18_raf" else 1.25
+        pad = 1.10 if self._raf_prep is not None else 1.25
         face_crop = aligned_square_crop(img, best_face, pad, min_side=10)
         if face_crop is None or face_crop.shape[0] < 10 or face_crop.shape[1] < 10:
             face_crop = img
@@ -680,7 +699,7 @@ class WebcamService:
             }
 
         # --- DEEP VISION MODEL INFERENCE ---
-        if self._architecture == "resnet18_raf":
+        if self._raf_prep is not None:
             rgb = cv2.cvtColor(face_enhanced, cv2.COLOR_BGR2RGB)
             tensor = self._raf_prep(Image.fromarray(rgb)).unsqueeze(0).to(self.device)
             with torch.inference_mode():

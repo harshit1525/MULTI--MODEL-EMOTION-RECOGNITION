@@ -22,7 +22,7 @@ class SessionResetPayload(BaseModel):
     client_id: str = Field("default", description="Client identifier whose session state should be reset")
 
 class BackboneSwitchPayload(BaseModel):
-    backbone: str = Field(..., description="Webcam backbone identifier: 'efficientnet_current' or 'resnet18_raf'")
+    backbone: str = Field(..., description="Webcam backbone identifier: 'efficientnet_current', 'resnet18_raf', or 'resnet18_ravdess'")
 
 @router.get("/status")
 def get_webcam_status():

@@ -1067,9 +1067,11 @@ function updateWebcamModelDisplay(data) {
 
     const modelPill = document.getElementById('webcam-model-pill');
     if (modelPill && data.backbone) {
-        const shortName = data.backbone === 'resnet18_raf'
-            ? `ResNet-18 (${data.img_size || 128}px)`
-            : `EfficientNet-B0 (${data.img_size || 96}px)`;
+        const nameMap = {
+            resnet18_raf: `ResNet-18 (${data.img_size || 128}px)`,
+            resnet18_ravdess: `ResNet-18 RAVDESS (${data.img_size || 128}px)`
+        };
+        const shortName = nameMap[data.backbone] || `EfficientNet-B0 (${data.img_size || 96}px)`;
         modelPill.innerHTML = `Model: <strong>${shortName}</strong>`;
     }
 

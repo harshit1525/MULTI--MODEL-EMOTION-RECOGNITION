@@ -435,6 +435,56 @@ def test_resnet18_raf_config_selection():
     assert svc._raf_index_map == [6, 2, 1, 3, 5, 0, 4]
 
 
+def test_resnet18_ravdess_load_and_fallback():
+    """Verify resnet18_ravdess loads checkpoint preprocessing and falls back to resnet18_raf on failure."""
+    from unittest.mock import patch
+    from backend.services.webcam_service import WebcamService
+
+    raf_ckpt = "external_models/resnet18_raf/best_resnet18.pt"
+    rav_ckpt = "external_models/ravdess/best_resnet18_ravdess.pt"
+    if not os.path.exists(raf_ckpt):
+        return
+
+    if os.path.exists(rav_ckpt):
+        with patch("yaml.safe_load", return_value={
+            "webcam_backbone": "resnet18_ravdess",
+            "webcam_resnet18_raf_path": raf_ckpt,
+            "webcam_resnet18_ravdess_path": rav_ckpt,
+        }):
+            svc = WebcamService()
+        assert svc._backbone_name == "resnet18_ravdess"
+        assert svc._img_size == 128
+        assert svc._eval_resize == 146
+        assert svc._raf_index_map == [0, 1, 2, 3, 4, 5, 6]
+
+    # Missing RAVDESS path falls back to resnet18_raf
+    with patch("yaml.safe_load", return_value={
+        "webcam_backbone": "resnet18_ravdess",
+        "webcam_resnet18_raf_path": raf_ckpt,
+        "webcam_resnet18_ravdess_path": "nonexistent/best_resnet18_ravdess.pt",
+    }):
+        svc_missing = WebcamService()
+    assert svc_missing._backbone_name == "resnet18_raf"
+
+    # Corrupt RAVDESS checkpoint falls back to resnet18_raf
+    import tempfile
+    fd, bad_ckpt = tempfile.mkstemp(suffix=".pt")
+    os.close(fd)
+    try:
+        with open(bad_ckpt, "wb") as f:
+            f.write(b"not a valid torch checkpoint")
+        with patch("yaml.safe_load", return_value={
+            "webcam_backbone": "resnet18_ravdess",
+            "webcam_resnet18_raf_path": raf_ckpt,
+            "webcam_resnet18_ravdess_path": bad_ckpt,
+        }):
+            svc_corrupt = WebcamService()
+        assert svc_corrupt._backbone_name == "resnet18_raf"
+    finally:
+        if os.path.exists(bad_ckpt):
+            os.unlink(bad_ckpt)
+
+
 def test_eval_clips_stem_parsing():
     """Verify eval_clips.py parse_stem handles all expected filename patterns."""
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -466,7 +516,7 @@ def test_webcam_status_and_backbone_switch():
     resp = client.get("/predict/webcam/status")
     assert resp.status_code == 200
     data = resp.json()
-    assert data["backbone"] in ("efficientnet_current", "resnet18_raf")
+    assert data["backbone"] in ("efficientnet_current", "resnet18_raf", "resnet18_ravdess")
     assert "available_backbones" in data
     orig_backbone = data["backbone"]
 
@@ -481,19 +531,22 @@ def test_webcam_status_and_backbone_switch():
     assert st_js.status_code == 200
     assert "/predict/webcam/backbone" in st_js.text
 
-    raf_ckpt = "external_models/resnet18_raf/best_resnet18.pt"
-    if os.path.exists(raf_ckpt):
-        sw = client.post("/predict/webcam/backbone", json={"backbone": "resnet18_raf"})
-        assert sw.status_code == 200
-        assert sw.json()["backbone"] == "resnet18_raf"
-        assert sw.json()["img_size"] == 128
+    for candidate_bb, candidate_path in (
+        ("resnet18_raf", "external_models/resnet18_raf/best_resnet18.pt"),
+        ("resnet18_ravdess", "external_models/ravdess/best_resnet18_ravdess.pt"),
+    ):
+        if os.path.exists(candidate_path):
+            sw = client.post("/predict/webcam/backbone", json={"backbone": candidate_bb})
+            assert sw.status_code == 200
+            assert sw.json()["backbone"] == candidate_bb
+            assert sw.json()["img_size"] == 128
 
-        st = client.get("/predict/webcam/status").json()
-        assert st["backbone"] == "resnet18_raf"
+            st = client.get("/predict/webcam/status").json()
+            assert st["backbone"] == candidate_bb
 
-        restore = client.post("/predict/webcam/backbone", json={"backbone": orig_backbone})
-        assert restore.status_code == 200
-        assert restore.json()["backbone"] == orig_backbone
+    restore = client.post("/predict/webcam/backbone", json={"backbone": orig_backbone})
+    assert restore.status_code == 200
+    assert restore.json()["backbone"] == orig_backbone
 
 
 if __name__ == "__main__":
@@ -516,6 +569,7 @@ if __name__ == "__main__":
     test_resnet18_raf_class_name_mapping()
     test_resnet18_raf_synthetic_checkpoint()
     test_resnet18_raf_config_selection()
+    test_resnet18_ravdess_load_and_fallback()
     test_eval_clips_stem_parsing()
     test_webcam_status_and_backbone_switch()
     print("All webcam unit tests passed!")

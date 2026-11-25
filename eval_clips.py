@@ -136,7 +136,7 @@ def summarize(frame_results, ground_truth):
 def main():
     parser = argparse.ArgumentParser(description="Evaluate webcam emotion clips")
     parser.add_argument("--backbone", default="efficientnet_current",
-                        choices=["efficientnet_current", "resnet18_raf"])
+                        choices=["efficientnet_current", "resnet18_raf", "resnet18_ravdess"])
     parser.add_argument("--clip-dir", default="New folder")
     parser.add_argument("--final", action="store_true",
                         help="Include (3) suffix clips (final evaluation only)")
@@ -145,14 +145,17 @@ def main():
     args = parser.parse_args()
 
     from backend.services.webcam_service import webcam_service, WebcamService
-    if args.backbone == "resnet18_raf":
-        raf_ckpt = webcam_service._cfg.get(
-            "webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"
-        )
-        if not os.path.exists(raf_ckpt):
-            print(f"[SKIP] resnet18_raf checkpoint missing at '{raf_ckpt}'; skipping evaluation.")
+    resnet_cfg = {
+        "resnet18_raf": ("webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"),
+        "resnet18_ravdess": ("webcam_resnet18_ravdess_path", "external_models/ravdess/best_resnet18_ravdess.pt"),
+    }
+    if args.backbone in resnet_cfg:
+        cfg_key, default_ckpt = resnet_cfg[args.backbone]
+        ckpt_path = webcam_service._cfg.get(cfg_key, default_ckpt)
+        if not os.path.exists(ckpt_path):
+            print(f"[SKIP] {args.backbone} checkpoint missing at '{ckpt_path}'; skipping evaluation.")
             return
-        service = WebcamService(backbone="resnet18_raf")
+        service = WebcamService(backbone=args.backbone)
     elif webcam_service._backbone_name == args.backbone:
         service = webcam_service
     else:
