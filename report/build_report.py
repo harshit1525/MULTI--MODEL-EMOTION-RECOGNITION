@@ -1232,174 +1232,115 @@ def build_chapter4(doc: Document) -> None:
 def build_chapter5(doc: Document) -> None:
     add_chapter_heading(doc, "5", "Results and Discussion", page_break=True)
 
-    add_h2(doc, "5.1 Dataset Composition and Evaluation Protocol")
+    add_h2(doc, "5.1 Datasets, Webcam Progression, and Final Confusion Matrix")
     add_para(doc,
-             "Experimental evaluation covers four distinct benchmarks unified under the shared seven-emotion taxonomy (anger, disgust, fear, joy, "
-             "neutral, sadness, surprise), as summarized in Table 5.1 and Figure 5.1. Because MELD [1] exhibits severe majority skew (47.1% "
-             "neutral utterances vs. <2.8% disgust and fear), full-test unimodal scoring (N = 2,610) reports Macro-F1 alongside Accuracy, while "
-             "multimodal fusion evaluation uses a strictly class-balanced 105-utterance held-out subset (15 per class, random chance = 14.3%). "
-             "For vision training, two exact within-train RGB duplicates were removed from RAF-DB [2] (10,428 train / 1,841 val / 3,068 test), "
-             "and 3,970 aligned speech crops were extracted from 518 RAVDESS [3] clips split strictly by speaker identity (Actors 01–08 train; "
-             "Actors 09–10 validation).")
-    add_figure(doc, "report/figures/fig_class_dist_datasets.png", "5.1",
-               "Class distributions across splits for RAF-DB, extracted RAVDESS speech crops, and MELD utterances.", width_in=5.55)
+             "Evaluation spans four benchmarks under the shared seven-emotion taxonomy (Table 5.1): RAF-DB [2] (10,428 train / 1,841 val / 3,068 test after removing 2 train duplicates), RAVDESS [3] speech crops (3,184 Actors 01–08 train / 786 Actors 09–10 val), MELD [1] (N=2,610 unimodal test; 105 balanced fusion test), and 9 personal clips (916 frames, evaluation-only).",
+             space_after=4.0)
     add_csv_table(
-        doc, "5.1", "Summary of Datasets Across Training, Validation, and Held-Out Evaluation",
+        doc, "5.1", "Datasets Summary Across Training, Validation, and Evaluation Splits",
         "report/tables/datasets_summary.csv",
-        col_widths=[0.95, 1.05, 0.95, 1.15, 0.70, 0.95], font_pt=7.7,
+        col_widths=[0.95, 1.05, 0.95, 1.15, 0.70, 0.95], font_pt=7.2,
     )
 
-    add_h2(doc, "5.2 Webcam Vision Progression, Confusion Matrices, and CPU Latency")
     add_para(doc,
-             "Table 5.2 and Figure 5.2 summarize the quantitative progression across all three selectable webcam backbones. Replacing the legacy "
-             "MELD-pretrained EfficientNet-B0 baseline (efficientnet_current: 20.4% RAF-DB test acc; 15.61% pooled webcam acc, 1/9 clips) with "
-             "ResNet-18 trained on RAF-DB (resnet18_raf) lifted RAF-DB test accuracy to 79.53% (0.6721 macro-F1) and personal webcam clip "
-             "accuracy to 44.00% (4/9 clips). Mixed fine-tuning on RAF-DB blended with aligned RAVDESS speech crops (resnet18_ravdess, best "
-             "Epoch 7) achieved the strongest overall balance: improving RAF-DB test macro-F1 further to 0.7077 (79.27% acc), reaching 56.87% "
-             "accuracy (0.5354 macro-F1) on unseen RAVDESS Actors 09–10, and raising personal webcam performance to 57.31% pooled (525/916 "
-             "frames, 5/9 clips)—cutting surprise-vs-anger errors (101 down to 62 frames) and neutral-vs-surprise errors (82 down to 51).")
+             "Table 5.2 and Figure 5.1 summarize the real-time webcam backbone progression. Replacing legacy EfficientNet-B0 (15.61% pooled webcam, 1/9 clips; 20.4% RAF-DB) with RAF-trained ResNet-18 lifted webcam accuracy to 44.00% (4/9 clips; 79.53% RAF-DB). Mixed fine-tuning on RAF-DB + aligned RAVDESS crops (resnet18_ravdess, Epoch 7) achieved the best generalization: lifting RAF-DB test macro-F1 to 0.7077 (79.27% acc), reaching 56.87% (0.5354 macro-F1) on unseen RAVDESS actors, and raising personal webcam performance to 57.31% (525/916 frames, 5/9 clips).",
+             space_after=4.0)
     add_csv_table(
-        doc, "5.2", "Summary Comparison of Webcam Backbones Across RAF-DB, RAVDESS, Personal Clips, and Unified CPU Latency",
+        doc, "5.2", "Webcam Backbones Across RAF-DB, RAVDESS, 9 Clips, and Unified CPU Latency",
         "report/tables/backbone_comparison.csv",
         col_indices=[0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11],
         rename_headers=["Backbone", "Arch.", "Px", "RAF Acc", "RAF F1", "RAV Acc", "RAV F1", "Clips", "Pooled", "p50 ms", "p95 ms"],
-        col_widths=[0.88, 0.62, 0.34, 0.48, 0.48, 0.48, 0.48, 0.45, 0.50, 0.52, 0.52], font_pt=7.0,
+        col_widths=[0.88, 0.62, 0.34, 0.48, 0.48, 0.48, 0.48, 0.45, 0.50, 0.52, 0.52], font_pt=6.8,
     )
-    add_figure(doc, "report/figures/fig_webcam_backbone_comparison.png", "5.2",
-               "Per-clip frame accuracy, pooled accuracy, and majority-vote clip score across all three webcam backbones (9 clips, 916 frames).", width_in=5.55)
+    add_figure(doc, "report/figures/fig_webcam_backbone_comparison.png", "5.1",
+               "Per-clip frame accuracy, pooled accuracy, and clips passed across all three webcam backbones (9 clips, 916 frames).", width_in=4.65)
 
     add_para(doc,
-             "Figures 5.3, 5.4, and 5.5 inspect the confusion matrices of the promoted default model (resnet18_ravdess) across all three vision "
-             "domains. On RAF-DB test (Figure 5.3, N = 3,068), strong diagonal recall confirms mixed fine-tuning preserved general facial "
-             "features without catastrophic forgetting. On held-out RAVDESS speakers (Figure 5.4, N = 786), dynamic speaking faces separate cleanly "
-             "on joy, disgust, anger, and surprise, while Figure 5.5 and Table 5.3 confirm 100.0% frame accuracy on Disgust (2).mp4 (172/172), "
-             "Joy.mp4 (115/115), and Neutal.mp4 (99/99), plus 79.78% on disgust.mp4 and 43.75% (majority pass) on Fear (2).mp4. Figure 5.6 shows "
-             "stable mixed training convergence peaking at Epoch 7 (RAF val macro-F1 = 0.8749, RAVDESS val macro-F1 = 0.5354).")
-    add_figure(doc, "report/figures/fig_cm_rafdb_resnet18_ravdess.png", "5.3",
-               "7x7 confusion matrix for default ResNet-18 (RAF+RAVDESS) on RAF-DB test set (N=3,068, 79.27% acc, 0.7077 macro-F1).", width_in=4.55)
-    add_figure(doc, "report/figures/fig_cm_ravdess_val_resnet18_ravdess.png", "5.4",
-               "7x7 confusion matrix for default ResNet-18 (RAF+RAVDESS) on unseen RAVDESS validation actors (N=786, 56.87% acc).", width_in=4.55)
-    add_figure(doc, "report/figures/fig_cm_webcam_resnet18_ravdess.png", "5.5",
-               "7x7 row-normalized confusion matrix for default ResNet-18 (RAF+RAVDESS) on 9 personal webcam clips (916 frames, 57.31% pooled).", width_in=4.55)
-    add_figure(doc, "report/figures/fig_train_curves_ravdess.png", "5.6",
-               "Mixed RAF-DB + RAVDESS ResNet-18 training loss and validation macro-F1 convergence curves (best Epoch 7).", width_in=5.20)
+             "Figure 5.2 presents the single final confusion matrix—for the promoted default resnet18_ravdess backbone across the 9 evaluation clips—paired with per-clip results in Table 5.3 and unified 200-frame CPU latency in Table 5.4. It achieves 100.0% frame accuracy on Disgust (2).mp4, Joy.mp4, and Neutal.mp4, 79.78% on disgust.mp4, and 43.75% (majority pass) on Fear (2).mp4, while holding 32.98 ms median latency (~30.3 FPS, p95 = 34.59 ms).",
+             space_after=4.0)
+    add_figure(doc, "report/figures/fig_cm_webcam_resnet18_ravdess.png", "5.2",
+               "Final 7x7 row-normalized confusion matrix: default ResNet-18 (RAF+RAVDESS) on 9 webcam clips (57.31% pooled).", width_in=3.75)
     add_csv_table(
-        doc, "5.3", "Per-Clip Ground Truth, Majority Vote, and Frame Accuracy Across All 9 Webcam Clips (916/916 Detected Faces)",
+        doc, "5.3", "Per-Clip Ground Truth, Majority Vote, and Frame Accuracy (916/916 Detected Faces)",
         "report/tables/per_clip_results.csv",
         col_indices=[0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11],
         rename_headers=["Clip", "Truth", "Frm", "Eff Maj", "Eff Acc", "RAF Maj", "RAF Acc", "RAV Maj", "RAV Acc", "RAV TopErr", "Err%"],
-        col_widths=[0.74, 0.46, 0.34, 0.50, 0.46, 0.50, 0.46, 0.55, 0.46, 0.64, 0.64], font_pt=7.0,
+        col_widths=[0.74, 0.46, 0.34, 0.50, 0.46, 0.50, 0.46, 0.55, 0.46, 0.64, 0.64], font_pt=6.7,
     )
-
-    add_para(doc,
-             "Figure 5.7 and Table 5.4 measure CPU inference latency in ONE controlled 200-frame benchmark on Disgust (2).mp4 through WebcamService "
-             "(earlier isolated CLI timings are non-comparable due to background variance). Because shared YuNet detection and affine crop alignment "
-             "dominate fixed per-frame CPU work, all three backbones run at virtually identical real-time speed (~30 FPS): 32.98 ms p50 (34.59 ms p95) "
-             "for default resnet18_ravdess vs. 33.63 ms p50 for 96-px efficientnet_current—well within the <= 150 ms interactive budget.")
-    add_figure(doc, "report/figures/fig_latency_comparison.png", "5.7",
-               "Unified 200-frame CPU p50/p95 latency across the three webcam backbones (earlier single-run timings are non-comparable).", width_in=5.10)
     add_csv_table(
-        doc, "5.4", "Unified 200-Frame CPU Latency Benchmark on Disgust (2).mp4 (source=172 frames, measured=200 iterations, device=cpu)",
+        doc, "5.4", "Unified 200-Frame CPU Latency on Disgust (2).mp4 (Earlier Single Runs Non-Comparable)",
         "report/tables/latency_benchmark.csv",
         col_indices=[0, 1, 2, 7, 8, 9, 10, 11, 12, 13, 14],
         rename_headers=["Backbone", "Arch.", "Px", "Mean", "Std", "p50", "p95", "p99", "Min", "Max", "FPS(p50)"],
-        col_widths=[0.94, 0.72, 0.34, 0.45, 0.42, 0.46, 0.46, 0.46, 0.46, 0.46, 0.58], font_pt=7.2,
+        col_widths=[0.94, 0.72, 0.34, 0.45, 0.42, 0.46, 0.46, 0.46, 0.46, 0.46, 0.58], font_pt=6.8,
     )
 
-    add_h2(doc, "5.3 MELD Multimodal Ablations, AU-Rule Removal, and Calibration")
+    add_h2(doc, "5.2 MELD Multimodal Ablations and Probability Calibration")
     add_para(doc,
-             "Across MELD optimization, three defendable engineering results stand out: First, stripping hard-coded facial Action Unit heuristics "
-             "that conflicted with learned representations lifted MELD validation macro-F1 from 0.2872 to 0.3868 (+0.0996, Figure 5.8). Second, "
-             "fixing unimodal neutral collapse with StrongerAudioClassifier + WeightedRandomSampler raised Wav2Vec 2.0 acoustic macro-F1 from 0.1771 "
-             "to 0.2209 (N = 2,610), while all-MiniLM-L6-v2 text classification improved over TF-IDF from 40.15% (0.2989 macro-F1) to 42.87% "
-             "(0.3326 macro-F1, Table 5.5). Third, on the balanced 105-sample multimodal test set (Figures 5.9–5.12 and Table 5.5), although "
-             "Text-only and Audio+Text achieve 37.14% accuracy (noisy MELD video cuts dilute point accuracy slightly to 36.19% when added), "
-             "AdvancedCrossModalAttentionFusionNet with learned temperature scaling (T* = 0.5953) boosts multimodal system macro-F1 from 0.2833 "
-             "to 0.3574 and cuts Expected Calibration Error (ECE) by nearly two-thirds from 0.2130 down to 0.0734 (Brier 0.8811 -> 0.7785).")
-    add_figure(doc, "report/figures/fig_ablation_phase2_au_rules.png", "5.8",
-               "Phase-2 ablation showing MELD validation macro-F1 improvement from 0.2872 to 0.3868 upon removing hard-coded AU rules.", width_in=4.70)
-    add_figure(doc, "report/figures/fig_ablation_meld_7config.png", "5.9",
-               "Seven-configuration MELD multimodal ablation benchmark showing accuracy, macro-F1, and ECE across modality subsets (N=105).", width_in=5.45)
-    add_figure(doc, "report/figures/fig_ablation_fusion_optimization.png", "5.10",
-               "Pre-optimization multimodal baseline vs. optimized calibrated fusion system across accuracy, macro-F1, ECE, Brier score, and NLL.", width_in=5.30)
-    add_figure(doc, "report/figures/fig_calibration_reliability.png", "5.11",
-               "Reliability diagram confirming calibrated probability alignment (ECE 0.2130 -> 0.0734 at T*=0.5953).", width_in=4.85)
-    add_figure(doc, "report/figures/fig_cm_meld_fusion_optimized.png", "5.12",
-               "7x7 confusion matrix of final calibrated AdvancedCrossModalAttentionFusionNet on balanced MELD fusion test set (N=105).", width_in=4.55)
-
+             "In MELD optimization, removing hard-coded Action Unit heuristics raised validation macro-F1 from 0.2872 to 0.3868 (+0.0996); balanced Wav2Vec 2.0 sampling raised acoustic macro-F1 from 0.1771 to 0.2209 (N=2,610); and contextual all-MiniLM-L6-v2 text lifted accuracy from 40.15% (TF-IDF) to 42.87%. Across the 7-configuration fusion benchmark (Figure 5.3, Table 5.5, N=105), Text-only and Audio+Text reach 37.14% raw accuracy whereas Trimodal AdvancedCrossModalAttentionFusionNet with temperature scaling (T*=0.5953) achieves 36.19% accuracy (0.3574 macro-F1, up from 29.52% / 0.2833 baseline) while cutting Expected Calibration Error from 0.2130 down to 0.0734 (Figure 5.4).",
+             space_after=4.0)
+    add_figure(doc, "report/figures/fig_ablation_meld_7config.png", "5.3",
+               "Seven-configuration MELD ablation benchmark showing accuracy, macro-F1, and ECE across modality subsets (N=105).", width_in=4.65)
+    add_figure(doc, "report/figures/fig_calibration_reliability.png", "5.4",
+               "Reliability diagram comparing uncalibrated vs. temperature-scaled multimodal probabilities (ECE 0.2130 -> 0.0734).", width_in=3.85)
+    key_meld_names = {
+        "Audio Baseline (A_Baseline)",
+        "Audio Balanced Sampler (Production)",
+        "Text Baseline (TF-IDF)",
+        "Text Contextual (Production)",
+        "Fusion Baseline",
+        "Optimized Fusion (Text Only)",
+        "Optimized Fusion (Audio + Text)",
+        "Optimized Fusion (Audio + Video + Text (Trimodal))",
+    }
     add_csv_table(
-        doc, "5.5", "Curated MELD Unimodal, Baseline Fusion, and 7-Configuration Multimodal Ablation Results",
+        doc, "5.5", "Headline MELD Unimodal, Baseline, and Calibrated Fusion Benchmark Results",
         "report/tables/meld_model_results.csv",
         col_indices=[0, 2, 3, 4, 5, 6, 7, 8],
         rename_headers=["Model / Config", "Architecture", "Eval Set", "N", "Acc", "MacroF1", "W-F1", "ECE"],
-        filter_fn=lambda r: not r[0].startswith("Audio Exp"),
-        col_widths=[1.15, 1.15, 0.85, 0.42, 0.54, 0.56, 0.58, 0.50], font_pt=7.2,
+        filter_fn=lambda r: r[0] in key_meld_names,
+        col_widths=[1.20, 1.15, 0.85, 0.40, 0.52, 0.55, 0.58, 0.50], font_pt=7.0,
     )
 
-    add_h2(doc, "5.4 Verification Against Chapter 1 Objectives")
+    add_h2(doc, "5.3 Objectives Audit, Economic BOM, Benchmark Positioning, and Failure Defense")
     add_para(doc,
-             "Table 5.6 summarizes an objective-by-objective audit comparing targets established in Chapter 1 against observed empirical metrics.")
+             "Tables 5.6, 5.7, and 5.8 consolidate the Chapter 1 objectives audit, open-source CPU-only Bill of Materials, and positioning against verified literature (GPU static transformers POSTER++ 92.21% [9] and DDAMFN 91.35% [10]; multi-turn imbalanced MELD networks TelME ~67% [24] and UniMSE 65.51% [23]).",
+             space_after=4.0)
     obj_rows = [
-        ("Obj 1: Parity & Quality Gating", "100% endpoint/eval parity; unmirrored; align + blur >= 30", "916/916 frames 100% API vs eval parity; AU rules removed (0.2872->0.3868)", "Met"),
-        ("Obj 2: Webcam Generalization & Latency", "Beat 15.6%/44.0% webcam, keep RAF F1 >= 0.6721, p95 <= 150 ms", "57.31% pooled (5/9 clips), RAF F1 0.7077, CPU p95 34.59 ms; anger/sadness still 0%", "Partly Met"),
-        ("Obj 3: Balanced MELD Unimodal", "Mitigate neutral collapse; compare MiniLM vs TF-IDF (N=2,610)", "Audio macro-F1 0.1771->0.2209; MiniLM 0.3326 vs TF-IDF 0.2989", "Met"),
-        ("Obj 4: Calibrated Attention Fusion", "Missing-modality masking + temperature scaling ECE < 0.10", "Masking verified; ECE reduced 0.2130->0.0734; A+T marginally beat A+V+T Acc", "Partly Met"),
-        ("Obj 5: Full-Stack Privacy & Tests", "Volatile live RAM + 100% automated tests passing", "5/5 unit + 11/11 FastAPI integration pass; 8 UI routes verified in Chrome", "Met"),
+        ("Obj 1: Parity & Quality Gating", "100% API/eval match; align + blur >= 30", "916/916 parity; AU rules cut (0.2872->0.3868)", "Met"),
+        ("Obj 2: Webcam Acc & Latency", "Beat 15.6%/44%; RAF F1>=0.6721; p95<=150ms", "57.31% (5/9), RAF F1 0.7077, p95 34.59 ms; anger/sad 0%", "Partly Met"),
+        ("Obj 3: Balanced MELD Unimodal", "Mitigate collapse; MiniLM vs TF-IDF", "Audio F1 0.1771->0.2209; MiniLM 42.87% vs 40.15%", "Met"),
+        ("Obj 4: Calibrated Fusion", "Masking + calibration ECE < 0.10", "Masking verified; ECE 0.2130->0.0734; T-only > Acc", "Partly Met"),
+        ("Obj 5: Privacy & Auto QA", "Volatile live RAM + full test suite pass", "5/5 unit + 11/11 integration pass; 8 UI tabs OK", "Met"),
     ]
     add_styled_table(
-        doc, "5.6", "Honest Audit of Achieved Metrics Against Chapter 1 Quantitative Objectives",
+        doc, "5.6", "Audit of Achieved Metrics Against Chapter 1 Objectives",
         ["Objective", "Target Criterion", "Observed Empirical Outcome", "Status"],
-        obj_rows, [1.20, 1.50, 2.30, 0.75], font_pt=7.8,
+        obj_rows, [1.25, 1.50, 2.25, 0.75], font_pt=7.2,
     )
-
-    add_h2(doc, "5.5 Economic Analysis and Bill of Materials")
-    add_para(doc,
-             "As itemized in Table 5.7, the system eliminates recurring cloud GPU/API expenses by executing solely with open-source frameworks and "
-             "pretrained weights on existing laptop hardware (Intel i7-12650H + 15.68 GiB RAM, INR 0 cloud cost). Retail hardware acquisition "
-             "costs are left as [TO BE FILLED].")
     add_csv_table(
-        doc, "5.7", "Project Bill of Materials (Software, Pretrained Weights, Datasets, and Hardware Placeholders)",
+        doc, "5.7", "Bill of Materials (Open-Source Software, Weights, Datasets, and Hardware Placeholders)",
         "report/tables/bill_of_materials.csv",
-        col_widths=[0.78, 1.05, 1.42, 0.34, 0.86, 1.30], font_pt=7.6,
+        col_widths=[0.78, 1.05, 1.42, 0.34, 0.86, 1.30], font_pt=7.0,
     )
-
-    add_h2(doc, "5.6 Positioning Against Verified Benchmarks and Failure Mode Defense")
-    add_para(doc,
-             "Table 5.8 contrasts our lightweight CPU-first system against verified peer-reviewed RAF-DB and MELD works. State-of-the-art RAF-DB "
-             "models (POSTER++ 92.21% [9], DDAMFN 91.35% [10], EAC 90.35% [7]) employ heavy transformer/landmark branches at GPU budgets, whereas "
-             "our 128-px ResNet-18 prioritizes ~30 FPS CPU execution alongside dynamic speech transfer. Similarly, published MELD models (TelME "
-             "~67% [24], UniMSE 65.51% [23], MM-DFN 62.49% [21]) ingest multi-turn conversation histories on the imbalanced 2,610-utterance split, "
-             "whereas our fusion test evaluates single isolated utterances under strict 105-sample class balance.")
     sota_rows = [
-        ("POSTER++ (Mao et al., 2024) [9]", "RAF-DB Test (7-class)", "92.21% Acc", "Dual-branch landmark-image ViT; static images"),
-        ("DDAMFN (Zhang et al., 2023) [10]", "RAF-DB Test (7-class)", "91.35% Acc", "MixConv + dual attention; static FER focus"),
-        ("EAC (Zhang et al., 2022) [7]", "RAF-DB Test (7-class)", "89.99%–90.35% Acc", "ResNet-50 noisy-label regularization"),
-        ("Ours: ResNet-18 (RAF+RAVDESS)", "RAF-DB / RAVDESS / 9 Clips", "79.27% RAF / 56.87% RAV / 57.31% Cam", "CPU ~30 FPS, aligned crop, domain-adapted"),
-        ("TelME (Yun et al., 2024) [24]", "MELD Test (Full conv.)", "~66.36%–67.37% Acc/WF1", "Conversation history + text-teacher distillation"),
-        ("UniMSE (Hu et al., 2022) [23]", "MELD Test (Full conv.)", "65.51% Acc / 65.91% W-F1", "Multi-turn T5 multimodal pretraining"),
-        ("MM-DFN (Hu et al., 2022) [21]", "MELD Test (Full conv.)", "62.49% Acc / 59.46% W-F1", "Dynamic dialogue graph; uncalibrated logits"),
-        ("Ours: Text (MiniLM) / Opt. Fusion", "MELD Test (2,610) / Balanced (105)", "42.87% Text (2,610) / 36.19% Fusion (105)", "Single utterance, CPU, T*=0.5953 ECE=0.0734"),
+        ("POSTER++ [9] / DDAMFN [10]", "RAF-DB Test (GPU)", "92.21% / 91.35% Acc", "Heavy static landmark-ViT; non-CPU real-time"),
+        ("Ours: ResNet-18 (RAF+RAVDESS)", "RAF-DB / RAV / 9 Clips", "79.27% / 56.87% / 57.31%", "~30 FPS laptop CPU, aligned + dynamic speech transfer"),
+        ("TelME [24] / UniMSE [23]", "MELD Test (Full conv.)", "~67% / 65.51% Acc", "Multi-turn history + imbalanced neutral prior"),
+        ("Ours: Text / Opt. Fusion", "MELD (2,610 / 105 bal.)", "42.87% / 36.19% (ECE 0.0734)", "Single utterance, CPU, missing-stream masking"),
     ]
     add_styled_table(
-        doc, "5.8", "Positioning Against Verified Published FER and MELD Multimodal Benchmarks",
+        doc, "5.8", "Concise Positioning Against Verified Published Benchmarks",
         ["Method", "Benchmark / Split", "Reported Metrics", "Scope Difference vs. This System"],
-        sota_rows, [1.45, 1.35, 1.35, 1.60], font_pt=7.7,
+        sota_rows, [1.35, 1.25, 1.35, 1.80], font_pt=7.2,
     )
 
-    add_para(doc,
-             "Finally, four concise failure-mode findings anchor honest panel defense:")
-    add_bullet(doc, "Anger Read as Surprise (61.39%) & Sadness Read as Neutral (100%): ",
-               "In single-frame Anger.mp4 crops, raised/furrowed brows mimic static surprise patterns without vocal intensity, while subtle "
-               "low-arousal sadness collapses to neutral without temporal onset.")
-    add_bullet(doc, "Fear vs. Disgust Ambiguity: ",
-               "Disgust stabilized reliably (100% on Disgust (2).mp4, 79.78% on disgust.mp4), while Fear split across clips (43.75% majority "
-               "pass on Fear (2).mp4 vs. 93.98% disgust confusion on Fear.mp4) due to shared upper-lip tension cues.")
-    add_bullet(doc, "Single-Speaker Selection Scope & 8-Actor RAVDESS Gap: ",
-               "Because the 9 clips represent one subject and guided default backbone promotion, 57.31% is disclosed strictly as a fixed-clip "
-               "benchmark alongside the 0.2205 RAVDESS train-val macro-F1 gap across 8 training actors.")
-    add_bullet(doc, "Why MELD Trimodal Calibration Justifies Fusion Over Text-Only: ",
-               "Though TV scene clutter makes raw MELD video noisy (diluting Text Acc 37.14% -> 36.19%), trimodal attention cuts Expected "
-               "Calibration Error from 0.1903 down to 0.0734 while gracefully masking missing streams.")
+    add_bullet(doc, "Anger (61.39% surprise) & Sadness (100% neutral): ",
+               "Single-frame brows under desk light mimic static surprise; low-arousal sadness needs multi-second temporal cues.")
+    add_bullet(doc, "Single-Speaker Selection & 8-Actor Gap: ",
+               "Nine single-subject clips served for both selection and eval alongside a 0.2205 RAVDESS train-val gap across 8 actors.")
+    add_bullet(doc, "MELD Video Dilution vs. Calibration Gain: ",
+               "Noisy TV scene cuts slightly lower trimodal Acc vs. Text (36.19% vs. 37.14%) while cutting ECE from 0.1903 to 0.0734.")
 
     add_mapped_pos(doc, "PO4 (Conduct Investigations of Complex Problems).")
 
@@ -1528,7 +1469,7 @@ def build_appendices(doc: Document) -> None:
                "Sending all 916 frames from the 9 evaluation clips resized to 320x180 JPEG85 to FastAPI yielded 916/916 identical emotion predictions "
                "and matching probability vectors relative to direct disk evaluation in eval_clips.py.")
     add_bullet(doc, "Report Asset Manifest Summary: ",
-               "A curated, viva-focused selection of 28 high-signal PNG figures (200 dpi), 11 curated CSV tables, and all 22 mathtext formula "
+               "A curated, viva-focused selection of 20 high-signal PNG figures (200 dpi), 10 curated CSV tables, and all 22 mathtext formula "
                "PNGs from the complete 78-asset archive in report/assets_manifest.md is embedded across Chapters 1, 3, 4, and 5.")
 
     add_chapter_heading(doc, "APPENDIX B", "Selected Core Implementation Snippets", page_break=True)
