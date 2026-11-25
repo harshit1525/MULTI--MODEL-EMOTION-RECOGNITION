@@ -1,0 +1,4 @@
+Backbone,Architecture,Checkpoint,Input_Size_px,RAF_Test_Acc,RAF_Test_Macro_F1,RAVDESS_Val_Acc,RAVDESS_Val_Macro_F1,Webcam_Majority_Correct,Webcam_Pooled_Frame_Acc,Unified_CPU_p50_ms,Unified_CPU_p95_ms
+efficientnet_current,efficientnet_b0,models/video_classifier/best_webcam_model.pth,96,0.204,0.1544,N/A,N/A,1/9,0.1561,33.63,35.82
+resnet18_raf,resnet18,external_models/resnet18_raf/best_resnet18.pt,128,0.7953,0.6721,N/A,N/A,4/9,0.44,31.5,33.26
+resnet18_ravdess,resnet18,external_models/ravdess/best_resnet18_ravdess.pt,128,0.7927,0.7077,0.5687,0.5354,5/9,0.5731,32.98,34.59

@@ -1,0 +1,13 @@
+Component,Name,Version_or_Spec,Source
+Hardware,CPU,"12th Gen Intel(R) Core(TM) i7-12650H (10 cores, 16 logical processors)",Get-CimInstance Win32_Processor
+Hardware,RAM,"16,831,729,664 bytes (15.68 GiB)",Get-CimInstance Win32_ComputerSystem
+Hardware,GPU / Compute,CPU only (cuda=False),torch.cuda.is_available()
+OS,Operating System,"Microsoft Windows 11 Home Single Language (10.0.26300, AMD64)",Get-CimInstance Win32_OperatingSystem + platform
+Runtime,Python,3.14.4,platform.python_version()
+Package,torch,2.14.0+cpu,.venv
+Package,torchvision,0.29.1+cpu,.venv
+Package,opencv-python (cv2),5.1.0,.venv
+Package,fastapi,0.162.0,.venv
+Package,transformers,5.17.0,.venv
+Package,scikit-learn,1.9.1,.venv
+Package,numpy / pandas / matplotlib / librosa,2.5.3 / 3.0.6 / 3.11.2 / 1.0.0,.venv

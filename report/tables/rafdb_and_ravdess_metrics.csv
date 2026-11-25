@@ -1,0 +1,37 @@
+Model,Dataset,Class,Precision,Recall,F1,Support
+efficientnet_current,RAF-DB Test,anger,0.059,0.1173,0.0785,162
+efficientnet_current,RAF-DB Test,disgust,0.0886,0.2812,0.1347,160
+efficientnet_current,RAF-DB Test,fear,0.0204,0.2027,0.037,74
+efficientnet_current,RAF-DB Test,joy,0.5101,0.3181,0.3919,1185
+efficientnet_current,RAF-DB Test,neutral,0.2493,0.1324,0.1729,680
+efficientnet_current,RAF-DB Test,sadness,0.2074,0.0941,0.1295,478
+efficientnet_current,RAF-DB Test,surprise,0.1902,0.1064,0.1365,329
+efficientnet_current,RAF-DB Test,overall_acc_macro_f1,-,-,0.1544,3068
+resnet18_raf,RAF-DB Test,anger,0.7886,0.5988,0.6807,162
+resnet18_raf,RAF-DB Test,disgust,0.6226,0.2062,0.3099,160
+resnet18_raf,RAF-DB Test,fear,0.569,0.4459,0.5,74
+resnet18_raf,RAF-DB Test,joy,0.8747,0.9249,0.8991,1185
+resnet18_raf,RAF-DB Test,neutral,0.717,0.8309,0.7698,680
+resnet18_raf,RAF-DB Test,sadness,0.7722,0.7448,0.7583,478
+resnet18_raf,RAF-DB Test,surprise,0.7831,0.7903,0.7867,329
+resnet18_raf,RAF-DB Test,macro_avg,0.7325,0.6488,0.6721,3068
+resnet18_ravdess,RAF-DB Test,anger,0.7566,0.7099,0.7325,162
+resnet18_ravdess,RAF-DB Test,disgust,0.4855,0.525,0.5045,160
+resnet18_ravdess,RAF-DB Test,fear,0.4886,0.5811,0.5309,74
+resnet18_ravdess,RAF-DB Test,joy,0.9353,0.8903,0.9122,1185
+resnet18_ravdess,RAF-DB Test,neutral,0.7942,0.6868,0.7366,680
+resnet18_ravdess,RAF-DB Test,sadness,0.6784,0.8473,0.7535,478
+resnet18_ravdess,RAF-DB Test,surprise,0.769,0.7994,0.7839,329
+resnet18_ravdess,RAF-DB Test,macro avg,0.7011,0.72,0.7077,3068
+resnet18_ravdess,RAF-DB Test,weighted avg,0.8025,0.7927,0.7949,3068
+resnet18_ravdess,RAF-DB Test,accuracy,-,-,0.7927,3068
+resnet18_ravdess,RAVDESS Val,anger,0.6522,0.2778,0.3896,108
+resnet18_ravdess,RAVDESS Val,disgust,0.4158,0.8657,0.5617,134
+resnet18_ravdess,RAVDESS Val,fear,0.7907,0.2881,0.4224,118
+resnet18_ravdess,RAVDESS Val,joy,0.7531,0.9839,0.8531,124
+resnet18_ravdess,RAVDESS Val,neutral,0.4655,0.9,0.6136,60
+resnet18_ravdess,RAVDESS Val,sadness,0.5963,0.5285,0.5603,123
+resnet18_ravdess,RAVDESS Val,surprise,0.8387,0.2185,0.3467,119
+resnet18_ravdess,RAVDESS Val,macro avg,0.6446,0.5803,0.5354,786
+resnet18_ravdess,RAVDESS Val,weighted avg,0.6538,0.5687,0.5343,786
+resnet18_ravdess,RAVDESS Val,accuracy,-,-,0.5687,786

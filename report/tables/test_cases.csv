@@ -1,0 +1,17 @@
+Suite,Test_Name,Input,Expected_Output,Actual_Output,Status,Source
+Unit 01,Audio Architecture & Wav2Vec2 Inference,"Random (2,768) tensor & dia0_utt0.wav","Output shape (2,7); valid emotion; prob sum ~1.0",PASSED (7594.0 ms),PASS,tests/test_audio.py
+Unit 02,Text Preprocessing & MiniLM Inference,"""He's totally lost it..."", Joy/Anger sentences, ""    ""","Expanded contractions; joy>0.40, anger; ValueError on blank",PASSED (23.5 ms),PASS,tests/test_text.py
+Unit 03,Video Architecture & ResNet-50 Inference,"Random (2,2048) tensor & dia0_utt0.mp4 (4 frames)","Output shape (2,7); valid emotion & quality_metrics",PASSED (364.0 ms),PASS,tests/test_video.py
+Unit 04,Cross-Modal Attention Fusion & Conflict,14-D mock vectors (consensus sadness & conflicting A/T/V),"Logits (2,7), gates (2,3); consensus sadness; conflict text",PASSED (24.0 ms),PASS,tests/test_fusion.py
+Unit 05,"Webcam YuNet, Alignment, Parity & Switch","Blank 640x480, dia0_utt0 frame, rotated, synthetic R18, API parity",NO_FACE on blank; 100% parity; valid RAF/RAVDESS switch & fallback,PASSED (101.0 ms; 22 unit checks),PASS,tests/test_webcam.py
+Integration 01,GET /health,HTTP GET /health,200 OK; status=healthy; 4 models_loaded=True,"200 OK (Device: cpu, 4 Models Loaded) (48.9 ms)",PASS,tests/run_tests.py
+Integration 02,POST /predict/text (Joy),"""I am so glad we accomplished this together!""",200 OK; predicted_class=joy; confidence > 0.40,200 OK (joy 97.9%) (17.7 ms),PASS,tests/run_tests.py
+Integration 03,POST /predict/text (Anger),"""Stop doing that right now, I am furious!""",200 OK; predicted_class=anger,200 OK (anger 55.0%) (15.1 ms),PASS,tests/run_tests.py
+Integration 04,POST /predict/text (Empty Input),"{""text"": ""   ""}",400 Bad Request,400 Bad Request (6.1 ms),PASS,tests/run_tests.py
+Integration 05,POST /predict/audio,dia0_utt0.wav (16kHz),200 OK; modality=audio; 7 probabilities,200 OK (disgust 20.1%) (183.9 ms),PASS,tests/run_tests.py
+Integration 06,POST /predict/video,dia0_utt0.mp4,200 OK; modality=video; 7 probabilities,200 OK (sadness 91.9%) (631.5 ms),PASS,tests/run_tests.py
+Integration 07,POST /predict/multimodal (Audio+Text),dia0_utt0.wav + coffee mugs utterance,"200 OK; active_modalities={audio,text}","200 OK (neutral 95.0%, Conflicting / Divergent) (209.2 ms)",PASS,tests/run_tests.py
+Integration 08,POST /predict/multimodal (Trimodal),dia0_utt0.wav + dia0_utt0.mp4 + coffee mugs utterance,200 OK; 3 active modalities; explanation > 20 chars,"200 OK (neutral 67.0%, A:0.315 T:0.402 V:0.283) (826.4 ms)",PASS,tests/run_tests.py
+Integration 09,POST /predict/multimodal (Single MP4),dia0_utt0.mp4 only,200 OK; auto-extracted audio + MELD transcript -> 3 modalities,"200 OK (sadness 94.6%, Partial Consensus) (822.5 ms)",PASS,tests/run_tests.py
+Integration 10,POST /predict/multimodal (Conflict),dia0_utt0.mp4 + overjoyed text,200 OK; Partial or Conflicting resolution,"200 OK (sadness 83.0%, Conflicting / Divergent) (813.9 ms)",PASS,tests/run_tests.py
+Integration 11,POST /predict/multimodal (Empty),Empty form data {},400 Bad Request,400 Bad Request (5.1 ms),PASS,tests/run_tests.py

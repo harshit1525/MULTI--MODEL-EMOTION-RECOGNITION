@@ -1,0 +1,4 @@
+backbone,architecture,img_size,clip,source_frames,measured_frames,device,mean_ms,std_ms,p50_ms,p95_ms,p99_ms,min_ms,max_ms,fps_from_p50
+efficientnet_current,efficientnet_b0,96,Disgust (2).mp4,172,200,cpu,33.66,1.23,33.63,35.82,36.41,30.71,36.77,29.73
+resnet18_raf,resnet18_raf,128,Disgust (2).mp4,172,200,cpu,31.56,0.96,31.5,33.26,33.96,29.49,34.33,31.75
+resnet18_ravdess,resnet18_ravdess,128,Disgust (2).mp4,172,200,cpu,32.95,1.01,32.98,34.59,35.14,29.8,35.76,30.32

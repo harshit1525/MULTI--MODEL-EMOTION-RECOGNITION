@@ -1,0 +1,8 @@
+Category,Item,Spec_or_Source,Qty,Cost_INR,Notes
+Hardware,Development Laptop / Workstation,"12th Gen Intel Core i7-12650H (10C/16T), 16 GB RAM, Win 11",1,[TO BE FILLED],Used for local CPU training & inference
+Hardware,Webcam & Microphone,Integrated HD webcam & mic (320x180 stream / 16kHz audio),1,[TO BE FILLED],Live facial + audio capture
+Software / Runtime,Python + Deep Learning Stack,"Python 3.14.4, PyTorch 2.14.0+cpu, TorchVision 0.29.1, Transformers 5.17.0",1,0 (Open Source),MIT / BSD / Apache 2.0
+Software / Runtime,"Vision, Web & Audio Libraries","OpenCV 5.1.0, FastAPI 0.162.0, Uvicorn, Librosa 1.0.0, scikit-learn 1.9.1",1,0 (Open Source),Apache 2.0 / MIT / BSD / ISC
+Pretrained Weights,"YuNet ONNX, ResNet-18/50, EfficientNet-B0, Wav2Vec2-Base, all-MiniLM-L6-v2","models/face_detection_yunet_2023mar.onnx, torchvision, HuggingFace",5,0 (Open Source),Local cached pretrained weights
+Datasets,"MELD, RAF-DB, RAVDESS Speech","MELD.Raw/, DATASET/, Video speech dataset/",3,0 (Academic Research),Non-commercial academic datasets
+Operations,Electricity / Internet / Optional Cloud GPU,Local training (CPU) & optional Google Colab guide,1,[TO BE FILLED],No paid cloud billing recorded

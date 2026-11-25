@@ -1,0 +1,10 @@
+Clip,Ground_Truth,Total_Frames,Face_Frames,EffNet_Majority,EffNet_Frame_Acc,R18_RAF_Majority,R18_RAF_Frame_Acc,R18_RAVDESS_Majority,R18_RAVDESS_Frame_Acc,R18_RAVDESS_Top_Wrong,R18_RAVDESS_Top_Wrong_Share
+Anger.mp4,anger,101,101,neutral,0.0,surprise,0.0,surprise,0.0,surprise,0.6139
+Disgust (2).mp4,disgust,172,172,neutral,0.0,disgust,0.7849,disgust,1.0,-,0.0
+disgust.mp4,disgust,89,89,neutral,0.0,disgust,0.6742,disgust,0.7978,neutral,0.2022
+Fear (2).mp4,fear,80,80,disgust,0.0,surprise,0.0,fear,0.4375,disgust,0.35
+Fear.mp4,fear,83,83,joy,0.0,surprise,0.0,disgust,0.0,disgust,0.9398
+Joy.mp4,joy,115,115,neutral,0.3826,joy,0.9304,joy,1.0,-,0.0
+Neutal.mp4,neutral,99,99,neutral,1.0,neutral,0.6263,neutral,1.0,-,0.0
+sadness.mp4,sadness,93,93,neutral,0.0,neutral,0.0,neutral,0.0,neutral,1.0
+surprise.mp4,surprise,84,84,disgust,0.0,neutral,0.4643,neutral,0.3929,neutral,0.6071

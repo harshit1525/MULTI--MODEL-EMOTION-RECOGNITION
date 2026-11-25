@@ -1,0 +1,12 @@
+Parameter,resnet18_ravdess,resnet18_raf,efficientnet_current,meld_fusion,Source
+image_size,128,128,96,N/A (16-D vec),checkpoint preprocessing / config.json / train_webcam_phase3.py
+eval_resize,146,146,96,N/A,checkpoint preprocessing / config.json
+norm_mean_std,"[0.485, 0.456, 0.406] / [0.229, 0.224, 0.225]","[0.485, 0.456, 0.406] / [0.229, 0.224, 0.225]","[0.485,0.456,0.406] / [0.229,0.224,0.225]",N/A,checkpoint preprocessing / webcam_service.py
+optimizer,AdamW (wd=1e-4),AdamW (wd=1e-4),AdamW (wd=1e-4),AdamW (wd=1e-4),train_mixed.py / train_raf_resnet18.py / train.py
+backbone_lr,2e-5,0.0001,1.5e-5,1.5e-3 (all params),train_mixed.py:486 / config.json / train_webcam_phase3.py / train.py
+head_lr,2e-4,0.001,7.5e-5,1.5e-3,train_mixed.py:488 / config.json / train_webcam_phase3.py
+loss_and_label_smoothing,CrossEntropy (smoothing=0.1),CrossEntropy (smoothing=0.0),"FocalLoss (gamma=2.0, smoothing=0.05)",CrossEntropy (smoothing=0.05),train_mixed.py:768 / config.json / train_webcam_phase3.py:168 / train.py:283
+epochs_run_best,"8 (best ep 7, patience 3)","10 (early stop 9, best ep 6)",10 phase3 (ckpt ep 34),45 (CosineAnnealing),results/train_ravdess.log / training.log / ckpt metadata / train.py
+freeze_until,layer3 (layer4+fc train),none (all 11.18M train),none,none,results/train_ravdess.log / training.log
+seed,42,42,101,42,train_mixed.py:911 / config.json / train_webcam_phase3.py / train.py
+batch_size,"32 (26 RAF + 6 RAVDESS, extra_share=0.2)",32,64,32,"train_mixed.py:618,902,909 / config.json / train.py"

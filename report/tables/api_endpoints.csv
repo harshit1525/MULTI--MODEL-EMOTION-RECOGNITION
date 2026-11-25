@@ -1,0 +1,18 @@
+Method,Path,Router_File,Input,Response,Purpose
+GET,/,backend/main.py,None,HTML SPA (frontend/index.html),Serve web application UI
+GET,/health,backend/main.py,None,HealthResponse JSON,"System health, device, model load flags, SHA-256"
+POST,/predict/audio,backend/api/audio.py,UploadFile (wav/mp3/mp4),PredictionResponse JSON,Wav2Vec2 768-D + StrongerMLP audio emotion prediction
+POST,/predict/text,backend/api/text.py,JSON {text},PredictionResponse JSON,MiniLM / calibrated text emotion prediction
+POST,/predict/text/file,backend/api/text.py,UploadFile (.txt/.csv/.md),PredictionResponse JSON,File-based linguistic emotion prediction
+POST,/predict/video,backend/api/video.py,UploadFile (.mp4/.avi/.mov),PredictionResponse JSON,ResNet-50 8-frame pooled visual emotion prediction
+POST,/predict/multimodal,backend/api/multimodal.py,"Optional audio_file, video_file, text_content",MultimodalPredictionResponse JSON,Auto-extracts A/T/V and runs cross-modal attention fusion
+GET,/predict/webcam/status,backend/api/webcam.py,None,Status JSON,"Active webcam backbone, img_size, detector, available backbones"
+POST,/predict/webcam/backbone,backend/api/webcam.py,JSON {backbone},Status JSON,Hot-swap active webcam backbone and clear client state
+POST,/predict/webcam/frame,backend/api/webcam.py,Multipart UploadFile + client_id,Frame Prediction JSON,Single binary frame inference via WebcamService
+POST,/predict/webcam/frame-json,backend/api/webcam.py,"JSON {frame base64, client_id, apply_smoothing, calibrate}",Frame Prediction JSON,Base64 canvas frame inference via WebcamService
+WS,/predict/webcam/ws & /ws/webcam,backend/api/webcam.py,Binary bytes or JSON frame messages,Frame Prediction JSON,Full-duplex low-latency webcam streaming
+POST,/predict/webcam/multimodal,backend/api/webcam.py,frame_file + optional audio_file + transcript_hint,Multimodal Stream JSON,Live webcam + microphone audio + ASR fusion
+POST,/predict/webcam/calibrate,backend/api/webcam.py,JSON {client_id},Calibration Status JSON,Start 25-frame resting neutral baseline calibration
+POST,/predict/webcam/reset-calibration,backend/api/webcam.py,JSON {client_id},Status JSON,Clear neutral baseline logits from RAM
+POST,/predict/webcam/reset-session,backend/api/webcam.py,JSON {client_id},Status JSON,Reset EMA smoothing and rolling history for client
+POST,/predict/webcam/debug-capture,backend/api/webcam.py,Query num_frames (default 150),Status JSON,Opt-in capture of frames+JSON to results/live_debug/

@@ -1,0 +1,5 @@
+Name,Source,Total_Size,Splits,Classes,License
+MELD (Multimodal EmotionLines),MELD.Raw/ (Poria et al. 2018; Friends TV clips),"13,708 utterances (audio_embeddings: 13,706)","Train 9,989 / Dev 1,109 / Test 2,610; Fusion subset 210/105/105",7,Academic research (see MELD.Raw/README.txt)
+RAF-DB (Real-world Affective Faces),"DATASET/ (train_labels.csv, test_labels.csv)","15,337 used (2 within-train RGB duplicates removed)","Train 10,428 / Val 1,841 (15% stratified) / Test 3,068",7,Academic non-commercial (see MODEL_CARD.md)
+RAVDESS Speech Video Crops,Video speech dataset/ -> ravdess_crops/ (prepare_ravdess.py),"1,200 MP4s -> 518 speech clips kept -> 3,970 aligned crops","Train Actors 01-08 (3,184) / Val Actors 09-10 (786)",7 (calm 02 dropped),Academic research (verify upstream RAVDESS license)
+Personal Webcam Eval Clips,New folder/*.mp4 (eval_clips.py),9 MP4 clips (916 frames; (3) suffix clips reserved),Evaluation only (no training),7,Project-local private evaluation clips
