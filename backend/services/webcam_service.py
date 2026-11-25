@@ -234,19 +234,20 @@ class WebcamService:
     def get_available_backbones(self) -> List[Dict[str, Any]]:
         """Return supported webcam backbones and whether their checkpoints exist on disk."""
         _, eff_path = self._resolve_backbone_ckpt("efficientnet_current", allow_fallback=True)
+        default_bb = self._cfg.get("webcam_backbone", "efficientnet_current")
         specs = [
-            ("efficientnet_current", "EfficientNet-B0 (96px)", eff_path),
-            ("resnet18_raf", "ResNet-18 (RAF-DB 128px)", self._cfg.get(
-                "webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"
-            )),
             ("resnet18_ravdess", "ResNet-18 (RAF+RAVDESS 128px)", self._cfg.get(
                 "webcam_resnet18_ravdess_path", "external_models/ravdess/best_resnet18_ravdess.pt"
             )),
+            ("resnet18_raf", "ResNet-18 (RAF-DB 128px)", self._cfg.get(
+                "webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"
+            )),
+            ("efficientnet_current", "EfficientNet-B0 (96px)", eff_path),
         ]
         return [
             {
                 "id": bid,
-                "label": label,
+                "label": f"{label[:-1]}, Default)" if bid == default_bb and label.endswith(")") else label,
                 "available": os.path.exists(path),
                 "active": self._backbone_name == bid,
             }

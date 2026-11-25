@@ -1053,11 +1053,14 @@ function updateWebcamModelDisplay(data) {
     if (select) {
         if (Array.isArray(data.available_backbones)) {
             data.available_backbones.forEach(item => {
-                const opt = Array.from(select.options).find(o => o.value === item.id);
-                if (opt) {
-                    opt.textContent = item.available ? item.label : `${item.label} [Missing]`;
-                    opt.disabled = !item.available;
+                let opt = Array.from(select.options).find(o => o.value === item.id);
+                if (!opt) {
+                    opt = document.createElement('option');
+                    opt.value = item.id;
+                    select.appendChild(opt);
                 }
+                opt.textContent = item.available ? item.label : `${item.label} [Missing]`;
+                opt.disabled = !item.available;
             });
         }
         if (data.backbone) {
@@ -1069,7 +1072,7 @@ function updateWebcamModelDisplay(data) {
     if (modelPill && data.backbone) {
         const nameMap = {
             resnet18_raf: `ResNet-18 (${data.img_size || 128}px)`,
-            resnet18_ravdess: `ResNet-18 RAVDESS (${data.img_size || 128}px)`
+            resnet18_ravdess: `ResNet-18 RAF+RAVDESS (${data.img_size || 128}px)`
         };
         const shortName = nameMap[data.backbone] || `EfficientNet-B0 (${data.img_size || 96}px)`;
         modelPill.innerHTML = `Model: <strong>${shortName}</strong>`;
@@ -1133,6 +1136,7 @@ async function restartWebcam() {
 }
 
 async function startWebcam() {
+    loadWebcamStatus();
     const alertBox = document.getElementById('webcam-alert-box');
     if (alertBox) alertBox.style.display = 'none';
 

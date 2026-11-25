@@ -868,7 +868,7 @@
                     <p class="subtext">
                         Detect facial expressions in real time directly from your computer webcam.
                         Powered by <strong>OpenCV YuNet DNN face detection</strong>, <strong>eye-line alignment &amp;
-                            exposure normalization</strong>, and selectable <strong>EfficientNet-B0 / RAF-DB ResNet-18</strong>
+                            exposure normalization</strong>, and selectable <strong>ResNet-18 (RAF+RAVDESS) / RAF-DB ResNet-18 / EfficientNet-B0</strong>
                         backbones with <strong>EMA temporal stabilization</strong>.
                     </p>
                 </div>
@@ -918,9 +918,9 @@
                 <div class="webcam-camera-picker">
                     <label for="webcam-backbone-select">🧠 Model:</label>
                     <select id="webcam-backbone-select" class="webcam-select-input" onchange="switchWebcamBackbone()">
-                        <option value="efficientnet_current">EfficientNet-B0 (96px)</option>
+                        <option value="resnet18_ravdess" selected>ResNet-18 (RAF+RAVDESS 128px, Default)</option>
                         <option value="resnet18_raf">ResNet-18 (RAF-DB 128px)</option>
-                        <option value="resnet18_ravdess">ResNet-18 (RAF+RAVDESS 128px)</option>
+                        <option value="efficientnet_current">EfficientNet-B0 (96px)</option>
                     </select>
                 </div>
 
@@ -1118,7 +1118,7 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Client Script -->
-    <script src="/static/js/app.js?v=20261118_hd_v5"></script>
+    <script src="/static/js/app.js?v=20261125_ravdess"></script>
 </body>
 
 </html>
