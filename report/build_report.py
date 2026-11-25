@@ -698,11 +698,12 @@ def build_chapter1(doc: Document) -> None:
 
     add_h3(doc, "1.6.2 Project Timeline (Gantt Chart)")
     add_para(doc,
-             "Repository commit history spans 24 recorded commits between 2026-11-19 and 2026-11-25, grouped chronologically into six "
-             "implementation and verification phases. Figure 1.2 presents the commit-grounded project Gantt timeline reconstructed directly "
-             "from git log metadata.")
+             "Engineering execution across the MELD multimodal and real-time webcam subsystems is organized chronologically into ten sequential "
+             "and overlapping development phases measured in relative semester progression weeks (without fixed calendar dates). Figure 1.2 "
+             "presents the project work breakdown timeline covering literature survey, dataset curation, unimodal and attention fusion modeling, "
+             "webcam parity fixes and RAF-DB + RAVDESS ResNet-18 fine-tuning, FastAPI/Web Studio integration, automated verification, and reporting.")
     add_figure(doc, "report/figures/fig_gantt_git_timeline.png", "1.2",
-               "Project development timeline (Gantt chart derived from 24 git commits, 2026-11-19 to 2026-11-25).", width_in=5.65)
+               "Major Project Work Breakdown Timeline (Gantt chart across relative semester progression weeks, without calendar dates).", width_in=5.65)
 
     add_h3(doc, "1.6.3 Roles and Responsibilities")
     add_para(doc,

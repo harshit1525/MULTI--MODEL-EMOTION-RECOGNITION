@@ -1187,7 +1187,7 @@ def build_sec9(doc: Document) -> None:
              "Keeping baselines callable lets us demonstrate quantitative before-vs-after progression live during viva and ensures graceful service startup fallback if an external model file is relocated.",
              "", "webcam_service.py:234 / text_service.py:61", "Medium", "Possible"),
             ("What project management artifact ties code modules to your academic schedule?",
-             "Our Work Breakdown Structure (WBS) across 6 work packages and commit-grounded Gantt timeline derived directly from git log dates (report/figures/fig_diag_wbs.png and fig_gantt_git_timeline.png).",
+             "Our Work Breakdown Structure (WBS) across 6 work packages and the 10-phase work breakdown Gantt timeline across relative semester weeks without fixed calendar dates (report/figures/fig_diag_wbs.png and fig_gantt_git_timeline.png).",
              "", "Report Ch 1 Fig 1.1-1.2", "Easy", "Possible"),
             ("If an examiner asks to inspect how tests pass right now, what single command do you run?",
              "Run .\\.venv\\Scripts\\python.exe main.py --test (or .\\.venv\\Scripts\\python.exe tests\\run_tests.py --all) to execute all unit and live ASGI integration checks end to end.",

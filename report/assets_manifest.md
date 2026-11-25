@@ -30,7 +30,7 @@
 | FIG-26 | report/figures/fig_ablation_fusion_optimization.png | Baseline vs. optimized multimodal fusion system across accuracy, macro-F1, ECE, Brier score, and NLL. | results/metrics/multimodal_optimization_comparison.json |
 | FIG-27 | report/figures/fig_calibration_reliability.png | Reliability diagram comparing uncalibrated vs. temperature-scaled multimodal probabilities. | results/metrics/multimodal_calibration_report.json |
 | FIG-28 | report/figures/fig_ablation_phase2_au_rules.png | Phase 2 ablation showing MELD validation macro-F1 improvement from 0.2872 to 0.3868 upon removing hard-coded AU geometry rules. | results/phase2_ablations.json |
-| FIG-29 | report/figures/fig_gantt_git_timeline.png | Gantt chart of project development phases grouped by real commit dates from git log. | git log --date=short |
+| FIG-29 | report/figures/fig_gantt_git_timeline.png | Major Project Work Breakdown Timeline (Gantt chart across relative semester weeks without calendar dates). | git log sequence + WBS phases |
 | FIG-30 | report/figures/fig_diag_system_architecture.png | Overall system architecture integrating MELD multimodal pipelines, WebcamService, FastAPI, and Web Studio UI. | backend/main.py + backend/services/*.py + frontend/index.html |
 | FIG-31 | report/figures/fig_diag_live_inference.png | Live webcam inference pipeline from frame capture through YuNet, aligned crop, quality gate, backbone, EMA, hysteresis, and overlay. | backend/services/webcam_service.py + live_resnet18_demo.py |
 | FIG-32 | report/figures/fig_diag_training_pipeline.png | Mixed RAF-DB and RAVDESS ResNet-18 fine-tuning pipeline (extra_share=0.2, freeze-until layer3, best epoch 7). | train_mixed.py + results/train_ravdess.log |
