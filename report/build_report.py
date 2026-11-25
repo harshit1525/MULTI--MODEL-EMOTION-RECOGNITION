@@ -1277,10 +1277,10 @@ def build_chapter5(doc: Document) -> None:
 
     add_h2(doc, "5.2 MELD Multimodal Ablations and Probability Calibration")
     add_para(doc,
-             "In MELD optimization, removing hard-coded Action Unit heuristics raised validation macro-F1 from 0.2872 to 0.3868 (+0.0996); balanced Wav2Vec 2.0 sampling raised acoustic macro-F1 from 0.1771 to 0.2209 (N=2,610); and contextual all-MiniLM-L6-v2 text lifted accuracy from 40.15% (TF-IDF) to 42.87%. Across the 7-configuration fusion benchmark (Figure 5.3, Table 5.5, N=105), Text-only and Audio+Text reach 37.14% raw accuracy whereas Trimodal AdvancedCrossModalAttentionFusionNet with temperature scaling (T*=0.5953) achieves 36.19% accuracy (0.3574 macro-F1, up from 29.52% / 0.2833 baseline) while cutting Expected Calibration Error from 0.2130 down to 0.0734 (Figure 5.4).",
+             "In MELD unimodal optimization, removing hard-coded Action Unit heuristics raised validation macro-F1 from 0.2872 to 0.3868 (+0.0996); balanced Wav2Vec 2.0 sampling raised acoustic macro-F1 from 0.1771 to 0.2209 (N=2,610); and contextual all-MiniLM-L6-v2 text lifted accuracy from 40.15% (TF-IDF) to 42.87%. Comparing individual unimodal streams against full multimodal fusion on the balanced evaluation benchmark (Figure 5.3, Table 5.5, N=105), unimodal Audio-only achieves 20.95% accuracy (0.2022 macro-F1, ECE 0.1725), Video-only achieves 6.67% (0.0681 macro-F1, ECE 0.4125), and Text-only achieves 37.14% (0.3650 macro-F1, ECE 0.1903); combining all three streams via Trimodal AdvancedCrossModalAttentionFusionNet with temperature scaling (T*=0.5953) achieves 36.19% accuracy (0.3574 macro-F1, up from the 29.52% / 0.2833 baseline) while cutting Expected Calibration Error from 0.2130 down to 0.0734 (Figure 5.4).",
              space_after=4.0)
     add_figure(doc, "report/figures/fig_ablation_meld_7config.png", "5.3",
-               "Seven-configuration MELD ablation benchmark showing accuracy, macro-F1, and ECE across modality subsets (N=105).", width_in=4.65)
+               "Multimodal ablation benchmark across unimodal and trimodal MELD configurations (N=105).", width_in=4.65)
     add_figure(doc, "report/figures/fig_calibration_reliability.png", "5.4",
                "Reliability diagram comparing uncalibrated vs. temperature-scaled multimodal probabilities (ECE 0.2130 -> 0.0734).", width_in=3.85)
     key_meld_names = {
@@ -1289,12 +1289,13 @@ def build_chapter5(doc: Document) -> None:
         "Text Baseline (TF-IDF)",
         "Text Contextual (Production)",
         "Fusion Baseline",
+        "Optimized Fusion (Audio Only)",
+        "Optimized Fusion (Video Only)",
         "Optimized Fusion (Text Only)",
-        "Optimized Fusion (Audio + Text)",
         "Optimized Fusion (Audio + Video + Text (Trimodal))",
     }
     add_csv_table(
-        doc, "5.5", "Headline MELD Unimodal, Baseline, and Calibrated Fusion Benchmark Results",
+        doc, "5.5", "Unimodal vs. Trimodal Multimodal MELD Benchmark Results",
         "report/tables/meld_model_results.csv",
         col_indices=[0, 2, 3, 4, 5, 6, 7, 8],
         rename_headers=["Model / Config", "Architecture", "Eval Set", "N", "Acc", "MacroF1", "W-F1", "ECE"],
