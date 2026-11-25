@@ -7,6 +7,8 @@ __pycache__/
 
 # Datasets and heavy binary files
 DATASET/
+Video speech dataset/
+ravdess_crops/
 audio_data/
 audio_embeddings/
 MELD.Raw/
