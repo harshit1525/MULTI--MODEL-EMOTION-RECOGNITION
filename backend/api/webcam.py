@@ -21,6 +21,9 @@ class WebcamFramePayload(BaseModel):
 class SessionResetPayload(BaseModel):
     client_id: str = Field("default", description="Client identifier whose session state should be reset")
 
+class BackboneSwitchPayload(BaseModel):
+    backbone: str = Field(..., description="Webcam backbone identifier: 'efficientnet_current' or 'resnet18_raf'")
+
 @router.get("/status")
 def get_webcam_status():
     """
@@ -33,15 +36,34 @@ def get_webcam_status():
         "detector_available": webcam_service.face_detector is not None,
         "device": str(webcam_service.device),
         "supported_emotions": EMOTIONS,
+        "backbone": webcam_service._backbone_name,
+        "architecture": webcam_service._architecture,
+        "img_size": getattr(webcam_service, "_img_size", 96),
+        "calibrated_temperature": getattr(webcam_service, "calibrated_temperature", 0.85),
+        "available_backbones": webcam_service.get_available_backbones(),
         "features": [
-            "YuNet Real-Time Face Detection (~30ms)",
-            "CLAHE Adaptive Lighting & Contrast Equalization",
-            "ResNet-50 Feature Extraction",
+            "YuNet Real-Time Face Detection & Eye Alignment",
+            "Adaptive Exposure Normalization",
+            f"Active Vision Backbone: {webcam_service._architecture} ({getattr(webcam_service, '_img_size', 96)}px)",
             "Temporal Exponential Moving Average (EMA) Smoothing",
-            "Centered Bayesian Logit Consensus Calibration (T*=0.90)",
+            f"Temperature Calibration (T*={getattr(webcam_service, 'calibrated_temperature', 0.85):.2f})",
             "Synchronized Microphone Audio & Speech-to-Text Fusion"
         ]
     }
+
+@router.post("/backbone")
+def switch_webcam_backbone(payload: BackboneSwitchPayload):
+    """Switches the active live webcam vision backbone cleanly."""
+    try:
+        info = webcam_service.switch_backbone(payload.backbone)
+        return {"status": "success", **info}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error switching webcam backbone: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Backbone switch error: {str(e)}")
 
 @router.post("/frame")
 async def predict_webcam_frame_form(

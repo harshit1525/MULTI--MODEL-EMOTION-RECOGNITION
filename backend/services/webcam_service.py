@@ -64,32 +64,11 @@ class WebcamService:
             except Exception:
                 pass
 
-        # Resolve backbone selection: param > config > default
-        self._backbone_name = backbone or self._cfg.get("webcam_backbone", "efficientnet_current")
-
-        # Resolve model path from config or parameter with robust fallback
-        if self._backbone_name == "resnet18_raf":
-            candidate_ckpt = video_ckpt or self._cfg.get(
-                "webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"
-            )
-        else:
-            candidate_ckpt = video_ckpt or self._cfg.get("webcam_model_path")
-
-        if candidate_ckpt is None or not os.path.exists(candidate_ckpt):
-            webcam_model = "models/video_classifier/best_webcam_model.pth"
-            legacy_model = "models/video_classifier/best_video_model.pth"
-            if os.path.exists(webcam_model):
-                candidate_ckpt = webcam_model
-            else:
-                candidate_ckpt = legacy_model
-            # If we were asked for resnet18_raf but it's missing, fall back gracefully
-            if self._backbone_name == "resnet18_raf":
-                logger.warning(
-                    f"ResNet-18 RAF checkpoint not found; falling back to default EfficientNet."
-                )
-                self._backbone_name = "efficientnet_current"
-
-        self.video_ckpt = candidate_ckpt
+        # Resolve backbone selection and checkpoint path cleanly via shared helper
+        requested_backbone = backbone or self._cfg.get("webcam_backbone", "efficientnet_current")
+        self._backbone_name, self.video_ckpt = self._resolve_backbone_ckpt(
+            requested_backbone, video_ckpt=video_ckpt, allow_fallback=True
+        )
         self.yunet_path = yunet_path
         
         # Vision backbone — set by load_models() based on checkpoint architecture
@@ -131,7 +110,8 @@ class WebcamService:
         # --- ResNet-18 RAF-DB backbone (external checkpoint format) ---
         if self._backbone_name == "resnet18_raf":
             self._load_resnet18_raf()
-            self._init_face_detector()
+            if self.face_detector is None:
+                self._init_face_detector()
             self.is_loaded = True
             logger.info("WebcamService models loaded successfully.")
             return
@@ -204,10 +184,73 @@ class WebcamService:
             logger.info("Legacy ResNet-50+MLP loaded. Note: accuracy may be lower for webcam faces.")
             
         # 3. OpenCV YuNet Face Detector
-        self._init_face_detector()
+        if self.face_detector is None:
+            self._init_face_detector()
 
         self.is_loaded = True
         logger.info("WebcamService models loaded successfully.")
+
+    def _resolve_backbone_ckpt(
+        self, backbone_name: str, video_ckpt: Optional[str] = None, allow_fallback: bool = True
+    ):
+        """Resolve (backbone_name, checkpoint_path) with optional graceful fallback."""
+        valid = ("efficientnet_current", "resnet18_raf")
+        if backbone_name not in valid:
+            raise ValueError(f"Unsupported webcam backbone '{backbone_name}'. Choose from {valid}.")
+
+        if backbone_name == "resnet18_raf":
+            candidate = video_ckpt or self._cfg.get(
+                "webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"
+            )
+            if os.path.exists(candidate):
+                return "resnet18_raf", candidate
+            if not allow_fallback:
+                raise FileNotFoundError(f"ResNet-18 RAF checkpoint not found at {candidate}")
+            logger.warning("ResNet-18 RAF checkpoint not found; falling back to default EfficientNet.")
+            backbone_name = "efficientnet_current"
+
+        candidate = video_ckpt or self._cfg.get("webcam_model_path")
+        if candidate is None or not os.path.exists(candidate):
+            webcam_model = "models/video_classifier/best_webcam_model.pth"
+            legacy_model = "models/video_classifier/best_video_model.pth"
+            candidate = webcam_model if os.path.exists(webcam_model) else legacy_model
+        return backbone_name, candidate
+
+    def get_available_backbones(self) -> List[Dict[str, Any]]:
+        """Return supported webcam backbones and whether their checkpoints exist on disk."""
+        _, eff_path = self._resolve_backbone_ckpt("efficientnet_current", allow_fallback=True)
+        raf_path = self._cfg.get(
+            "webcam_resnet18_raf_path", "external_models/resnet18_raf/best_resnet18.pt"
+        )
+        return [
+            {
+                "id": "efficientnet_current",
+                "label": "EfficientNet-B0 (96px, Default)",
+                "available": os.path.exists(eff_path),
+                "active": self._backbone_name == "efficientnet_current",
+            },
+            {
+                "id": "resnet18_raf",
+                "label": "ResNet-18 (RAF-DB 128px)",
+                "available": os.path.exists(raf_path),
+                "active": self._backbone_name == "resnet18_raf",
+            },
+        ]
+
+    def switch_backbone(self, backbone_name: str) -> Dict[str, Any]:
+        """Hot-swap the active webcam backbone and clear stale per-client smoothing state."""
+        resolved_name, ckpt_path = self._resolve_backbone_ckpt(backbone_name, allow_fallback=False)
+        if resolved_name != self._backbone_name or ckpt_path != self.video_ckpt:
+            self._backbone_name = resolved_name
+            self.video_ckpt = ckpt_path
+            self.load_models()
+        self.client_states.clear()
+        return {
+            "backbone": self._backbone_name,
+            "architecture": self._architecture,
+            "img_size": getattr(self, "_img_size", 96),
+            "calibrated_temperature": getattr(self, "calibrated_temperature", 0.85),
+        }
 
     def _init_face_detector(self):
         """Initialize YuNet DNN face detector."""

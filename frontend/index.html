@@ -867,15 +867,16 @@
                     <h2>📹 Real-Time Emotion Detection Studio</h2>
                     <p class="subtext">
                         Detect facial expressions in real time directly from your computer webcam.
-                        Powered by <strong>OpenCV YuNet DNN face detection</strong> (~30ms), <strong>CLAHE lighting
-                            normalization</strong>, and our trained <strong>ResNet-50 visual classifier</strong> with
-                        <strong>EMA temporal stabilization</strong>.
+                        Powered by <strong>OpenCV YuNet DNN face detection</strong>, <strong>eye-line alignment &amp;
+                            exposure normalization</strong>, and selectable <strong>EfficientNet-B0 / RAF-DB ResNet-18</strong>
+                        backbones with <strong>EMA temporal stabilization</strong>.
                     </p>
                 </div>
                 <div>
                     <div class="webcam-stat-pills">
                         <div class="stat-pill" id="webcam-cam-pill">Camera: <strong>Inactive</strong></div>
                         <div class="stat-pill" id="webcam-face-pill">Face: <strong>No Face</strong></div>
+                        <div class="stat-pill" id="webcam-model-pill">Model: <strong>--</strong></div>
                         <div class="stat-pill" id="webcam-fps-pill">FPS: <strong>--</strong></div>
                         <div class="stat-pill" id="webcam-latency-pill">Latency: <strong>-- ms</strong></div>
                     </div>
@@ -910,6 +911,15 @@
                     <label for="webcam-camera-select">📹 Camera:</label>
                     <select id="webcam-camera-select" class="webcam-select-input" onchange="switchWebcamCamera()">
                         <option value="">Default Camera</option>
+                    </select>
+                </div>
+
+                <!-- Vision Backbone Selection Dropdown -->
+                <div class="webcam-camera-picker">
+                    <label for="webcam-backbone-select">🧠 Model:</label>
+                    <select id="webcam-backbone-select" class="webcam-select-input" onchange="switchWebcamBackbone()">
+                        <option value="efficientnet_current">EfficientNet-B0 (96px, Default)</option>
+                        <option value="resnet18_raf">ResNet-18 (RAF-DB 128px)</option>
                     </select>
                 </div>
 
@@ -998,7 +1008,7 @@
                         </div>
                         <div class="live-confidence-box">
                             <div class="live-confidence-val" id="webcam-confidence-val">0.0%</div>
-                            <div class="live-confidence-label">Calibrated Confidence (T*=0.90)</div>
+                            <div class="live-confidence-label" id="webcam-conf-label">Calibrated Confidence</div>
                         </div>
                     </div>
 

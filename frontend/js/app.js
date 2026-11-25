@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDropzones();
     initTextCounter();
     checkBackendHealth();
+    loadWebcamStatus();
     loadSessionHistory();
 });
 
@@ -73,6 +74,10 @@ function switchTab(tabId) {
             p.classList.remove('active');
         }
     });
+
+    if (tabId === 'tab-webcam') {
+        loadWebcamStatus();
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1042,6 +1047,83 @@ async function switchWebcamCamera() {
     }
 }
 
+function updateWebcamModelDisplay(data) {
+    if (!data) return;
+    const select = document.getElementById('webcam-backbone-select');
+    if (select) {
+        if (Array.isArray(data.available_backbones)) {
+            data.available_backbones.forEach(item => {
+                const opt = Array.from(select.options).find(o => o.value === item.id);
+                if (opt) {
+                    opt.textContent = item.available ? item.label : `${item.label} [Missing]`;
+                    opt.disabled = !item.available;
+                }
+            });
+        }
+        if (data.backbone) {
+            select.value = data.backbone;
+        }
+    }
+
+    const modelPill = document.getElementById('webcam-model-pill');
+    if (modelPill && data.backbone) {
+        const shortName = data.backbone === 'resnet18_raf'
+            ? `ResNet-18 (${data.img_size || 128}px)`
+            : `EfficientNet-B0 (${data.img_size || 96}px)`;
+        modelPill.innerHTML = `Model: <strong>${shortName}</strong>`;
+    }
+
+    const confLabel = document.getElementById('webcam-conf-label');
+    if (confLabel && typeof data.calibrated_temperature === 'number') {
+        confLabel.textContent = `Calibrated Confidence (T*=${data.calibrated_temperature.toFixed(2)})`;
+    }
+}
+
+async function loadWebcamStatus() {
+    try {
+        const resp = await fetch('/predict/webcam/status');
+        if (!resp.ok) return;
+        const data = await resp.json();
+        updateWebcamModelDisplay(data);
+    } catch (e) {
+        console.warn('Could not load webcam status:', e);
+    }
+}
+
+async function switchWebcamBackbone() {
+    const select = document.getElementById('webcam-backbone-select');
+    if (!select) return;
+    const backbone = select.value;
+    select.disabled = true;
+    try {
+        const resp = await fetch('/predict/webcam/backbone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ backbone })
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+            throw new Error(data.detail || `HTTP ${resp.status}`);
+        }
+        updateWebcamModelDisplay(data);
+        webcamState.hasCalibratedOnce = false;
+        webcamState.isCalibrating = false;
+        webcamState.calibrateCount = 0;
+        const calibBtn = document.getElementById('btn-calibrate-webcam');
+        if (calibBtn) {
+            calibBtn.classList.remove('calibrating');
+            calibBtn.innerHTML = '<span>🎯</span> CALIBRATE FACE';
+        }
+        showToast(`Active webcam model switched to ${select.options[select.selectedIndex].text}`, 'success');
+    } catch (e) {
+        console.warn('Failed to switch webcam backbone:', e);
+        showToast(`Failed to switch model: ${e.message}`, 'error');
+        await loadWebcamStatus();
+    } finally {
+        select.disabled = false;
+    }
+}
+
 async function restartWebcam() {
     stopWebcam();
     await new Promise(r => setTimeout(r, 250));
@@ -1284,7 +1366,7 @@ async function captureAndProcessWebcamFrame() {
             webcamState.calibrateCount++;
             const btn = document.getElementById('btn-calibrate-webcam');
             if (btn) {
-                btn.innerHTML = `<span>🎯</span> CALIBRATING (${Math.min(15, webcamState.calibrateCount)}/15)...`;
+                btn.innerHTML = `<span>🎯</span> CALIBRATING (${Math.min(25, webcamState.calibrateCount)}/25)...`;
             }
         }
 
@@ -1335,6 +1417,7 @@ function renderWebcamInference(data, roundtripMs) {
     // Check calibration completion status
     if (data.calibration_status === 'complete' && webcamState.isCalibrating) {
         webcamState.isCalibrating = false;
+        webcamState.hasCalibratedOnce = true;
         const btn = document.getElementById('btn-calibrate-webcam');
         if (btn) {
             btn.classList.remove('calibrating');

@@ -457,6 +457,45 @@ def test_eval_clips_stem_parsing():
     assert parse_stem("random_clip.mp4") == (None, False)
 
 
+def test_webcam_status_and_backbone_switch():
+    """Verify /predict/webcam/status exposes backbone metadata and /backbone hot-swaps cleanly."""
+    from fastapi.testclient import TestClient
+    from backend.main import app
+
+    client = TestClient(app)
+    resp = client.get("/predict/webcam/status")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["backbone"] in ("efficientnet_current", "resnet18_raf")
+    assert "available_backbones" in data
+    orig_backbone = data["backbone"]
+
+    bad = client.post("/predict/webcam/backbone", json={"backbone": "nonexistent_backbone"})
+    assert bad.status_code == 400
+
+    st_root = client.get("/")
+    assert st_root.status_code == 200
+    assert "webcam-backbone-select" in st_root.text
+    assert "webcam-model-pill" in st_root.text
+    st_js = client.get("/static/js/app.js")
+    assert st_js.status_code == 200
+    assert "/predict/webcam/backbone" in st_js.text
+
+    raf_ckpt = "external_models/resnet18_raf/best_resnet18.pt"
+    if os.path.exists(raf_ckpt):
+        sw = client.post("/predict/webcam/backbone", json={"backbone": "resnet18_raf"})
+        assert sw.status_code == 200
+        assert sw.json()["backbone"] == "resnet18_raf"
+        assert sw.json()["img_size"] == 128
+
+        st = client.get("/predict/webcam/status").json()
+        assert st["backbone"] == "resnet18_raf"
+
+        restore = client.post("/predict/webcam/backbone", json={"backbone": orig_backbone})
+        assert restore.status_code == 200
+        assert restore.json()["backbone"] == orig_backbone
+
+
 if __name__ == "__main__":
     test_webcam_blank_frame_no_face()
     test_webcam_face_frame_detection()
@@ -478,4 +517,5 @@ if __name__ == "__main__":
     test_resnet18_raf_synthetic_checkpoint()
     test_resnet18_raf_config_selection()
     test_eval_clips_stem_parsing()
+    test_webcam_status_and_backbone_switch()
     print("All webcam unit tests passed!")
