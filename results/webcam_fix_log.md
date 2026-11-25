@@ -1,20 +1,19 @@
-# Webcam Fix Log (Session 1)
+# Webcam Fix Log (Session 1 + 1b)
 
 ## Done
-- **Unified Engine & Parity:** `/frame`, `/frame-json`, `/ws`, `/ws/webcam`, `/multimodal`, and `benchmark_webcam.py` all call `WebcamService.process_frame`. Fixed WS clean disconnect bug in `backend/api/webcam.py`.
-- **Browser Encoding vs Native Gap:** `frontend/js/app.js` captures `320x180` JPEG `q=85` (unmirrored) with per-tab `clientId`. Endpoint parity on `320x180` JPEG `q=85` is **100.00% (916/916)** across `/frame-json`, `/frame` (100% on Anger), `/ws/webcam` (100% on Anger). Native `1280x720` vs `320x180` agrees 0.0–88.8% (`Neutal.mp4`: `1280x720` BGR = 99/99 NEUTRAL, `1280x720` JPEG95 = 87 NEUTRAL / 12 JOY, `640x360` JPEG85 = 99 DISGUST, `320x180` JPEG85 = 93 DISGUST / 6 JOY) because EfficientNet-B0 (96x96) is brittle to downscaling + JPEG artifacts.
-- **Mirror Display:** `#webcam-video` mirrored via CSS `scaleX(-1)`; `#webcam-canvas` unmirrored; JS flips `bx` and landmark `px` and renders label left-to-right.
-- **Hardcoded Rules:** Audited and removed AU geometry hacks (`prior_bias = np.zeros(7)`, no class biases in live path). MELD val Macro-F1 improved **0.2872 -> 0.3868** (+0.0996).
-- **ResNet-18 RAF Backbone:** Added `webcam_backbone` (`efficientnet_current` default | `resnet18_raf`), `webcam_resnet18_raf_path` in `config.yaml`, `aligned_square_crop`, and name-based mapping `RAF_TO_CANONICAL`. `live_resnet18_demo.py` and `external_models/resnet18_raf/best_resnet18.pt` missing; tested with synthetic `.pt` checkpoints.
-- **Clip Eval (`eval_clips.py`) & Gitignore:** Added `personal_data/`, `personal_crops/`, `external_models/` to `.gitignore`. Ran `eval_clips.py --backbone efficientnet_current` (`results/eval_efficientnet_current.json`); `resnet18_raf` skipped (missing checkpoint).
+- **Session 1:** Unified `/frame`, `/frame-json`, `/ws`, `/ws/webcam`, `/multimodal`, `benchmark_webcam.py` on `WebcamService.process_frame` (100% parity on 320x180 JPEG85, 916/916 frames); fixed WS disconnect; fixed mirrored overlay coords; removed AU geometry rules (MELD val Macro-F1 **0.2872 -> 0.3868**).
+- **Session 1b (ResNet-18 RAF Unification):** Removed duplicate `aligned_square_crop` and hardcoded `224`/normalize loader in `backend/services/webcam_service.py`; now reuses `live_resnet18_demo.py` (`aligned_square_crop`, `load_model`) reading checkpoint `preprocessing` (`eval_resize=146`, `image_size=128`) and name-mapping RAF classes (`[6, 2, 1, 3, 5, 0, 4]`). Ran `eval_clips.py --backbone resnet18_raf`.
 
 ## Key Numbers
-- `eval_clips.py` (`efficientnet_current`, native 1280x720, smoothing=True): `Neutal.mp4` 100.0% neutral; `Joy.mp4` 38.3% joy (top wrong neutral 61.7%); `Anger/disgust/Disgust(2)/Fear/Fear(2)/sadness/surprise` 0.0% frame acc.
-- Tests (`tests/test_webcam.py` + `tests/run_tests.py --all`): 19/19 webcam unit checks, 5/5 unit suites, 11/11 integration tests passed.
+- **RAF-DB Test (`external_models/resnet18_raf/test_metrics.json`):** accuracy **0.7953**, macro-F1 **0.6721**.
+- **`eval_clips.py` Totals (9 clips, 916 frames, native, smoothing=True):**
+  - `efficientnet_current`: majority **1/9**, pooled acc **15.6%** (143/916), surp-vs-ang **0**, neu-vs-surp **23** (23 neu on surp).
+  - `resnet18_raf`: majority **4/9**, pooled acc **44.0%** (403/916), surp-vs-ang **101** (101 surp on ang), neu-vs-surp **82** (45 neu on surp, 37 surp on neu). CPU latency: **p50=102.33 ms**, **p95=110.55 ms**.
+- **Per Clip (`Truth`: `Eff` vs `R18`):** `Anger.mp4` (`anger`: neu 0.0% vs surp 0.0%); `Disgust (2).mp4` (`disgust`: neu 0.0% vs disg 78.5%); `disgust.mp4` (`disgust`: neu 0.0% vs disg 67.4%); `Fear (2).mp4` (`fear`: disg 0.0% vs surp 0.0%); `Fear.mp4` (`fear`: joy 0.0% vs surp 0.0%); `Joy.mp4` (`joy`: neu 38.3% vs joy 93.0%); `Neutal.mp4` (`neutral`: neu 100.0% vs neu 62.6%); `sadness.mp4` (`sadness`: neu 0.0% vs neu 0.0%); `surprise.mp4` (`surprise`: disg 0.0% vs neu 46.4%).
+- **Tests (`tests/test_webcam.py` + `tests/run_tests.py --all`):** 20/20 webcam, 5/5 unit, 11/11 integration passed.
 
 ## Decisions
-- Kept `efficientnet_current` as default (`webcam_backbone: efficientnet_current`) until `external_models/resnet18_raf/best_resnet18.pt` is supplied.
-- Kept native resolution for `eval_clips.py` and logged browser `320x180` downscale gap explicitly rather than forcing 720p over HTTP/WS.
+- Kept `webcam_backbone: "efficientnet_current"` as default in `config.yaml` pending user selection.
 
 ## Next Step
-- Supply `external_models/resnet18_raf/best_resnet18.pt` (and `live_resnet18_demo.py` if custom preprocessing is needed), then run `eval_clips.py --backbone resnet18_raf` and begin Session 2.
+- User decides default backbone (`efficientnet_current` vs `resnet18_raf`), then proceed to next session.

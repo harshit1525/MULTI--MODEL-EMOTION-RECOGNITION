@@ -382,15 +382,25 @@ def test_resnet18_raf_synthetic_checkpoint():
 
         with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as f:
             torch.save({
+                "architecture": "resnet18",
                 "model_state_dict": model.state_dict(),
                 "class_names": raf_classes,
-                "img_size": 224,
+                "preprocessing": {
+                    "image_size": 128,
+                    "eval_resize": 146,
+                    "mean": [0.485, 0.456, 0.406],
+                    "std": [0.229, 0.224, 0.225],
+                    "interpolation": "bilinear",
+                    "antialias": True,
+                },
             }, f.name)
             ckpt_path = f.name
 
         try:
             svc = WebcamService(video_ckpt=ckpt_path, backbone="resnet18_raf")
             assert svc._architecture == "resnet18_raf"
+            assert svc._img_size == 128
+            assert svc._raf_prep is not None
             assert svc.is_loaded
             assert svc._raf_index_map == [6, 2, 1, 3, 5, 0, 4]
 
@@ -404,6 +414,25 @@ def test_resnet18_raf_synthetic_checkpoint():
                     assert set(res["probabilities"].keys()) == set(EMOTIONS)
         finally:
             os.unlink(ckpt_path)
+
+
+def test_resnet18_raf_config_selection():
+    """Verify config key webcam_backbone='resnet18_raf' loads checkpoint preprocessing when present."""
+    from unittest.mock import patch
+    from backend.services.webcam_service import WebcamService
+
+    raf_ckpt = "external_models/resnet18_raf/best_resnet18.pt"
+    if not os.path.exists(raf_ckpt):
+        return
+    with patch("yaml.safe_load", return_value={
+        "webcam_backbone": "resnet18_raf",
+        "webcam_resnet18_raf_path": raf_ckpt,
+    }):
+        svc = WebcamService()
+    assert svc._backbone_name == "resnet18_raf"
+    assert svc._architecture == "resnet18_raf"
+    assert svc._img_size == 128
+    assert svc._raf_index_map == [6, 2, 1, 3, 5, 0, 4]
 
 
 def test_eval_clips_stem_parsing():
@@ -447,5 +476,6 @@ if __name__ == "__main__":
     test_single_engine_parity_synthetic()
     test_resnet18_raf_class_name_mapping()
     test_resnet18_raf_synthetic_checkpoint()
+    test_resnet18_raf_config_selection()
     test_eval_clips_stem_parsing()
     print("All webcam unit tests passed!")

@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import json
 import base64
@@ -9,58 +10,21 @@ import cv2
 import numpy as np
 import torch
 import torch.nn as nn
+from PIL import Image
 from torchvision import transforms
 import torchvision.models as models
 
 from backend.models.video_model import VideoClassifier
 from backend.utils.file_utils import temporary_upload_file
 
+_REPO_ROOT = str(Path(__file__).resolve().parents[2])
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+from live_resnet18_demo import aligned_square_crop, load_model
+
 EMOTIONS = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
 
 logger = logging.getLogger("multimodal_backend.webcam")
-
-
-def aligned_square_crop(
-    img: np.ndarray,
-    bbox: List[int],
-    raw_landmarks: Any = (),
-    pad_ratio: float = 1.25,
-):
-    """Align face via eye landmarks and return (square_crop, eye_dist, tilt_angle)."""
-    h, w = img.shape[:2]
-    fx, fy, fw, fh = bbox
-    aligned_img = img
-    eye_dist = 40.0
-    tilt_angle = 0.0
-
-    if len(raw_landmarks) == 5:
-        re, le = raw_landmarks[0], raw_landmarks[1]
-        dx = float(le[0] - re[0])
-        dy = float(le[1] - re[1])
-        eye_dist = max(2.0, float(np.hypot(dx, dy)))
-        tilt_angle = float(np.degrees(np.arctan2(dy, dx)))
-        if 1.5 < abs(tilt_angle) < 45.0:
-            eye_center = (float((re[0] + le[0]) / 2.0), float((re[1] + le[1]) / 2.0))
-            rot_mat = cv2.getRotationMatrix2D(eye_center, tilt_angle, 1.0)
-            aligned_img = cv2.warpAffine(
-                img, rot_mat, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT
-            )
-
-    cx = fx + fw // 2
-    cy = fy + fh // 2
-    crop_size = int(max(fw, fh) * pad_ratio)
-    pad_needed = crop_size // 2
-    padded = cv2.copyMakeBorder(
-        aligned_img, pad_needed, pad_needed, pad_needed, pad_needed, cv2.BORDER_REFLECT
-    )
-    pcx, pcy = cx + pad_needed, cy + pad_needed
-    face_crop = padded[
-        pcy - crop_size // 2 : pcy + (crop_size - crop_size // 2),
-        pcx - crop_size // 2 : pcx + (crop_size - crop_size // 2),
-    ]
-    if face_crop.shape[0] < 10 or face_crop.shape[1] < 10:
-        face_crop = img
-    return face_crop, eye_dist, tilt_angle
 
 class WebcamService:
     """
@@ -134,6 +98,7 @@ class WebcamService:
         self._architecture: str = "unknown"
         self._img_size: int = 224
         self.norm: Optional[transforms.Normalize] = None
+        self._raf_prep: Optional[Any] = None
         self.label_mapping: Optional[Dict[str, int]] = None
         self.idx_to_label: Optional[Dict[int, str]] = None
         self._raf_index_map: Optional[List[int]] = None  # RAF checkpoint idx → canonical idx
@@ -162,18 +127,18 @@ class WebcamService:
     def load_models(self):
         if not os.path.exists(self.video_ckpt):
             raise FileNotFoundError(f"Video classifier checkpoint not found at {self.video_ckpt}")
-            
-        ckpt = torch.load(self.video_ckpt, map_location=self.device, weights_only=False)
 
         # --- ResNet-18 RAF-DB backbone (external checkpoint format) ---
         if self._backbone_name == "resnet18_raf":
-            self._load_resnet18_raf(ckpt)
+            self._load_resnet18_raf()
             self._init_face_detector()
             self.is_loaded = True
             logger.info("WebcamService models loaded successfully.")
             return
 
+        ckpt = torch.load(self.video_ckpt, map_location=self.device, weights_only=False)
         self._raf_index_map = None
+        self._raf_prep = None
 
         self.label_mapping = ckpt["label_mapping"]
         self.idx_to_label = {v: k for k, v in self.label_mapping.items()}
@@ -264,25 +229,19 @@ class WebcamService:
             logger.warning(f"YuNet onnx not found at {self.yunet_path}. Fallback to center cropping.")
             self.face_detector = None
 
-    def _load_resnet18_raf(self, ckpt: Dict[str, Any]):
-        """Load a ResNet-18 trained on RAF-DB, remapping its class order to our canonical order."""
-        from torchvision.models import resnet18
-
+    def _load_resnet18_raf(self):
+        """Load RAF-DB ResNet-18 via live_resnet18_demo.load_model and remap classes by name."""
         logger.info("Loading ResNet-18 RAF-DB backbone...")
         self._architecture = "resnet18_raf"
-        self._img_size = ckpt.get("img_size", 224)
-        self.norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        self.calibrated_temperature = float(ckpt.get("calibrated_temperature", 1.0))
+        self.calibrated_temperature = 1.0
 
-        # Determine RAF checkpoint class names (may be stored or assume standard RAF-DB order)
-        raf_class_names = ckpt.get("class_names", list(self.RAF_TO_CANONICAL.keys()))
-        if isinstance(raf_class_names, dict):
-            # {idx: name} format
-            raf_class_names = [raf_class_names[i] for i in range(len(raf_class_names))]
+        model, prep, raf_class_names = load_model(self.video_ckpt)
+        self._raf_prep = prep
+        cc = next((t for t in getattr(prep, "transforms", []) if isinstance(t, transforms.CenterCrop)), None)
+        if cc is not None:
+            self._img_size = cc.size[0] if isinstance(cc.size, (tuple, list)) else int(cc.size)
 
-        num_raf_classes = len(raf_class_names)
-
-        # Build index remapping: raf_index → canonical_index
+        # Build index remapping: raf_index → canonical_index (by name, not position)
         aliases = {"happy": 3, "joy": 3, "sad": 5}
         self._raf_index_map = []
         for name in raf_class_names:
@@ -300,32 +259,12 @@ class WebcamService:
         self.label_mapping = {emo: i for i, emo in enumerate(EMOTIONS)}
         self.idx_to_label = {i: emo for i, emo in enumerate(EMOTIONS)}
 
-        # Build model
-        model = resnet18(weights=None)
-        model.fc = nn.Linear(model.fc.in_features, num_raf_classes)
-
-        # Load state dict (handle 'model_state_dict', 'state_dict', or bare state_dict)
-        sd = ckpt.get("model_state_dict", ckpt.get("state_dict", ckpt))
-        cleaned = {}
-        for k, v in sd.items():
-            for prefix in ("model.", "module."):
-                if k.startswith(prefix):
-                    k = k[len(prefix):]
-                    break
-            cleaned[k] = v
-        incompatible = model.load_state_dict(cleaned, strict=False)
-        if incompatible.missing_keys or incompatible.unexpected_keys:
-            logger.warning(
-                f"ResNet-18 state_dict mismatch: missing={incompatible.missing_keys}, "
-                f"unexpected={incompatible.unexpected_keys}"
-            )
-        model.eval()
         for p in model.parameters():
             p.requires_grad = False
         model.to(self.device)
         self.backbone = model
         self.classifier = None
-        logger.info(f"ResNet-18 RAF-DB loaded ({num_raf_classes} classes). Index map: {self._raf_index_map}")
+        logger.info(f"ResNet-18 RAF-DB loaded ({len(raf_class_names)} classes, img_size={self._img_size}). Index map: {self._raf_index_map}")
 
     def reset_session(self, client_id: str = "default"):
         """Clears client temporal state and rolling EMA buffer."""
@@ -513,6 +452,7 @@ class WebcamService:
 
         h, w, _ = img.shape
         faces_detected = 0
+        best_face = None
         best_face_bbox = None
         face_confidence = 0.0
         raw_landmarks = []
@@ -579,7 +519,10 @@ class WebcamService:
 
         # --- FACIAL CROP & AFFINE EYE ALIGNMENT ---
         fx, fy, fw, fh = best_face_bbox
-        face_crop, eye_dist, tilt_angle = aligned_square_crop(img, best_face_bbox, raw_landmarks)
+        pad = 1.10 if self._architecture == "resnet18_raf" else 1.25
+        face_crop = aligned_square_crop(img, best_face, pad, min_side=10)
+        if face_crop is None or face_crop.shape[0] < 10 or face_crop.shape[1] < 10:
+            face_crop = img
 
         # Quality assessment: blur (Laplacian variance), detection confidence, size, off-angle
         gray_crop = cv2.cvtColor(face_crop, cv2.COLOR_BGR2GRAY) if face_crop.ndim == 3 else face_crop
@@ -587,16 +530,18 @@ class WebcamService:
         is_blurry = laplacian_var < 30.0
         is_low_conf = face_confidence < 0.50
         is_too_small = (fw < 36 or fh < 36)
-        is_off_angle = abs(tilt_angle) >= 45.0
 
         # Extract facial landmark geometry ratios
+        tilt_angle = 0.0
         geom_ratios = None
         if len(raw_landmarks) == 5:
             re, le = raw_landmarks[0], raw_landmarks[1]
             nose = raw_landmarks[2]
             rm, lm = raw_landmarks[3], raw_landmarks[4]
             eye_center = (float(re[0] + le[0]) / 2.0, float(re[1] + le[1]) / 2.0)
-            eye_dist = max(5.0, float(np.hypot(le[0] - re[0], le[1] - re[1])))
+            dx_eye, dy_eye = float(le[0] - re[0]), float(le[1] - re[1])
+            eye_dist = max(5.0, float(np.hypot(dx_eye, dy_eye)))
+            tilt_angle = float(np.degrees(np.arctan2(dy_eye, dx_eye)))
             mouth_center = (float(rm[0] + lm[0]) / 2.0, float(rm[1] + lm[1]) / 2.0)
             mouth_w = float(np.hypot(lm[0] - rm[0], lm[1] - rm[1])) / eye_dist
             eye_to_mouth = float(np.hypot(mouth_center[0] - eye_center[0], mouth_center[1] - eye_center[1])) / eye_dist
@@ -606,6 +551,7 @@ class WebcamService:
                 "eye_to_mouth": eye_to_mouth,
                 "nose_to_mouth": nose_to_mouth
             }
+        is_off_angle = abs(tilt_angle) >= 45.0
 
         # Lighting assessment & exposure normalization (mild gamma vs CLAHE)
         # Avoids CLAHE shadow amplification on nasolabial folds which induces false disgust
@@ -691,26 +637,30 @@ class WebcamService:
             }
 
         # --- DEEP VISION MODEL INFERENCE ---
-        img_size = self._img_size if hasattr(self, '_img_size') else 96
-        resized = cv2.resize(face_enhanced, (img_size, img_size))
-        rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
-        tensor = torch.from_numpy(rgb).permute(2, 0, 1).float() / 255.0
-        tensor = self.norm(tensor).unsqueeze(0).to(self.device)
-
-        with torch.inference_mode():
-            if self._architecture in ("efficientnet_b0", "timm_tf_efficientnet_b0"):
-                logits = self.backbone(tensor)
-                model_logits = logits[0].cpu().numpy()
-            elif self._architecture == "resnet18_raf":
+        if self._architecture == "resnet18_raf":
+            rgb = cv2.cvtColor(face_enhanced, cv2.COLOR_BGR2RGB)
+            tensor = self._raf_prep(Image.fromarray(rgb)).unsqueeze(0).to(self.device)
+            with torch.inference_mode():
                 raw_logits = self.backbone(tensor)[0].cpu().numpy()
-                # Remap from RAF class order to canonical EMOTIONS order
-                model_logits = np.zeros(7, dtype=np.float32)
-                for raf_idx, canon_idx in enumerate(self._raf_index_map):
-                    model_logits[canon_idx] = raw_logits[raf_idx]
-            else:
-                feat = self.backbone(tensor)
-                logits = self.classifier(feat)
-                model_logits = logits[0].cpu().numpy()
+            # Remap from RAF class order to canonical EMOTIONS order
+            model_logits = np.zeros(7, dtype=np.float32)
+            for raf_idx, canon_idx in enumerate(self._raf_index_map):
+                model_logits[canon_idx] = raw_logits[raf_idx]
+        else:
+            img_size = self._img_size if hasattr(self, '_img_size') else 96
+            resized = cv2.resize(face_enhanced, (img_size, img_size))
+            rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+            tensor = torch.from_numpy(rgb).permute(2, 0, 1).float() / 255.0
+            tensor = self.norm(tensor).unsqueeze(0).to(self.device)
+
+            with torch.inference_mode():
+                if self._architecture in ("efficientnet_b0", "timm_tf_efficientnet_b0"):
+                    logits = self.backbone(tensor)
+                    model_logits = logits[0].cpu().numpy()
+                else:
+                    feat = self.backbone(tensor)
+                    logits = self.classifier(feat)
+                    model_logits = logits[0].cpu().numpy()
 
         stage1_logits = model_logits.copy()
 

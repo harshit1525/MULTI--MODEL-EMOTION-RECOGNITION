@@ -1,0 +1,5657 @@
+{
+  "backbone": "resnet18_raf",
+  "architecture": "resnet18_raf",
+  "checkpoint": "external_models/resnet18_raf/best_resnet18.pt",
+  "apply_smoothing": true,
+  "latency_p50_ms": 102.33,
+  "latency_p95_ms": 110.55,
+  "clips": [
+    {
+      "clip": "Anger.mp4",
+      "ground_truth": "anger",
+      "native_fps": 15.03,
+      "total_frames": 101,
+      "face_frames": 101,
+      "majority_vote": "surprise",
+      "frame_accuracy": 0.0,
+      "top_wrong_class": "surprise",
+      "top_wrong_share": 1.0,
+      "class_counts": {
+        "surprise": 101
+      },
+      "frames": [
+        {
+          "frame_idx": 0,
+          "pred": "surprise",
+          "conf": 0.9023,
+          "face": true
+        },
+        {
+          "frame_idx": 1,
+          "pred": "surprise",
+          "conf": 0.9302,
+          "face": true
+        },
+        {
+          "frame_idx": 2,
+          "pred": "surprise",
+          "conf": 0.9332,
+          "face": true
+        },
+        {
+          "frame_idx": 3,
+          "pred": "surprise",
+          "conf": 0.9366,
+          "face": true
+        },
+        {
+          "frame_idx": 4,
+          "pred": "surprise",
+          "conf": 0.8908,
+          "face": true
+        },
+        {
+          "frame_idx": 5,
+          "pred": "surprise",
+          "conf": 0.9109,
+          "face": true
+        },
+        {
+          "frame_idx": 6,
+          "pred": "surprise",
+          "conf": 0.9251,
+          "face": true
+        },
+        {
+          "frame_idx": 7,
+          "pred": "surprise",
+          "conf": 0.8882,
+          "face": true
+        },
+        {
+          "frame_idx": 8,
+          "pred": "surprise",
+          "conf": 0.8758,
+          "face": true
+        },
+        {
+          "frame_idx": 9,
+          "pred": "surprise",
+          "conf": 0.8846,
+          "face": true
+        },
+        {
+          "frame_idx": 10,
+          "pred": "surprise",
+          "conf": 0.8507,
+          "face": true
+        },
+        {
+          "frame_idx": 11,
+          "pred": "surprise",
+          "conf": 0.8908,
+          "face": true
+        },
+        {
+          "frame_idx": 12,
+          "pred": "surprise",
+          "conf": 0.9252,
+          "face": true
+        },
+        {
+          "frame_idx": 13,
+          "pred": "surprise",
+          "conf": 0.9344,
+          "face": true
+        },
+        {
+          "frame_idx": 14,
+          "pred": "surprise",
+          "conf": 0.9546,
+          "face": true
+        },
+        {
+          "frame_idx": 15,
+          "pred": "surprise",
+          "conf": 0.9598,
+          "face": true
+        },
+        {
+          "frame_idx": 16,
+          "pred": "surprise",
+          "conf": 0.9721,
+          "face": true
+        },
+        {
+          "frame_idx": 17,
+          "pred": "surprise",
+          "conf": 0.9576,
+          "face": true
+        },
+        {
+          "frame_idx": 18,
+          "pred": "surprise",
+          "conf": 0.9329,
+          "face": true
+        },
+        {
+          "frame_idx": 19,
+          "pred": "surprise",
+          "conf": 0.9051,
+          "face": true
+        },
+        {
+          "frame_idx": 20,
+          "pred": "surprise",
+          "conf": 0.9131,
+          "face": true
+        },
+        {
+          "frame_idx": 21,
+          "pred": "surprise",
+          "conf": 0.9206,
+          "face": true
+        },
+        {
+          "frame_idx": 22,
+          "pred": "surprise",
+          "conf": 0.9536,
+          "face": true
+        },
+        {
+          "frame_idx": 23,
+          "pred": "surprise",
+          "conf": 0.9428,
+          "face": true
+        },
+        {
+          "frame_idx": 24,
+          "pred": "surprise",
+          "conf": 0.9008,
+          "face": true
+        },
+        {
+          "frame_idx": 25,
+          "pred": "surprise",
+          "conf": 0.8993,
+          "face": true
+        },
+        {
+          "frame_idx": 26,
+          "pred": "surprise",
+          "conf": 0.9302,
+          "face": true
+        },
+        {
+          "frame_idx": 27,
+          "pred": "surprise",
+          "conf": 0.9569,
+          "face": true
+        },
+        {
+          "frame_idx": 28,
+          "pred": "surprise",
+          "conf": 0.9724,
+          "face": true
+        },
+        {
+          "frame_idx": 29,
+          "pred": "surprise",
+          "conf": 0.9077,
+          "face": true
+        },
+        {
+          "frame_idx": 30,
+          "pred": "surprise",
+          "conf": 0.8707,
+          "face": true
+        },
+        {
+          "frame_idx": 31,
+          "pred": "surprise",
+          "conf": 0.9031,
+          "face": true
+        },
+        {
+          "frame_idx": 32,
+          "pred": "surprise",
+          "conf": 0.8929,
+          "face": true
+        },
+        {
+          "frame_idx": 33,
+          "pred": "surprise",
+          "conf": 0.839,
+          "face": true
+        },
+        {
+          "frame_idx": 34,
+          "pred": "surprise",
+          "conf": 0.7796,
+          "face": true
+        },
+        {
+          "frame_idx": 35,
+          "pred": "surprise",
+          "conf": 0.7987,
+          "face": true
+        },
+        {
+          "frame_idx": 36,
+          "pred": "surprise",
+          "conf": 0.7622,
+          "face": true
+        },
+        {
+          "frame_idx": 37,
+          "pred": "surprise",
+          "conf": 0.8038,
+          "face": true
+        },
+        {
+          "frame_idx": 38,
+          "pred": "surprise",
+          "conf": 0.8174,
+          "face": true
+        },
+        {
+          "frame_idx": 39,
+          "pred": "surprise",
+          "conf": 0.8002,
+          "face": true
+        },
+        {
+          "frame_idx": 40,
+          "pred": "surprise",
+          "conf": 0.7957,
+          "face": true
+        },
+        {
+          "frame_idx": 41,
+          "pred": "surprise",
+          "conf": 0.7177,
+          "face": true
+        },
+        {
+          "frame_idx": 42,
+          "pred": "surprise",
+          "conf": 0.7747,
+          "face": true
+        },
+        {
+          "frame_idx": 43,
+          "pred": "surprise",
+          "conf": 0.809,
+          "face": true
+        },
+        {
+          "frame_idx": 44,
+          "pred": "surprise",
+          "conf": 0.8169,
+          "face": true
+        },
+        {
+          "frame_idx": 45,
+          "pred": "surprise",
+          "conf": 0.8574,
+          "face": true
+        },
+        {
+          "frame_idx": 46,
+          "pred": "surprise",
+          "conf": 0.8744,
+          "face": true
+        },
+        {
+          "frame_idx": 47,
+          "pred": "surprise",
+          "conf": 0.9077,
+          "face": true
+        },
+        {
+          "frame_idx": 48,
+          "pred": "surprise",
+          "conf": 0.9079,
+          "face": true
+        },
+        {
+          "frame_idx": 49,
+          "pred": "surprise",
+          "conf": 0.8797,
+          "face": true
+        },
+        {
+          "frame_idx": 50,
+          "pred": "surprise",
+          "conf": 0.8879,
+          "face": true
+        },
+        {
+          "frame_idx": 51,
+          "pred": "surprise",
+          "conf": 0.904,
+          "face": true
+        },
+        {
+          "frame_idx": 52,
+          "pred": "surprise",
+          "conf": 0.9342,
+          "face": true
+        },
+        {
+          "frame_idx": 53,
+          "pred": "surprise",
+          "conf": 0.9645,
+          "face": true
+        },
+        {
+          "frame_idx": 54,
+          "pred": "surprise",
+          "conf": 0.9503,
+          "face": true
+        },
+        {
+          "frame_idx": 55,
+          "pred": "surprise",
+          "conf": 0.954,
+          "face": true
+        },
+        {
+          "frame_idx": 56,
+          "pred": "surprise",
+          "conf": 0.9519,
+          "face": true
+        },
+        {
+          "frame_idx": 57,
+          "pred": "surprise",
+          "conf": 0.9738,
+          "face": true
+        },
+        {
+          "frame_idx": 58,
+          "pred": "surprise",
+          "conf": 0.8851,
+          "face": true
+        },
+        {
+          "frame_idx": 59,
+          "pred": "surprise",
+          "conf": 0.7377,
+          "face": true
+        },
+        {
+          "frame_idx": 60,
+          "pred": "surprise",
+          "conf": 0.6706,
+          "face": true
+        },
+        {
+          "frame_idx": 61,
+          "pred": "surprise",
+          "conf": 0.6348,
+          "face": true
+        },
+        {
+          "frame_idx": 62,
+          "pred": "surprise",
+          "conf": 0.6341,
+          "face": true
+        },
+        {
+          "frame_idx": 63,
+          "pred": "surprise",
+          "conf": 0.6686,
+          "face": true
+        },
+        {
+          "frame_idx": 64,
+          "pred": "surprise",
+          "conf": 0.6601,
+          "face": true
+        },
+        {
+          "frame_idx": 65,
+          "pred": "surprise",
+          "conf": 0.6832,
+          "face": true
+        },
+        {
+          "frame_idx": 66,
+          "pred": "surprise",
+          "conf": 0.6782,
+          "face": true
+        },
+        {
+          "frame_idx": 67,
+          "pred": "surprise",
+          "conf": 0.8113,
+          "face": true
+        },
+        {
+          "frame_idx": 68,
+          "pred": "surprise",
+          "conf": 0.87,
+          "face": true
+        },
+        {
+          "frame_idx": 69,
+          "pred": "surprise",
+          "conf": 0.8853,
+          "face": true
+        },
+        {
+          "frame_idx": 70,
+          "pred": "surprise",
+          "conf": 0.8489,
+          "face": true
+        },
+        {
+          "frame_idx": 71,
+          "pred": "surprise",
+          "conf": 0.9034,
+          "face": true
+        },
+        {
+          "frame_idx": 72,
+          "pred": "surprise",
+          "conf": 0.9305,
+          "face": true
+        },
+        {
+          "frame_idx": 73,
+          "pred": "surprise",
+          "conf": 0.9484,
+          "face": true
+        },
+        {
+          "frame_idx": 74,
+          "pred": "surprise",
+          "conf": 0.9636,
+          "face": true
+        },
+        {
+          "frame_idx": 75,
+          "pred": "surprise",
+          "conf": 0.9644,
+          "face": true
+        },
+        {
+          "frame_idx": 76,
+          "pred": "surprise",
+          "conf": 0.9669,
+          "face": true
+        },
+        {
+          "frame_idx": 77,
+          "pred": "surprise",
+          "conf": 0.938,
+          "face": true
+        },
+        {
+          "frame_idx": 78,
+          "pred": "surprise",
+          "conf": 0.9599,
+          "face": true
+        },
+        {
+          "frame_idx": 79,
+          "pred": "surprise",
+          "conf": 0.9576,
+          "face": true
+        },
+        {
+          "frame_idx": 80,
+          "pred": "surprise",
+          "conf": 0.8477,
+          "face": true
+        },
+        {
+          "frame_idx": 81,
+          "pred": "surprise",
+          "conf": 0.6959,
+          "face": true
+        },
+        {
+          "frame_idx": 82,
+          "pred": "surprise",
+          "conf": 0.7215,
+          "face": true
+        },
+        {
+          "frame_idx": 83,
+          "pred": "surprise",
+          "conf": 0.8206,
+          "face": true
+        },
+        {
+          "frame_idx": 84,
+          "pred": "surprise",
+          "conf": 0.8583,
+          "face": true
+        },
+        {
+          "frame_idx": 85,
+          "pred": "surprise",
+          "conf": 0.871,
+          "face": true
+        },
+        {
+          "frame_idx": 86,
+          "pred": "surprise",
+          "conf": 0.841,
+          "face": true
+        },
+        {
+          "frame_idx": 87,
+          "pred": "surprise",
+          "conf": 0.888,
+          "face": true
+        },
+        {
+          "frame_idx": 88,
+          "pred": "surprise",
+          "conf": 0.8795,
+          "face": true
+        },
+        {
+          "frame_idx": 89,
+          "pred": "surprise",
+          "conf": 0.8661,
+          "face": true
+        },
+        {
+          "frame_idx": 90,
+          "pred": "surprise",
+          "conf": 0.9338,
+          "face": true
+        },
+        {
+          "frame_idx": 91,
+          "pred": "surprise",
+          "conf": 0.9678,
+          "face": true
+        },
+        {
+          "frame_idx": 92,
+          "pred": "surprise",
+          "conf": 0.9836,
+          "face": true
+        },
+        {
+          "frame_idx": 93,
+          "pred": "surprise",
+          "conf": 0.9905,
+          "face": true
+        },
+        {
+          "frame_idx": 94,
+          "pred": "surprise",
+          "conf": 0.9928,
+          "face": true
+        },
+        {
+          "frame_idx": 95,
+          "pred": "surprise",
+          "conf": 0.9859,
+          "face": true
+        },
+        {
+          "frame_idx": 96,
+          "pred": "surprise",
+          "conf": 0.9909,
+          "face": true
+        },
+        {
+          "frame_idx": 97,
+          "pred": "surprise",
+          "conf": 0.9941,
+          "face": true
+        },
+        {
+          "frame_idx": 98,
+          "pred": "surprise",
+          "conf": 0.9931,
+          "face": true
+        },
+        {
+          "frame_idx": 99,
+          "pred": "surprise",
+          "conf": 0.9138,
+          "face": true
+        },
+        {
+          "frame_idx": 100,
+          "pred": "surprise",
+          "conf": 0.4539,
+          "face": true
+        }
+      ]
+    },
+    {
+      "clip": "Disgust (2).mp4",
+      "ground_truth": "disgust",
+      "native_fps": 14.91,
+      "total_frames": 172,
+      "face_frames": 172,
+      "majority_vote": "disgust",
+      "frame_accuracy": 0.7849,
+      "top_wrong_class": "neutral",
+      "top_wrong_share": 0.2093,
+      "class_counts": {
+        "neutral": 36,
+        "disgust": 135,
+        "surprise": 1
+      },
+      "frames": [
+        {
+          "frame_idx": 0,
+          "pred": "neutral",
+          "conf": 0.6232,
+          "face": true
+        },
+        {
+          "frame_idx": 1,
+          "pred": "neutral",
+          "conf": 0.5595,
+          "face": true
+        },
+        {
+          "frame_idx": 2,
+          "pred": "neutral",
+          "conf": 0.542,
+          "face": true
+        },
+        {
+          "frame_idx": 3,
+          "pred": "neutral",
+          "conf": 0.4772,
+          "face": true
+        },
+        {
+          "frame_idx": 4,
+          "pred": "neutral",
+          "conf": 0.4472,
+          "face": true
+        },
+        {
+          "frame_idx": 5,
+          "pred": "neutral",
+          "conf": 0.4102,
+          "face": true
+        },
+        {
+          "frame_idx": 6,
+          "pred": "neutral",
+          "conf": 0.5484,
+          "face": true
+        },
+        {
+          "frame_idx": 7,
+          "pred": "neutral",
+          "conf": 0.5877,
+          "face": true
+        },
+        {
+          "frame_idx": 8,
+          "pred": "neutral",
+          "conf": 0.6637,
+          "face": true
+        },
+        {
+          "frame_idx": 9,
+          "pred": "neutral",
+          "conf": 0.4961,
+          "face": true
+        },
+        {
+          "frame_idx": 10,
+          "pred": "neutral",
+          "conf": 0.338,
+          "face": true
+        },
+        {
+          "frame_idx": 11,
+          "pred": "neutral",
+          "conf": 0.5201,
+          "face": true
+        },
+        {
+          "frame_idx": 12,
+          "pred": "neutral",
+          "conf": 0.6246,
+          "face": true
+        },
+        {
+          "frame_idx": 13,
+          "pred": "neutral",
+          "conf": 0.6051,
+          "face": true
+        },
+        {
+          "frame_idx": 14,
+          "pred": "neutral",
+          "conf": 0.507,
+          "face": true
+        },
+        {
+          "frame_idx": 15,
+          "pred": "neutral",
+          "conf": 0.5203,
+          "face": true
+        },
+        {
+          "frame_idx": 16,
+          "pred": "neutral",
+          "conf": 0.4324,
+          "face": true
+        },
+        {
+          "frame_idx": 17,
+          "pred": "neutral",
+          "conf": 0.2748,
+          "face": true
+        },
+        {
+          "frame_idx": 18,
+          "pred": "neutral",
+          "conf": 0.135,
+          "face": true
+        },
+        {
+          "frame_idx": 19,
+          "pred": "disgust",
+          "conf": 0.8078,
+          "face": true
+        },
+        {
+          "frame_idx": 20,
+          "pred": "disgust",
+          "conf": 0.8843,
+          "face": true
+        },
+        {
+          "frame_idx": 21,
+          "pred": "disgust",
+          "conf": 0.8824,
+          "face": true
+        },
+        {
+          "frame_idx": 22,
+          "pred": "disgust",
+          "conf": 0.9256,
+          "face": true
+        },
+        {
+          "frame_idx": 23,
+          "pred": "disgust",
+          "conf": 0.9449,
+          "face": true
+        },
+        {
+          "frame_idx": 24,
+          "pred": "disgust",
+          "conf": 0.9704,
+          "face": true
+        },
+        {
+          "frame_idx": 25,
+          "pred": "disgust",
+          "conf": 0.9795,
+          "face": true
+        },
+        {
+          "frame_idx": 26,
+          "pred": "disgust",
+          "conf": 0.9798,
+          "face": true
+        },
+        {
+          "frame_idx": 27,
+          "pred": "disgust",
+          "conf": 0.9864,
+          "face": true
+        },
+        {
+          "frame_idx": 28,
+          "pred": "disgust",
+          "conf": 0.9784,
+          "face": true
+        },
+        {
+          "frame_idx": 29,
+          "pred": "disgust",
+          "conf": 0.8733,
+          "face": true
+        },
+        {
+          "frame_idx": 30,
+          "pred": "disgust",
+          "conf": 0.9335,
+          "face": true
+        },
+        {
+          "frame_idx": 31,
+          "pred": "disgust",
+          "conf": 0.9343,
+          "face": true
+        },
+        {
+          "frame_idx": 32,
+          "pred": "disgust",
+          "conf": 0.8841,
+          "face": true
+        },
+        {
+          "frame_idx": 33,
+          "pred": "disgust",
+          "conf": 0.9003,
+          "face": true
+        },
+        {
+          "frame_idx": 34,
+          "pred": "disgust",
+          "conf": 0.9047,
+          "face": true
+        },
+        {
+          "frame_idx": 35,
+          "pred": "disgust",
+          "conf": 0.9237,
+          "face": true
+        },
+        {
+          "frame_idx": 36,
+          "pred": "disgust",
+          "conf": 0.951,
+          "face": true
+        },
+        {
+          "frame_idx": 37,
+          "pred": "disgust",
+          "conf": 0.9518,
+          "face": true
+        },
+        {
+          "frame_idx": 38,
+          "pred": "disgust",
+          "conf": 0.9538,
+          "face": true
+        },
+        {
+          "frame_idx": 39,
+          "pred": "disgust",
+          "conf": 0.9427,
+          "face": true
+        },
+        {
+          "frame_idx": 40,
+          "pred": "disgust",
+          "conf": 0.8882,
+          "face": true
+        },
+        {
+          "frame_idx": 41,
+          "pred": "disgust",
+          "conf": 0.9199,
+          "face": true
+        },
+        {
+          "frame_idx": 42,
+          "pred": "disgust",
+          "conf": 0.9615,
+          "face": true
+        },
+        {
+          "frame_idx": 43,
+          "pred": "disgust",
+          "conf": 0.9751,
+          "face": true
+        },
+        {
+          "frame_idx": 44,
+          "pred": "disgust",
+          "conf": 0.98,
+          "face": true
+        },
+        {
+          "frame_idx": 45,
+          "pred": "disgust",
+          "conf": 0.9761,
+          "face": true
+        },
+        {
+          "frame_idx": 46,
+          "pred": "disgust",
+          "conf": 0.9548,
+          "face": true
+        },
+        {
+          "frame_idx": 47,
+          "pred": "disgust",
+          "conf": 0.942,
+          "face": true
+        },
+        {
+          "frame_idx": 48,
+          "pred": "disgust",
+          "conf": 0.9622,
+          "face": true
+        },
+        {
+          "frame_idx": 49,
+          "pred": "disgust",
+          "conf": 0.9808,
+          "face": true
+        },
+        {
+          "frame_idx": 50,
+          "pred": "disgust",
+          "conf": 0.9816,
+          "face": true
+        },
+        {
+          "frame_idx": 51,
+          "pred": "disgust",
+          "conf": 0.9726,
+          "face": true
+        },
+        {
+          "frame_idx": 52,
+          "pred": "disgust",
+          "conf": 0.9789,
+          "face": true
+        },
+        {
+          "frame_idx": 53,
+          "pred": "disgust",
+          "conf": 0.9751,
+          "face": true
+        },
+        {
+          "frame_idx": 54,
+          "pred": "disgust",
+          "conf": 0.9156,
+          "face": true
+        },
+        {
+          "frame_idx": 55,
+          "pred": "disgust",
+          "conf": 0.9375,
+          "face": true
+        },
+        {
+          "frame_idx": 56,
+          "pred": "disgust",
+          "conf": 0.9525,
+          "face": true
+        },
+        {
+          "frame_idx": 57,
+          "pred": "disgust",
+          "conf": 0.8589,
+          "face": true
+        },
+        {
+          "frame_idx": 58,
+          "pred": "disgust",
+          "conf": 0.6924,
+          "face": true
+        },
+        {
+          "frame_idx": 59,
+          "pred": "disgust",
+          "conf": 0.7184,
+          "face": true
+        },
+        {
+          "frame_idx": 60,
+          "pred": "disgust",
+          "conf": 0.8578,
+          "face": true
+        },
+        {
+          "frame_idx": 61,
+          "pred": "disgust",
+          "conf": 0.9277,
+          "face": true
+        },
+        {
+          "frame_idx": 62,
+          "pred": "disgust",
+          "conf": 0.9469,
+          "face": true
+        },
+        {
+          "frame_idx": 63,
+          "pred": "disgust",
+          "conf": 0.9063,
+          "face": true
+        },
+        {
+          "frame_idx": 64,
+          "pred": "disgust",
+          "conf": 0.8196,
+          "face": true
+        },
+        {
+          "frame_idx": 65,
+          "pred": "disgust",
+          "conf": 0.8747,
+          "face": true
+        },
+        {
+          "frame_idx": 66,
+          "pred": "disgust",
+          "conf": 0.8384,
+          "face": true
+        },
+        {
+          "frame_idx": 67,
+          "pred": "disgust",
+          "conf": 0.8595,
+          "face": true
+        },
+        {
+          "frame_idx": 68,
+          "pred": "disgust",
+          "conf": 0.8283,
+          "face": true
+        },
+        {
+          "frame_idx": 69,
+          "pred": "disgust",
+          "conf": 0.9077,
+          "face": true
+        },
+        {
+          "frame_idx": 70,
+          "pred": "disgust",
+          "conf": 0.9013,
+          "face": true
+        },
+        {
+          "frame_idx": 71,
+          "pred": "disgust",
+          "conf": 0.9466,
+          "face": true
+        },
+        {
+          "frame_idx": 72,
+          "pred": "disgust",
+          "conf": 0.9572,
+          "face": true
+        },
+        {
+          "frame_idx": 73,
+          "pred": "disgust",
+          "conf": 0.8527,
+          "face": true
+        },
+        {
+          "frame_idx": 74,
+          "pred": "disgust",
+          "conf": 0.873,
+          "face": true
+        },
+        {
+          "frame_idx": 75,
+          "pred": "disgust",
+          "conf": 0.8368,
+          "face": true
+        },
+        {
+          "frame_idx": 76,
+          "pred": "disgust",
+          "conf": 0.5612,
+          "face": true
+        },
+        {
+          "frame_idx": 77,
+          "pred": "disgust",
+          "conf": 0.472,
+          "face": true
+        },
+        {
+          "frame_idx": 78,
+          "pred": "disgust",
+          "conf": 0.3532,
+          "face": true
+        },
+        {
+          "frame_idx": 79,
+          "pred": "disgust",
+          "conf": 0.2178,
+          "face": true
+        },
+        {
+          "frame_idx": 80,
+          "pred": "neutral",
+          "conf": 0.5795,
+          "face": true
+        },
+        {
+          "frame_idx": 81,
+          "pred": "neutral",
+          "conf": 0.6266,
+          "face": true
+        },
+        {
+          "frame_idx": 82,
+          "pred": "neutral",
+          "conf": 0.5776,
+          "face": true
+        },
+        {
+          "frame_idx": 83,
+          "pred": "neutral",
+          "conf": 0.5083,
+          "face": true
+        },
+        {
+          "frame_idx": 84,
+          "pred": "neutral",
+          "conf": 0.4673,
+          "face": true
+        },
+        {
+          "frame_idx": 85,
+          "pred": "neutral",
+          "conf": 0.414,
+          "face": true
+        },
+        {
+          "frame_idx": 86,
+          "pred": "neutral",
+          "conf": 0.3912,
+          "face": true
+        },
+        {
+          "frame_idx": 87,
+          "pred": "neutral",
+          "conf": 0.3342,
+          "face": true
+        },
+        {
+          "frame_idx": 88,
+          "pred": "disgust",
+          "conf": 0.6329,
+          "face": true
+        },
+        {
+          "frame_idx": 89,
+          "pred": "disgust",
+          "conf": 0.5675,
+          "face": true
+        },
+        {
+          "frame_idx": 90,
+          "pred": "disgust",
+          "conf": 0.6897,
+          "face": true
+        },
+        {
+          "frame_idx": 91,
+          "pred": "disgust",
+          "conf": 0.8065,
+          "face": true
+        },
+        {
+          "frame_idx": 92,
+          "pred": "disgust",
+          "conf": 0.8744,
+          "face": true
+        },
+        {
+          "frame_idx": 93,
+          "pred": "disgust",
+          "conf": 0.8199,
+          "face": true
+        },
+        {
+          "frame_idx": 94,
+          "pred": "disgust",
+          "conf": 0.8368,
+          "face": true
+        },
+        {
+          "frame_idx": 95,
+          "pred": "disgust",
+          "conf": 0.8083,
+          "face": true
+        },
+        {
+          "frame_idx": 96,
+          "pred": "disgust",
+          "conf": 0.7162,
+          "face": true
+        },
+        {
+          "frame_idx": 97,
+          "pred": "disgust",
+          "conf": 0.8045,
+          "face": true
+        },
+        {
+          "frame_idx": 98,
+          "pred": "disgust",
+          "conf": 0.8373,
+          "face": true
+        },
+        {
+          "frame_idx": 99,
+          "pred": "disgust",
+          "conf": 0.7737,
+          "face": true
+        },
+        {
+          "frame_idx": 100,
+          "pred": "disgust",
+          "conf": 0.7843,
+          "face": true
+        },
+        {
+          "frame_idx": 101,
+          "pred": "disgust",
+          "conf": 0.8118,
+          "face": true
+        },
+        {
+          "frame_idx": 102,
+          "pred": "disgust",
+          "conf": 0.8256,
+          "face": true
+        },
+        {
+          "frame_idx": 103,
+          "pred": "disgust",
+          "conf": 0.8317,
+          "face": true
+        },
+        {
+          "frame_idx": 104,
+          "pred": "disgust",
+          "conf": 0.8411,
+          "face": true
+        },
+        {
+          "frame_idx": 105,
+          "pred": "disgust",
+          "conf": 0.8477,
+          "face": true
+        },
+        {
+          "frame_idx": 106,
+          "pred": "disgust",
+          "conf": 0.812,
+          "face": true
+        },
+        {
+          "frame_idx": 107,
+          "pred": "disgust",
+          "conf": 0.8013,
+          "face": true
+        },
+        {
+          "frame_idx": 108,
+          "pred": "disgust",
+          "conf": 0.8549,
+          "face": true
+        },
+        {
+          "frame_idx": 109,
+          "pred": "disgust",
+          "conf": 0.9066,
+          "face": true
+        },
+        {
+          "frame_idx": 110,
+          "pred": "disgust",
+          "conf": 0.914,
+          "face": true
+        },
+        {
+          "frame_idx": 111,
+          "pred": "disgust",
+          "conf": 0.9397,
+          "face": true
+        },
+        {
+          "frame_idx": 112,
+          "pred": "disgust",
+          "conf": 0.9592,
+          "face": true
+        },
+        {
+          "frame_idx": 113,
+          "pred": "disgust",
+          "conf": 0.9649,
+          "face": true
+        },
+        {
+          "frame_idx": 114,
+          "pred": "disgust",
+          "conf": 0.9629,
+          "face": true
+        },
+        {
+          "frame_idx": 115,
+          "pred": "disgust",
+          "conf": 0.9732,
+          "face": true
+        },
+        {
+          "frame_idx": 116,
+          "pred": "disgust",
+          "conf": 0.9474,
+          "face": true
+        },
+        {
+          "frame_idx": 117,
+          "pred": "disgust",
+          "conf": 0.9184,
+          "face": true
+        },
+        {
+          "frame_idx": 118,
+          "pred": "disgust",
+          "conf": 0.8711,
+          "face": true
+        },
+        {
+          "frame_idx": 119,
+          "pred": "disgust",
+          "conf": 0.7201,
+          "face": true
+        },
+        {
+          "frame_idx": 120,
+          "pred": "disgust",
+          "conf": 0.789,
+          "face": true
+        },
+        {
+          "frame_idx": 121,
+          "pred": "disgust",
+          "conf": 0.8203,
+          "face": true
+        },
+        {
+          "frame_idx": 122,
+          "pred": "disgust",
+          "conf": 0.6168,
+          "face": true
+        },
+        {
+          "frame_idx": 123,
+          "pred": "disgust",
+          "conf": 0.5447,
+          "face": true
+        },
+        {
+          "frame_idx": 124,
+          "pred": "disgust",
+          "conf": 0.3167,
+          "face": true
+        },
+        {
+          "frame_idx": 125,
+          "pred": "neutral",
+          "conf": 0.5516,
+          "face": true
+        },
+        {
+          "frame_idx": 126,
+          "pred": "neutral",
+          "conf": 0.6407,
+          "face": true
+        },
+        {
+          "frame_idx": 127,
+          "pred": "neutral",
+          "conf": 0.6109,
+          "face": true
+        },
+        {
+          "frame_idx": 128,
+          "pred": "neutral",
+          "conf": 0.5381,
+          "face": true
+        },
+        {
+          "frame_idx": 129,
+          "pred": "neutral",
+          "conf": 0.5012,
+          "face": true
+        },
+        {
+          "frame_idx": 130,
+          "pred": "neutral",
+          "conf": 0.2882,
+          "face": true
+        },
+        {
+          "frame_idx": 131,
+          "pred": "disgust",
+          "conf": 0.6986,
+          "face": true
+        },
+        {
+          "frame_idx": 132,
+          "pred": "disgust",
+          "conf": 0.7396,
+          "face": true
+        },
+        {
+          "frame_idx": 133,
+          "pred": "disgust",
+          "conf": 0.6419,
+          "face": true
+        },
+        {
+          "frame_idx": 134,
+          "pred": "disgust",
+          "conf": 0.7548,
+          "face": true
+        },
+        {
+          "frame_idx": 135,
+          "pred": "disgust",
+          "conf": 0.7672,
+          "face": true
+        },
+        {
+          "frame_idx": 136,
+          "pred": "disgust",
+          "conf": 0.8448,
+          "face": true
+        },
+        {
+          "frame_idx": 137,
+          "pred": "disgust",
+          "conf": 0.8492,
+          "face": true
+        },
+        {
+          "frame_idx": 138,
+          "pred": "disgust",
+          "conf": 0.8683,
+          "face": true
+        },
+        {
+          "frame_idx": 139,
+          "pred": "disgust",
+          "conf": 0.8829,
+          "face": true
+        },
+        {
+          "frame_idx": 140,
+          "pred": "disgust",
+          "conf": 0.8751,
+          "face": true
+        },
+        {
+          "frame_idx": 141,
+          "pred": "disgust",
+          "conf": 0.8325,
+          "face": true
+        },
+        {
+          "frame_idx": 142,
+          "pred": "disgust",
+          "conf": 0.837,
+          "face": true
+        },
+        {
+          "frame_idx": 143,
+          "pred": "disgust",
+          "conf": 0.8365,
+          "face": true
+        },
+        {
+          "frame_idx": 144,
+          "pred": "disgust",
+          "conf": 0.8936,
+          "face": true
+        },
+        {
+          "frame_idx": 145,
+          "pred": "disgust",
+          "conf": 0.8921,
+          "face": true
+        },
+        {
+          "frame_idx": 146,
+          "pred": "disgust",
+          "conf": 0.8473,
+          "face": true
+        },
+        {
+          "frame_idx": 147,
+          "pred": "disgust",
+          "conf": 0.8161,
+          "face": true
+        },
+        {
+          "frame_idx": 148,
+          "pred": "disgust",
+          "conf": 0.8203,
+          "face": true
+        },
+        {
+          "frame_idx": 149,
+          "pred": "disgust",
+          "conf": 0.8472,
+          "face": true
+        },
+        {
+          "frame_idx": 150,
+          "pred": "disgust",
+          "conf": 0.8689,
+          "face": true
+        },
+        {
+          "frame_idx": 151,
+          "pred": "disgust",
+          "conf": 0.8619,
+          "face": true
+        },
+        {
+          "frame_idx": 152,
+          "pred": "disgust",
+          "conf": 0.9013,
+          "face": true
+        },
+        {
+          "frame_idx": 153,
+          "pred": "disgust",
+          "conf": 0.901,
+          "face": true
+        },
+        {
+          "frame_idx": 154,
+          "pred": "disgust",
+          "conf": 0.9249,
+          "face": true
+        },
+        {
+          "frame_idx": 155,
+          "pred": "disgust",
+          "conf": 0.9535,
+          "face": true
+        },
+        {
+          "frame_idx": 156,
+          "pred": "disgust",
+          "conf": 0.9546,
+          "face": true
+        },
+        {
+          "frame_idx": 157,
+          "pred": "disgust",
+          "conf": 0.9421,
+          "face": true
+        },
+        {
+          "frame_idx": 158,
+          "pred": "disgust",
+          "conf": 0.8964,
+          "face": true
+        },
+        {
+          "frame_idx": 159,
+          "pred": "disgust",
+          "conf": 0.8711,
+          "face": true
+        },
+        {
+          "frame_idx": 160,
+          "pred": "disgust",
+          "conf": 0.783,
+          "face": true
+        },
+        {
+          "frame_idx": 161,
+          "pred": "disgust",
+          "conf": 0.5509,
+          "face": true
+        },
+        {
+          "frame_idx": 162,
+          "pred": "disgust",
+          "conf": 0.5297,
+          "face": true
+        },
+        {
+          "frame_idx": 163,
+          "pred": "disgust",
+          "conf": 0.4221,
+          "face": true
+        },
+        {
+          "frame_idx": 164,
+          "pred": "disgust",
+          "conf": 0.3993,
+          "face": true
+        },
+        {
+          "frame_idx": 165,
+          "pred": "disgust",
+          "conf": 0.5431,
+          "face": true
+        },
+        {
+          "frame_idx": 166,
+          "pred": "disgust",
+          "conf": 0.4189,
+          "face": true
+        },
+        {
+          "frame_idx": 167,
+          "pred": "disgust",
+          "conf": 0.3058,
+          "face": true
+        },
+        {
+          "frame_idx": 168,
+          "pred": "neutral",
+          "conf": 0.5652,
+          "face": true
+        },
+        {
+          "frame_idx": 169,
+          "pred": "neutral",
+          "conf": 0.3954,
+          "face": true
+        },
+        {
+          "frame_idx": 170,
+          "pred": "neutral",
+          "conf": 0.3082,
+          "face": true
+        },
+        {
+          "frame_idx": 171,
+          "pred": "surprise",
+          "conf": 0.5626,
+          "face": true
+        }
+      ]
+    },
+    {
+      "clip": "disgust.mp4",
+      "ground_truth": "disgust",
+      "native_fps": 15.03,
+      "total_frames": 89,
+      "face_frames": 89,
+      "majority_vote": "disgust",
+      "frame_accuracy": 0.6742,
+      "top_wrong_class": "neutral",
+      "top_wrong_share": 0.2247,
+      "class_counts": {
+        "neutral": 20,
+        "surprise": 9,
+        "disgust": 60
+      },
+      "frames": [
+        {
+          "frame_idx": 0,
+          "pred": "neutral",
+          "conf": 0.8229,
+          "face": true
+        },
+        {
+          "frame_idx": 1,
+          "pred": "neutral",
+          "conf": 0.7144,
+          "face": true
+        },
+        {
+          "frame_idx": 2,
+          "pred": "neutral",
+          "conf": 0.7988,
+          "face": true
+        },
+        {
+          "frame_idx": 3,
+          "pred": "neutral",
+          "conf": 0.75,
+          "face": true
+        },
+        {
+          "frame_idx": 4,
+          "pred": "neutral",
+          "conf": 0.7886,
+          "face": true
+        },
+        {
+          "frame_idx": 5,
+          "pred": "neutral",
+          "conf": 0.7586,
+          "face": true
+        },
+        {
+          "frame_idx": 6,
+          "pred": "neutral",
+          "conf": 0.7405,
+          "face": true
+        },
+        {
+          "frame_idx": 7,
+          "pred": "neutral",
+          "conf": 0.7567,
+          "face": true
+        },
+        {
+          "frame_idx": 8,
+          "pred": "neutral",
+          "conf": 0.7348,
+          "face": true
+        },
+        {
+          "frame_idx": 9,
+          "pred": "neutral",
+          "conf": 0.7548,
+          "face": true
+        },
+        {
+          "frame_idx": 10,
+          "pred": "neutral",
+          "conf": 0.6678,
+          "face": true
+        },
+        {
+          "frame_idx": 11,
+          "pred": "neutral",
+          "conf": 0.4422,
+          "face": true
+        },
+        {
+          "frame_idx": 12,
+          "pred": "surprise",
+          "conf": 0.6353,
+          "face": true
+        },
+        {
+          "frame_idx": 13,
+          "pred": "surprise",
+          "conf": 0.7174,
+          "face": true
+        },
+        {
+          "frame_idx": 14,
+          "pred": "surprise",
+          "conf": 0.5443,
+          "face": true
+        },
+        {
+          "frame_idx": 15,
+          "pred": "surprise",
+          "conf": 0.292,
+          "face": true
+        },
+        {
+          "frame_idx": 16,
+          "pred": "neutral",
+          "conf": 0.714,
+          "face": true
+        },
+        {
+          "frame_idx": 17,
+          "pred": "neutral",
+          "conf": 0.7063,
+          "face": true
+        },
+        {
+          "frame_idx": 18,
+          "pred": "neutral",
+          "conf": 0.6525,
+          "face": true
+        },
+        {
+          "frame_idx": 19,
+          "pred": "neutral",
+          "conf": 0.3966,
+          "face": true
+        },
+        {
+          "frame_idx": 20,
+          "pred": "disgust",
+          "conf": 0.6716,
+          "face": true
+        },
+        {
+          "frame_idx": 21,
+          "pred": "disgust",
+          "conf": 0.8029,
+          "face": true
+        },
+        {
+          "frame_idx": 22,
+          "pred": "disgust",
+          "conf": 0.7749,
+          "face": true
+        },
+        {
+          "frame_idx": 23,
+          "pred": "disgust",
+          "conf": 0.7686,
+          "face": true
+        },
+        {
+          "frame_idx": 24,
+          "pred": "disgust",
+          "conf": 0.7844,
+          "face": true
+        },
+        {
+          "frame_idx": 25,
+          "pred": "disgust",
+          "conf": 0.8222,
+          "face": true
+        },
+        {
+          "frame_idx": 26,
+          "pred": "disgust",
+          "conf": 0.8461,
+          "face": true
+        },
+        {
+          "frame_idx": 27,
+          "pred": "disgust",
+          "conf": 0.8944,
+          "face": true
+        },
+        {
+          "frame_idx": 28,
+          "pred": "disgust",
+          "conf": 0.9265,
+          "face": true
+        },
+        {
+          "frame_idx": 29,
+          "pred": "disgust",
+          "conf": 0.8723,
+          "face": true
+        },
+        {
+          "frame_idx": 30,
+          "pred": "disgust",
+          "conf": 0.806,
+          "face": true
+        },
+        {
+          "frame_idx": 31,
+          "pred": "disgust",
+          "conf": 0.8634,
+          "face": true
+        },
+        {
+          "frame_idx": 32,
+          "pred": "disgust",
+          "conf": 0.7389,
+          "face": true
+        },
+        {
+          "frame_idx": 33,
+          "pred": "disgust",
+          "conf": 0.6419,
+          "face": true
+        },
+        {
+          "frame_idx": 34,
+          "pred": "disgust",
+          "conf": 0.561,
+          "face": true
+        },
+        {
+          "frame_idx": 35,
+          "pred": "disgust",
+          "conf": 0.4708,
+          "face": true
+        },
+        {
+          "frame_idx": 36,
+          "pred": "disgust",
+          "conf": 0.4623,
+          "face": true
+        },
+        {
+          "frame_idx": 37,
+          "pred": "disgust",
+          "conf": 0.4799,
+          "face": true
+        },
+        {
+          "frame_idx": 38,
+          "pred": "disgust",
+          "conf": 0.6734,
+          "face": true
+        },
+        {
+          "frame_idx": 39,
+          "pred": "disgust",
+          "conf": 0.7182,
+          "face": true
+        },
+        {
+          "frame_idx": 40,
+          "pred": "disgust",
+          "conf": 0.729,
+          "face": true
+        },
+        {
+          "frame_idx": 41,
+          "pred": "disgust",
+          "conf": 0.6351,
+          "face": true
+        },
+        {
+          "frame_idx": 42,
+          "pred": "disgust",
+          "conf": 0.578,
+          "face": true
+        },
+        {
+          "frame_idx": 43,
+          "pred": "disgust",
+          "conf": 0.6723,
+          "face": true
+        },
+        {
+          "frame_idx": 44,
+          "pred": "disgust",
+          "conf": 0.7568,
+          "face": true
+        },
+        {
+          "frame_idx": 45,
+          "pred": "disgust",
+          "conf": 0.8554,
+          "face": true
+        },
+        {
+          "frame_idx": 46,
+          "pred": "disgust",
+          "conf": 0.9051,
+          "face": true
+        },
+        {
+          "frame_idx": 47,
+          "pred": "disgust",
+          "conf": 0.9353,
+          "face": true
+        },
+        {
+          "frame_idx": 48,
+          "pred": "disgust",
+          "conf": 0.8754,
+          "face": true
+        },
+        {
+          "frame_idx": 49,
+          "pred": "disgust",
+          "conf": 0.887,
+          "face": true
+        },
+        {
+          "frame_idx": 50,
+          "pred": "disgust",
+          "conf": 0.8984,
+          "face": true
+        },
+        {
+          "frame_idx": 51,
+          "pred": "disgust",
+          "conf": 0.8799,
+          "face": true
+        },
+        {
+          "frame_idx": 52,
+          "pred": "disgust",
+          "conf": 0.8694,
+          "face": true
+        },
+        {
+          "frame_idx": 53,
+          "pred": "disgust",
+          "conf": 0.8602,
+          "face": true
+        },
+        {
+          "frame_idx": 54,
+          "pred": "disgust",
+          "conf": 0.7998,
+          "face": true
+        },
+        {
+          "frame_idx": 55,
+          "pred": "disgust",
+          "conf": 0.7672,
+          "face": true
+        },
+        {
+          "frame_idx": 56,
+          "pred": "disgust",
+          "conf": 0.7193,
+          "face": true
+        },
+        {
+          "frame_idx": 57,
+          "pred": "disgust",
+          "conf": 0.6655,
+          "face": true
+        },
+        {
+          "frame_idx": 58,
+          "pred": "disgust",
+          "conf": 0.6017,
+          "face": true
+        },
+        {
+          "frame_idx": 59,
+          "pred": "disgust",
+          "conf": 0.7337,
+          "face": true
+        },
+        {
+          "frame_idx": 60,
+          "pred": "disgust",
+          "conf": 0.7528,
+          "face": true
+        },
+        {
+          "frame_idx": 61,
+          "pred": "disgust",
+          "conf": 0.7609,
+          "face": true
+        },
+        {
+          "frame_idx": 62,
+          "pred": "disgust",
+          "conf": 0.825,
+          "face": true
+        },
+        {
+          "frame_idx": 63,
+          "pred": "disgust",
+          "conf": 0.8658,
+          "face": true
+        },
+        {
+          "frame_idx": 64,
+          "pred": "disgust",
+          "conf": 0.9072,
+          "face": true
+        },
+        {
+          "frame_idx": 65,
+          "pred": "disgust",
+          "conf": 0.9439,
+          "face": true
+        },
+        {
+          "frame_idx": 66,
+          "pred": "disgust",
+          "conf": 0.9426,
+          "face": true
+        },
+        {
+          "frame_idx": 67,
+          "pred": "disgust",
+          "conf": 0.9388,
+          "face": true
+        },
+        {
+          "frame_idx": 68,
+          "pred": "disgust",
+          "conf": 0.8739,
+          "face": true
+        },
+        {
+          "frame_idx": 69,
+          "pred": "disgust",
+          "conf": 0.8571,
+          "face": true
+        },
+        {
+          "frame_idx": 70,
+          "pred": "disgust",
+          "conf": 0.7801,
+          "face": true
+        },
+        {
+          "frame_idx": 71,
+          "pred": "disgust",
+          "conf": 0.6896,
+          "face": true
+        },
+        {
+          "frame_idx": 72,
+          "pred": "disgust",
+          "conf": 0.6369,
+          "face": true
+        },
+        {
+          "frame_idx": 73,
+          "pred": "disgust",
+          "conf": 0.5644,
+          "face": true
+        },
+        {
+          "frame_idx": 74,
+          "pred": "disgust",
+          "conf": 0.5396,
+          "face": true
+        },
+        {
+          "frame_idx": 75,
+          "pred": "disgust",
+          "conf": 0.5208,
+          "face": true
+        },
+        {
+          "frame_idx": 76,
+          "pred": "disgust",
+          "conf": 0.6373,
+          "face": true
+        },
+        {
+          "frame_idx": 77,
+          "pred": "disgust",
+          "conf": 0.4995,
+          "face": true
+        },
+        {
+          "frame_idx": 78,
+          "pred": "disgust",
+          "conf": 0.4255,
+          "face": true
+        },
+        {
+          "frame_idx": 79,
+          "pred": "disgust",
+          "conf": 0.267,
+          "face": true
+        },
+        {
+          "frame_idx": 80,
+          "pred": "surprise",
+          "conf": 0.5139,
+          "face": true
+        },
+        {
+          "frame_idx": 81,
+          "pred": "surprise",
+          "conf": 0.509,
+          "face": true
+        },
+        {
+          "frame_idx": 82,
+          "pred": "surprise",
+          "conf": 0.49,
+          "face": true
+        },
+        {
+          "frame_idx": 83,
+          "pred": "surprise",
+          "conf": 0.4324,
+          "face": true
+        },
+        {
+          "frame_idx": 84,
+          "pred": "surprise",
+          "conf": 0.4006,
+          "face": true
+        },
+        {
+          "frame_idx": 85,
+          "pred": "neutral",
+          "conf": 0.649,
+          "face": true
+        },
+        {
+          "frame_idx": 86,
+          "pred": "neutral",
+          "conf": 0.6795,
+          "face": true
+        },
+        {
+          "frame_idx": 87,
+          "pred": "neutral",
+          "conf": 0.7374,
+          "face": true
+        },
+        {
+          "frame_idx": 88,
+          "pred": "neutral",
+          "conf": 0.76,
+          "face": true
+        }
+      ]
+    },
+    {
+      "clip": "Fear (2).mp4",
+      "ground_truth": "fear",
+      "native_fps": 15.06,
+      "total_frames": 80,
+      "face_frames": 80,
+      "majority_vote": "surprise",
+      "frame_accuracy": 0.0,
+      "top_wrong_class": "surprise",
+      "top_wrong_share": 1.0,
+      "class_counts": {
+        "surprise": 80
+      },
+      "frames": [
+        {
+          "frame_idx": 0,
+          "pred": "surprise",
+          "conf": 0.8827,
+          "face": true
+        },
+        {
+          "frame_idx": 1,
+          "pred": "surprise",
+          "conf": 0.9221,
+          "face": true
+        },
+        {
+          "frame_idx": 2,
+          "pred": "surprise",
+          "conf": 0.9175,
+          "face": true
+        },
+        {
+          "frame_idx": 3,
+          "pred": "surprise",
+          "conf": 0.901,
+          "face": true
+        },
+        {
+          "frame_idx": 4,
+          "pred": "surprise",
+          "conf": 0.9361,
+          "face": true
+        },
+        {
+          "frame_idx": 5,
+          "pred": "surprise",
+          "conf": 0.946,
+          "face": true
+        },
+        {
+          "frame_idx": 6,
+          "pred": "surprise",
+          "conf": 0.9184,
+          "face": true
+        },
+        {
+          "frame_idx": 7,
+          "pred": "surprise",
+          "conf": 0.9068,
+          "face": true
+        },
+        {
+          "frame_idx": 8,
+          "pred": "surprise",
+          "conf": 0.942,
+          "face": true
+        },
+        {
+          "frame_idx": 9,
+          "pred": "surprise",
+          "conf": 0.9505,
+          "face": true
+        },
+        {
+          "frame_idx": 10,
+          "pred": "surprise",
+          "conf": 0.9503,
+          "face": true
+        },
+        {
+          "frame_idx": 11,
+          "pred": "surprise",
+          "conf": 0.9692,
+          "face": true
+        },
+        {
+          "frame_idx": 12,
+          "pred": "surprise",
+          "conf": 0.9712,
+          "face": true
+        },
+        {
+          "frame_idx": 13,
+          "pred": "surprise",
+          "conf": 0.976,
+          "face": true
+        },
+        {
+          "frame_idx": 14,
+          "pred": "surprise",
+          "conf": 0.9863,
+          "face": true
+        },
+        {
+          "frame_idx": 15,
+          "pred": "surprise",
+          "conf": 0.9895,
+          "face": true
+        },
+        {
+          "frame_idx": 16,
+          "pred": "surprise",
+          "conf": 0.9792,
+          "face": true
+        },
+        {
+          "frame_idx": 17,
+          "pred": "surprise",
+          "conf": 0.9817,
+          "face": true
+        },
+        {
+          "frame_idx": 18,
+          "pred": "surprise",
+          "conf": 0.9891,
+          "face": true
+        },
+        {
+          "frame_idx": 19,
+          "pred": "surprise",
+          "conf": 0.9905,
+          "face": true
+        },
+        {
+          "frame_idx": 20,
+          "pred": "surprise",
+          "conf": 0.988,
+          "face": true
+        },
+        {
+          "frame_idx": 21,
+          "pred": "surprise",
+          "conf": 0.9885,
+          "face": true
+        },
+        {
+          "frame_idx": 22,
+          "pred": "surprise",
+          "conf": 0.9879,
+          "face": true
+        },
+        {
+          "frame_idx": 23,
+          "pred": "surprise",
+          "conf": 0.9871,
+          "face": true
+        },
+        {
+          "frame_idx": 24,
+          "pred": "surprise",
+          "conf": 0.9871,
+          "face": true
+        },
+        {
+          "frame_idx": 25,
+          "pred": "surprise",
+          "conf": 0.9878,
+          "face": true
+        },
+        {
+          "frame_idx": 26,
+          "pred": "surprise",
+          "conf": 0.9915,
+          "face": true
+        },
+        {
+          "frame_idx": 27,
+          "pred": "surprise",
+          "conf": 0.9857,
+          "face": true
+        },
+        {
+          "frame_idx": 28,
+          "pred": "surprise",
+          "conf": 0.9741,
+          "face": true
+        },
+        {
+          "frame_idx": 29,
+          "pred": "surprise",
+          "conf": 0.9641,
+          "face": true
+        },
+        {
+          "frame_idx": 30,
+          "pred": "surprise",
+          "conf": 0.955,
+          "face": true
+        },
+        {
+          "frame_idx": 31,
+          "pred": "surprise",
+          "conf": 0.9642,
+          "face": true
+        },
+        {
+          "frame_idx": 32,
+          "pred": "surprise",
+          "conf": 0.9671,
+          "face": true
+        },
+        {
+          "frame_idx": 33,
+          "pred": "surprise",
+          "conf": 0.9707,
+          "face": true
+        },
+        {
+          "frame_idx": 34,
+          "pred": "surprise",
+          "conf": 0.9753,
+          "face": true
+        },
+        {
+          "frame_idx": 35,
+          "pred": "surprise",
+          "conf": 0.9838,
+          "face": true
+        },
+        {
+          "frame_idx": 36,
+          "pred": "surprise",
+          "conf": 0.987,
+          "face": true
+        },
+        {
+          "frame_idx": 37,
+          "pred": "surprise",
+          "conf": 0.9842,
+          "face": true
+        },
+        {
+          "frame_idx": 38,
+          "pred": "surprise",
+          "conf": 0.9868,
+          "face": true
+        },
+        {
+          "frame_idx": 39,
+          "pred": "surprise",
+          "conf": 0.979,
+          "face": true
+        },
+        {
+          "frame_idx": 40,
+          "pred": "surprise",
+          "conf": 0.9864,
+          "face": true
+        },
+        {
+          "frame_idx": 41,
+          "pred": "surprise",
+          "conf": 0.9887,
+          "face": true
+        },
+        {
+          "frame_idx": 42,
+          "pred": "surprise",
+          "conf": 0.9886,
+          "face": true
+        },
+        {
+          "frame_idx": 43,
+          "pred": "surprise",
+          "conf": 0.9846,
+          "face": true
+        },
+        {
+          "frame_idx": 44,
+          "pred": "surprise",
+          "conf": 0.973,
+          "face": true
+        },
+        {
+          "frame_idx": 45,
+          "pred": "surprise",
+          "conf": 0.977,
+          "face": true
+        },
+        {
+          "frame_idx": 46,
+          "pred": "surprise",
+          "conf": 0.97,
+          "face": true
+        },
+        {
+          "frame_idx": 47,
+          "pred": "surprise",
+          "conf": 0.9666,
+          "face": true
+        },
+        {
+          "frame_idx": 48,
+          "pred": "surprise",
+          "conf": 0.9544,
+          "face": true
+        },
+        {
+          "frame_idx": 49,
+          "pred": "surprise",
+          "conf": 0.9701,
+          "face": true
+        },
+        {
+          "frame_idx": 50,
+          "pred": "surprise",
+          "conf": 0.9771,
+          "face": true
+        },
+        {
+          "frame_idx": 51,
+          "pred": "surprise",
+          "conf": 0.9751,
+          "face": true
+        },
+        {
+          "frame_idx": 52,
+          "pred": "surprise",
+          "conf": 0.9757,
+          "face": true
+        },
+        {
+          "frame_idx": 53,
+          "pred": "surprise",
+          "conf": 0.977,
+          "face": true
+        },
+        {
+          "frame_idx": 54,
+          "pred": "surprise",
+          "conf": 0.9822,
+          "face": true
+        },
+        {
+          "frame_idx": 55,
+          "pred": "surprise",
+          "conf": 0.9761,
+          "face": true
+        },
+        {
+          "frame_idx": 56,
+          "pred": "surprise",
+          "conf": 0.9757,
+          "face": true
+        },
+        {
+          "frame_idx": 57,
+          "pred": "surprise",
+          "conf": 0.9768,
+          "face": true
+        },
+        {
+          "frame_idx": 58,
+          "pred": "surprise",
+          "conf": 0.9758,
+          "face": true
+        },
+        {
+          "frame_idx": 59,
+          "pred": "surprise",
+          "conf": 0.9755,
+          "face": true
+        },
+        {
+          "frame_idx": 60,
+          "pred": "surprise",
+          "conf": 0.9529,
+          "face": true
+        },
+        {
+          "frame_idx": 61,
+          "pred": "surprise",
+          "conf": 0.9621,
+          "face": true
+        },
+        {
+          "frame_idx": 62,
+          "pred": "surprise",
+          "conf": 0.9734,
+          "face": true
+        },
+        {
+          "frame_idx": 63,
+          "pred": "surprise",
+          "conf": 0.975,
+          "face": true
+        },
+        {
+          "frame_idx": 64,
+          "pred": "surprise",
+          "conf": 0.9706,
+          "face": true
+        },
+        {
+          "frame_idx": 65,
+          "pred": "surprise",
+          "conf": 0.975,
+          "face": true
+        },
+        {
+          "frame_idx": 66,
+          "pred": "surprise",
+          "conf": 0.9748,
+          "face": true
+        },
+        {
+          "frame_idx": 67,
+          "pred": "surprise",
+          "conf": 0.9713,
+          "face": true
+        },
+        {
+          "frame_idx": 68,
+          "pred": "surprise",
+          "conf": 0.9696,
+          "face": true
+        },
+        {
+          "frame_idx": 69,
+          "pred": "surprise",
+          "conf": 0.9709,
+          "face": true
+        },
+        {
+          "frame_idx": 70,
+          "pred": "surprise",
+          "conf": 0.9672,
+          "face": true
+        },
+        {
+          "frame_idx": 71,
+          "pred": "surprise",
+          "conf": 0.9739,
+          "face": true
+        },
+        {
+          "frame_idx": 72,
+          "pred": "surprise",
+          "conf": 0.9727,
+          "face": true
+        },
+        {
+          "frame_idx": 73,
+          "pred": "surprise",
+          "conf": 0.9522,
+          "face": true
+        },
+        {
+          "frame_idx": 74,
+          "pred": "surprise",
+          "conf": 0.9675,
+          "face": true
+        },
+        {
+          "frame_idx": 75,
+          "pred": "surprise",
+          "conf": 0.9668,
+          "face": true
+        },
+        {
+          "frame_idx": 76,
+          "pred": "surprise",
+          "conf": 0.956,
+          "face": true
+        },
+        {
+          "frame_idx": 77,
+          "pred": "surprise",
+          "conf": 0.9581,
+          "face": true
+        },
+        {
+          "frame_idx": 78,
+          "pred": "surprise",
+          "conf": 0.9594,
+          "face": true
+        },
+        {
+          "frame_idx": 79,
+          "pred": "surprise",
+          "conf": 0.9439,
+          "face": true
+        }
+      ]
+    },
+    {
+      "clip": "Fear.mp4",
+      "ground_truth": "fear",
+      "native_fps": 15.03,
+      "total_frames": 83,
+      "face_frames": 83,
+      "majority_vote": "surprise",
+      "frame_accuracy": 0.0,
+      "top_wrong_class": "surprise",
+      "top_wrong_share": 1.0,
+      "class_counts": {
+        "surprise": 83
+      },
+      "frames": [
+        {
+          "frame_idx": 0,
+          "pred": "surprise",
+          "conf": 0.9942,
+          "face": true
+        },
+        {
+          "frame_idx": 1,
+          "pred": "surprise",
+          "conf": 0.995,
+          "face": true
+        },
+        {
+          "frame_idx": 2,
+          "pred": "surprise",
+          "conf": 0.9818,
+          "face": true
+        },
+        {
+          "frame_idx": 3,
+          "pred": "surprise",
+          "conf": 0.9823,
+          "face": true
+        },
+        {
+          "frame_idx": 4,
+          "pred": "surprise",
+          "conf": 0.9874,
+          "face": true
+        },
+        {
+          "frame_idx": 5,
+          "pred": "surprise",
+          "conf": 0.9902,
+          "face": true
+        },
+        {
+          "frame_idx": 6,
+          "pred": "surprise",
+          "conf": 0.9913,
+          "face": true
+        },
+        {
+          "frame_idx": 7,
+          "pred": "surprise",
+          "conf": 0.9937,
+          "face": true
+        },
+        {
+          "frame_idx": 8,
+          "pred": "surprise",
+          "conf": 0.9887,
+          "face": true
+        },
+        {
+          "frame_idx": 9,
+          "pred": "surprise",
+          "conf": 0.9888,
+          "face": true
+        },
+        {
+          "frame_idx": 10,
+          "pred": "surprise",
+          "conf": 0.9875,
+          "face": true
+        },
+        {
+          "frame_idx": 11,
+          "pred": "surprise",
+          "conf": 0.9878,
+          "face": true
+        },
+        {
+          "frame_idx": 12,
+          "pred": "surprise",
+          "conf": 0.9891,
+          "face": true
+        },
+        {
+          "frame_idx": 13,
+          "pred": "surprise",
+          "conf": 0.9931,
+          "face": true
+        },
+        {
+          "frame_idx": 14,
+          "pred": "surprise",
+          "conf": 0.9932,
+          "face": true
+        },
+        {
+          "frame_idx": 15,
+          "pred": "surprise",
+          "conf": 0.9865,
+          "face": true
+        },
+        {
+          "frame_idx": 16,
+          "pred": "surprise",
+          "conf": 0.9869,
+          "face": true
+        },
+        {
+          "frame_idx": 17,
+          "pred": "surprise",
+          "conf": 0.9876,
+          "face": true
+        },
+        {
+          "frame_idx": 18,
+          "pred": "surprise",
+          "conf": 0.9865,
+          "face": true
+        },
+        {
+          "frame_idx": 19,
+          "pred": "surprise",
+          "conf": 0.9872,
+          "face": true
+        },
+        {
+          "frame_idx": 20,
+          "pred": "surprise",
+          "conf": 0.9654,
+          "face": true
+        },
+        {
+          "frame_idx": 21,
+          "pred": "surprise",
+          "conf": 0.9658,
+          "face": true
+        },
+        {
+          "frame_idx": 22,
+          "pred": "surprise",
+          "conf": 0.9793,
+          "face": true
+        },
+        {
+          "frame_idx": 23,
+          "pred": "surprise",
+          "conf": 0.9861,
+          "face": true
+        },
+        {
+          "frame_idx": 24,
+          "pred": "surprise",
+          "conf": 0.9881,
+          "face": true
+        },
+        {
+          "frame_idx": 25,
+          "pred": "surprise",
+          "conf": 0.9852,
+          "face": true
+        },
+        {
+          "frame_idx": 26,
+          "pred": "surprise",
+          "conf": 0.9805,
+          "face": true
+        },
+        {
+          "frame_idx": 27,
+          "pred": "surprise",
+          "conf": 0.9882,
+          "face": true
+        },
+        {
+          "frame_idx": 28,
+          "pred": "surprise",
+          "conf": 0.9914,
+          "face": true
+        },
+        {
+          "frame_idx": 29,
+          "pred": "surprise",
+          "conf": 0.9934,
+          "face": true
+        },
+        {
+          "frame_idx": 30,
+          "pred": "surprise",
+          "conf": 0.989,
+          "face": true
+        },
+        {
+          "frame_idx": 31,
+          "pred": "surprise",
+          "conf": 0.9872,
+          "face": true
+        },
+        {
+          "frame_idx": 32,
+          "pred": "surprise",
+          "conf": 0.9873,
+          "face": true
+        },
+        {
+          "frame_idx": 33,
+          "pred": "surprise",
+          "conf": 0.9902,
+          "face": true
+        },
+        {
+          "frame_idx": 34,
+          "pred": "surprise",
+          "conf": 0.9941,
+          "face": true
+        },
+        {
+          "frame_idx": 35,
+          "pred": "surprise",
+          "conf": 0.985,
+          "face": true
+        },
+        {
+          "frame_idx": 36,
+          "pred": "surprise",
+          "conf": 0.9755,
+          "face": true
+        },
+        {
+          "frame_idx": 37,
+          "pred": "surprise",
+          "conf": 0.9668,
+          "face": true
+        },
+        {
+          "frame_idx": 38,
+          "pred": "surprise",
+          "conf": 0.9418,
+          "face": true
+        },
+        {
+          "frame_idx": 39,
+          "pred": "surprise",
+          "conf": 0.9382,
+          "face": true
+        },
+        {
+          "frame_idx": 40,
+          "pred": "surprise",
+          "conf": 0.9399,
+          "face": true
+        },
+        {
+          "frame_idx": 41,
+          "pred": "surprise",
+          "conf": 0.9523,
+          "face": true
+        },
+        {
+          "frame_idx": 42,
+          "pred": "surprise",
+          "conf": 0.957,
+          "face": true
+        },
+        {
+          "frame_idx": 43,
+          "pred": "surprise",
+          "conf": 0.9042,
+          "face": true
+        },
+        {
+          "frame_idx": 44,
+          "pred": "surprise",
+          "conf": 0.8579,
+          "face": true
+        },
+        {
+          "frame_idx": 45,
+          "pred": "surprise",
+          "conf": 0.8794,
+          "face": true
+        },
+        {
+          "frame_idx": 46,
+          "pred": "surprise",
+          "conf": 0.9177,
+          "face": true
+        },
+        {
+          "frame_idx": 47,
+          "pred": "surprise",
+          "conf": 0.9489,
+          "face": true
+        },
+        {
+          "frame_idx": 48,
+          "pred": "surprise",
+          "conf": 0.9518,
+          "face": true
+        },
+        {
+          "frame_idx": 49,
+          "pred": "surprise",
+          "conf": 0.9571,
+          "face": true
+        },
+        {
+          "frame_idx": 50,
+          "pred": "surprise",
+          "conf": 0.9267,
+          "face": true
+        },
+        {
+          "frame_idx": 51,
+          "pred": "surprise",
+          "conf": 0.9292,
+          "face": true
+        },
+        {
+          "frame_idx": 52,
+          "pred": "surprise",
+          "conf": 0.9029,
+          "face": true
+        },
+        {
+          "frame_idx": 53,
+          "pred": "surprise",
+          "conf": 0.9282,
+          "face": true
+        },
+        {
+          "frame_idx": 54,
+          "pred": "surprise",
+          "conf": 0.9427,
+          "face": true
+        },
+        {
+          "frame_idx": 55,
+          "pred": "surprise",
+          "conf": 0.9272,
+          "face": true
+        },
+        {
+          "frame_idx": 56,
+          "pred": "surprise",
+          "conf": 0.9442,
+          "face": true
+        },
+        {
+          "frame_idx": 57,
+          "pred": "surprise",
+          "conf": 0.9583,
+          "face": true
+        },
+        {
+          "frame_idx": 58,
+          "pred": "surprise",
+          "conf": 0.9597,
+          "face": true
+        },
+        {
+          "frame_idx": 59,
+          "pred": "surprise",
+          "conf": 0.9686,
+          "face": true
+        },
+        {
+          "frame_idx": 60,
+          "pred": "surprise",
+          "conf": 0.9725,
+          "face": true
+        },
+        {
+          "frame_idx": 61,
+          "pred": "surprise",
+          "conf": 0.9688,
+          "face": true
+        },
+        {
+          "frame_idx": 62,
+          "pred": "surprise",
+          "conf": 0.9713,
+          "face": true
+        },
+        {
+          "frame_idx": 63,
+          "pred": "surprise",
+          "conf": 0.9703,
+          "face": true
+        },
+        {
+          "frame_idx": 64,
+          "pred": "surprise",
+          "conf": 0.9745,
+          "face": true
+        },
+        {
+          "frame_idx": 65,
+          "pred": "surprise",
+          "conf": 0.9611,
+          "face": true
+        },
+        {
+          "frame_idx": 66,
+          "pred": "surprise",
+          "conf": 0.9699,
+          "face": true
+        },
+        {
+          "frame_idx": 67,
+          "pred": "surprise",
+          "conf": 0.973,
+          "face": true
+        },
+        {
+          "frame_idx": 68,
+          "pred": "surprise",
+          "conf": 0.9734,
+          "face": true
+        },
+        {
+          "frame_idx": 69,
+          "pred": "surprise",
+          "conf": 0.9791,
+          "face": true
+        },
+        {
+          "frame_idx": 70,
+          "pred": "surprise",
+          "conf": 0.9821,
+          "face": true
+        },
+        {
+          "frame_idx": 71,
+          "pred": "surprise",
+          "conf": 0.984,
+          "face": true
+        },
+        {
+          "frame_idx": 72,
+          "pred": "surprise",
+          "conf": 0.9552,
+          "face": true
+        },
+        {
+          "frame_idx": 73,
+          "pred": "surprise",
+          "conf": 0.9603,
+          "face": true
+        },
+        {
+          "frame_idx": 74,
+          "pred": "surprise",
+          "conf": 0.9742,
+          "face": true
+        },
+        {
+          "frame_idx": 75,
+          "pred": "surprise",
+          "conf": 0.9605,
+          "face": true
+        },
+        {
+          "frame_idx": 76,
+          "pred": "surprise",
+          "conf": 0.9575,
+          "face": true
+        },
+        {
+          "frame_idx": 77,
+          "pred": "surprise",
+          "conf": 0.9686,
+          "face": true
+        },
+        {
+          "frame_idx": 78,
+          "pred": "surprise",
+          "conf": 0.9773,
+          "face": true
+        },
+        {
+          "frame_idx": 79,
+          "pred": "surprise",
+          "conf": 0.9675,
+          "face": true
+        },
+        {
+          "frame_idx": 80,
+          "pred": "surprise",
+          "conf": 0.7035,
+          "face": true
+        },
+        {
+          "frame_idx": 81,
+          "pred": "surprise",
+          "conf": 0.6146,
+          "face": true
+        },
+        {
+          "frame_idx": 82,
+          "pred": "surprise",
+          "conf": 0.5623,
+          "face": true
+        }
+      ]
+    },
+    {
+      "clip": "Joy.mp4",
+      "ground_truth": "joy",
+      "native_fps": 15.03,
+      "total_frames": 115,
+      "face_frames": 115,
+      "majority_vote": "joy",
+      "frame_accuracy": 0.9304,
+      "top_wrong_class": "neutral",
+      "top_wrong_share": 0.0696,
+      "class_counts": {
+        "joy": 107,
+        "neutral": 8
+      },
+      "frames": [
+        {
+          "frame_idx": 0,
+          "pred": "joy",
+          "conf": 0.8355,
+          "face": true
+        },
+        {
+          "frame_idx": 1,
+          "pred": "joy",
+          "conf": 0.8888,
+          "face": true
+        },
+        {
+          "frame_idx": 2,
+          "pred": "joy",
+          "conf": 0.9117,
+          "face": true
+        },
+        {
+          "frame_idx": 3,
+          "pred": "joy",
+          "conf": 0.741,
+          "face": true
+        },
+        {
+          "frame_idx": 4,
+          "pred": "joy",
+          "conf": 0.624,
+          "face": true
+        },
+        {
+          "frame_idx": 5,
+          "pred": "joy",
+          "conf": 0.6566,
+          "face": true
+        },
+        {
+          "frame_idx": 6,
+          "pred": "joy",
+          "conf": 0.7523,
+          "face": true
+        },
+        {
+          "frame_idx": 7,
+          "pred": "joy",
+          "conf": 0.8541,
+          "face": true
+        },
+        {
+          "frame_idx": 8,
+          "pred": "joy",
+          "conf": 0.9003,
+          "face": true
+        },
+        {
+          "frame_idx": 9,
+          "pred": "joy",
+          "conf": 0.9277,
+          "face": true
+        },
+        {
+          "frame_idx": 10,
+          "pred": "joy",
+          "conf": 0.9274,
+          "face": true
+        },
+        {
+          "frame_idx": 11,
+          "pred": "joy",
+          "conf": 0.9273,
+          "face": true
+        },
+        {
+          "frame_idx": 12,
+          "pred": "joy",
+          "conf": 0.9523,
+          "face": true
+        },
+        {
+          "frame_idx": 13,
+          "pred": "joy",
+          "conf": 0.9308,
+          "face": true
+        },
+        {
+          "frame_idx": 14,
+          "pred": "joy",
+          "conf": 0.8588,
+          "face": true
+        },
+        {
+          "frame_idx": 15,
+          "pred": "joy",
+          "conf": 0.8994,
+          "face": true
+        },
+        {
+          "frame_idx": 16,
+          "pred": "joy",
+          "conf": 0.9149,
+          "face": true
+        },
+        {
+          "frame_idx": 17,
+          "pred": "joy",
+          "conf": 0.9475,
+          "face": true
+        },
+        {
+          "frame_idx": 18,
+          "pred": "joy",
+          "conf": 0.9314,
+          "face": true
+        },
+        {
+          "frame_idx": 19,
+          "pred": "joy",
+          "conf": 0.881,
+          "face": true
+        },
+        {
+          "frame_idx": 20,
+          "pred": "joy",
+          "conf": 0.9185,
+          "face": true
+        },
+        {
+          "frame_idx": 21,
+          "pred": "joy",
+          "conf": 0.9145,
+          "face": true
+        },
+        {
+          "frame_idx": 22,
+          "pred": "joy",
+          "conf": 0.8664,
+          "face": true
+        },
+        {
+          "frame_idx": 23,
+          "pred": "joy",
+          "conf": 0.8828,
+          "face": true
+        },
+        {
+          "frame_idx": 24,
+          "pred": "joy",
+          "conf": 0.8771,
+          "face": true
+        },
+        {
+          "frame_idx": 25,
+          "pred": "joy",
+          "conf": 0.8864,
+          "face": true
+        },
+        {
+          "frame_idx": 26,
+          "pred": "joy",
+          "conf": 0.8145,
+          "face": true
+        },
+        {
+          "frame_idx": 27,
+          "pred": "joy",
+          "conf": 0.7434,
+          "face": true
+        },
+        {
+          "frame_idx": 28,
+          "pred": "joy",
+          "conf": 0.7508,
+          "face": true
+        },
+        {
+          "frame_idx": 29,
+          "pred": "joy",
+          "conf": 0.841,
+          "face": true
+        },
+        {
+          "frame_idx": 30,
+          "pred": "joy",
+          "conf": 0.877,
+          "face": true
+        },
+        {
+          "frame_idx": 31,
+          "pred": "joy",
+          "conf": 0.8779,
+          "face": true
+        },
+        {
+          "frame_idx": 32,
+          "pred": "joy",
+          "conf": 0.8708,
+          "face": true
+        },
+        {
+          "frame_idx": 33,
+          "pred": "joy",
+          "conf": 0.5727,
+          "face": true
+        },
+        {
+          "frame_idx": 34,
+          "pred": "joy",
+          "conf": 0.6065,
+          "face": true
+        },
+        {
+          "frame_idx": 35,
+          "pred": "joy",
+          "conf": 0.7022,
+          "face": true
+        },
+        {
+          "frame_idx": 36,
+          "pred": "joy",
+          "conf": 0.8016,
+          "face": true
+        },
+        {
+          "frame_idx": 37,
+          "pred": "joy",
+          "conf": 0.8653,
+          "face": true
+        },
+        {
+          "frame_idx": 38,
+          "pred": "joy",
+          "conf": 0.7418,
+          "face": true
+        },
+        {
+          "frame_idx": 39,
+          "pred": "joy",
+          "conf": 0.7556,
+          "face": true
+        },
+        {
+          "frame_idx": 40,
+          "pred": "joy",
+          "conf": 0.7165,
+          "face": true
+        },
+        {
+          "frame_idx": 41,
+          "pred": "joy",
+          "conf": 0.6717,
+          "face": true
+        },
+        {
+          "frame_idx": 42,
+          "pred": "joy",
+          "conf": 0.7086,
+          "face": true
+        },
+        {
+          "frame_idx": 43,
+          "pred": "joy",
+          "conf": 0.7567,
+          "face": true
+        },
+        {
+          "frame_idx": 44,
+          "pred": "joy",
+          "conf": 0.6738,
+          "face": true
+        },
+        {
+          "frame_idx": 45,
+          "pred": "joy",
+          "conf": 0.6384,
+          "face": true
+        },
+        {
+          "frame_idx": 46,
+          "pred": "joy",
+          "conf": 0.627,
+          "face": true
+        },
+        {
+          "frame_idx": 47,
+          "pred": "joy",
+          "conf": 0.5734,
+          "face": true
+        },
+        {
+          "frame_idx": 48,
+          "pred": "joy",
+          "conf": 0.5256,
+          "face": true
+        },
+        {
+          "frame_idx": 49,
+          "pred": "joy",
+          "conf": 0.457,
+          "face": true
+        },
+        {
+          "frame_idx": 50,
+          "pred": "joy",
+          "conf": 0.3934,
+          "face": true
+        },
+        {
+          "frame_idx": 51,
+          "pred": "joy",
+          "conf": 0.2728,
+          "face": true
+        },
+        {
+          "frame_idx": 52,
+          "pred": "neutral",
+          "conf": 0.4877,
+          "face": true
+        },
+        {
+          "frame_idx": 53,
+          "pred": "neutral",
+          "conf": 0.3973,
+          "face": true
+        },
+        {
+          "frame_idx": 54,
+          "pred": "neutral",
+          "conf": 0.34,
+          "face": true
+        },
+        {
+          "frame_idx": 55,
+          "pred": "neutral",
+          "conf": 0.3711,
+          "face": true
+        },
+        {
+          "frame_idx": 56,
+          "pred": "neutral",
+          "conf": 0.2216,
+          "face": true
+        },
+        {
+          "frame_idx": 57,
+          "pred": "joy",
+          "conf": 0.5404,
+          "face": true
+        },
+        {
+          "frame_idx": 58,
+          "pred": "joy",
+          "conf": 0.3735,
+          "face": true
+        },
+        {
+          "frame_idx": 59,
+          "pred": "joy",
+          "conf": 0.3241,
+          "face": true
+        },
+        {
+          "frame_idx": 60,
+          "pred": "joy",
+          "conf": 0.5601,
+          "face": true
+        },
+        {
+          "frame_idx": 61,
+          "pred": "joy",
+          "conf": 0.5069,
+          "face": true
+        },
+        {
+          "frame_idx": 62,
+          "pred": "joy",
+          "conf": 0.4758,
+          "face": true
+        },
+        {
+          "frame_idx": 63,
+          "pred": "joy",
+          "conf": 0.4448,
+          "face": true
+        },
+        {
+          "frame_idx": 64,
+          "pred": "joy",
+          "conf": 0.4896,
+          "face": true
+        },
+        {
+          "frame_idx": 65,
+          "pred": "joy",
+          "conf": 0.7568,
+          "face": true
+        },
+        {
+          "frame_idx": 66,
+          "pred": "joy",
+          "conf": 0.8652,
+          "face": true
+        },
+        {
+          "frame_idx": 67,
+          "pred": "joy",
+          "conf": 0.9031,
+          "face": true
+        },
+        {
+          "frame_idx": 68,
+          "pred": "joy",
+          "conf": 0.8726,
+          "face": true
+        },
+        {
+          "frame_idx": 69,
+          "pred": "joy",
+          "conf": 0.8452,
+          "face": true
+        },
+        {
+          "frame_idx": 70,
+          "pred": "joy",
+          "conf": 0.8161,
+          "face": true
+        },
+        {
+          "frame_idx": 71,
+          "pred": "joy",
+          "conf": 0.893,
+          "face": true
+        },
+        {
+          "frame_idx": 72,
+          "pred": "joy",
+          "conf": 0.8853,
+          "face": true
+        },
+        {
+          "frame_idx": 73,
+          "pred": "joy",
+          "conf": 0.8889,
+          "face": true
+        },
+        {
+          "frame_idx": 74,
+          "pred": "joy",
+          "conf": 0.8639,
+          "face": true
+        },
+        {
+          "frame_idx": 75,
+          "pred": "joy",
+          "conf": 0.8452,
+          "face": true
+        },
+        {
+          "frame_idx": 76,
+          "pred": "joy",
+          "conf": 0.7846,
+          "face": true
+        },
+        {
+          "frame_idx": 77,
+          "pred": "joy",
+          "conf": 0.8231,
+          "face": true
+        },
+        {
+          "frame_idx": 78,
+          "pred": "joy",
+          "conf": 0.8519,
+          "face": true
+        },
+        {
+          "frame_idx": 79,
+          "pred": "joy",
+          "conf": 0.7652,
+          "face": true
+        },
+        {
+          "frame_idx": 80,
+          "pred": "joy",
+          "conf": 0.6654,
+          "face": true
+        },
+        {
+          "frame_idx": 81,
+          "pred": "joy",
+          "conf": 0.6443,
+          "face": true
+        },
+        {
+          "frame_idx": 82,
+          "pred": "joy",
+          "conf": 0.7074,
+          "face": true
+        },
+        {
+          "frame_idx": 83,
+          "pred": "joy",
+          "conf": 0.6808,
+          "face": true
+        },
+        {
+          "frame_idx": 84,
+          "pred": "joy",
+          "conf": 0.7261,
+          "face": true
+        },
+        {
+          "frame_idx": 85,
+          "pred": "joy",
+          "conf": 0.7308,
+          "face": true
+        },
+        {
+          "frame_idx": 86,
+          "pred": "joy",
+          "conf": 0.6776,
+          "face": true
+        },
+        {
+          "frame_idx": 87,
+          "pred": "joy",
+          "conf": 0.6466,
+          "face": true
+        },
+        {
+          "frame_idx": 88,
+          "pred": "joy",
+          "conf": 0.6096,
+          "face": true
+        },
+        {
+          "frame_idx": 89,
+          "pred": "joy",
+          "conf": 0.6855,
+          "face": true
+        },
+        {
+          "frame_idx": 90,
+          "pred": "joy",
+          "conf": 0.7797,
+          "face": true
+        },
+        {
+          "frame_idx": 91,
+          "pred": "joy",
+          "conf": 0.7489,
+          "face": true
+        },
+        {
+          "frame_idx": 92,
+          "pred": "joy",
+          "conf": 0.7472,
+          "face": true
+        },
+        {
+          "frame_idx": 93,
+          "pred": "joy",
+          "conf": 0.7245,
+          "face": true
+        },
+        {
+          "frame_idx": 94,
+          "pred": "joy",
+          "conf": 0.7778,
+          "face": true
+        },
+        {
+          "frame_idx": 95,
+          "pred": "joy",
+          "conf": 0.7966,
+          "face": true
+        },
+        {
+          "frame_idx": 96,
+          "pred": "joy",
+          "conf": 0.8123,
+          "face": true
+        },
+        {
+          "frame_idx": 97,
+          "pred": "joy",
+          "conf": 0.7942,
+          "face": true
+        },
+        {
+          "frame_idx": 98,
+          "pred": "joy",
+          "conf": 0.82,
+          "face": true
+        },
+        {
+          "frame_idx": 99,
+          "pred": "joy",
+          "conf": 0.719,
+          "face": true
+        },
+        {
+          "frame_idx": 100,
+          "pred": "joy",
+          "conf": 0.7573,
+          "face": true
+        },
+        {
+          "frame_idx": 101,
+          "pred": "joy",
+          "conf": 0.6929,
+          "face": true
+        },
+        {
+          "frame_idx": 102,
+          "pred": "joy",
+          "conf": 0.6439,
+          "face": true
+        },
+        {
+          "frame_idx": 103,
+          "pred": "joy",
+          "conf": 0.4968,
+          "face": true
+        },
+        {
+          "frame_idx": 104,
+          "pred": "joy",
+          "conf": 0.526,
+          "face": true
+        },
+        {
+          "frame_idx": 105,
+          "pred": "joy",
+          "conf": 0.478,
+          "face": true
+        },
+        {
+          "frame_idx": 106,
+          "pred": "joy",
+          "conf": 0.3748,
+          "face": true
+        },
+        {
+          "frame_idx": 107,
+          "pred": "joy",
+          "conf": 0.3637,
+          "face": true
+        },
+        {
+          "frame_idx": 108,
+          "pred": "joy",
+          "conf": 0.4141,
+          "face": true
+        },
+        {
+          "frame_idx": 109,
+          "pred": "joy",
+          "conf": 0.3528,
+          "face": true
+        },
+        {
+          "frame_idx": 110,
+          "pred": "joy",
+          "conf": 0.3212,
+          "face": true
+        },
+        {
+          "frame_idx": 111,
+          "pred": "joy",
+          "conf": 0.2796,
+          "face": true
+        },
+        {
+          "frame_idx": 112,
+          "pred": "neutral",
+          "conf": 0.5418,
+          "face": true
+        },
+        {
+          "frame_idx": 113,
+          "pred": "neutral",
+          "conf": 0.6753,
+          "face": true
+        },
+        {
+          "frame_idx": 114,
+          "pred": "neutral",
+          "conf": 0.6204,
+          "face": true
+        }
+      ]
+    },
+    {
+      "clip": "Neutal.mp4",
+      "ground_truth": "neutral",
+      "native_fps": 15.05,
+      "total_frames": 99,
+      "face_frames": 99,
+      "majority_vote": "neutral",
+      "frame_accuracy": 0.6263,
+      "top_wrong_class": "surprise",
+      "top_wrong_share": 0.3737,
+      "class_counts": {
+        "neutral": 62,
+        "surprise": 37
+      },
+      "frames": [
+        {
+          "frame_idx": 0,
+          "pred": "neutral",
+          "conf": 0.5149,
+          "face": true
+        },
+        {
+          "frame_idx": 1,
+          "pred": "neutral",
+          "conf": 0.7674,
+          "face": true
+        },
+        {
+          "frame_idx": 2,
+          "pred": "neutral",
+          "conf": 0.8858,
+          "face": true
+        },
+        {
+          "frame_idx": 3,
+          "pred": "neutral",
+          "conf": 0.8436,
+          "face": true
+        },
+        {
+          "frame_idx": 4,
+          "pred": "neutral",
+          "conf": 0.8042,
+          "face": true
+        },
+        {
+          "frame_idx": 5,
+          "pred": "neutral",
+          "conf": 0.8121,
+          "face": true
+        },
+        {
+          "frame_idx": 6,
+          "pred": "neutral",
+          "conf": 0.8328,
+          "face": true
+        },
+        {
+          "frame_idx": 7,
+          "pred": "neutral",
+          "conf": 0.8824,
+          "face": true
+        },
+        {
+          "frame_idx": 8,
+          "pred": "neutral",
+          "conf": 0.9141,
+          "face": true
+        },
+        {
+          "frame_idx": 9,
+          "pred": "neutral",
+          "conf": 0.9425,
+          "face": true
+        },
+        {
+          "frame_idx": 10,
+          "pred": "neutral",
+          "conf": 0.829,
+          "face": true
+        },
+        {
+          "frame_idx": 11,
+          "pred": "neutral",
+          "conf": 0.6369,
+          "face": true
+        },
+        {
+          "frame_idx": 12,
+          "pred": "neutral",
+          "conf": 0.6368,
+          "face": true
+        },
+        {
+          "frame_idx": 13,
+          "pred": "neutral",
+          "conf": 0.4799,
+          "face": true
+        },
+        {
+          "frame_idx": 14,
+          "pred": "neutral",
+          "conf": 0.4001,
+          "face": true
+        },
+        {
+          "frame_idx": 15,
+          "pred": "neutral",
+          "conf": 0.499,
+          "face": true
+        },
+        {
+          "frame_idx": 16,
+          "pred": "neutral",
+          "conf": 0.6668,
+          "face": true
+        },
+        {
+          "frame_idx": 17,
+          "pred": "neutral",
+          "conf": 0.7362,
+          "face": true
+        },
+        {
+          "frame_idx": 18,
+          "pred": "neutral",
+          "conf": 0.6796,
+          "face": true
+        },
+        {
+          "frame_idx": 19,
+          "pred": "neutral",
+          "conf": 0.5992,
+          "face": true
+        },
+        {
+          "frame_idx": 20,
+          "pred": "neutral",
+          "conf": 0.5088,
+          "face": true
+        },
+        {
+          "frame_idx": 21,
+          "pred": "neutral",
+          "conf": 0.5001,
+          "face": true
+        },
+        {
+          "frame_idx": 22,
+          "pred": "neutral",
+          "conf": 0.4448,
+          "face": true
+        },
+        {
+          "frame_idx": 23,
+          "pred": "surprise",
+          "conf": 0.5933,
+          "face": true
+        },
+        {
+          "frame_idx": 24,
+          "pred": "surprise",
+          "conf": 0.5888,
+          "face": true
+        },
+        {
+          "frame_idx": 25,
+          "pred": "surprise",
+          "conf": 0.5629,
+          "face": true
+        },
+        {
+          "frame_idx": 26,
+          "pred": "surprise",
+          "conf": 0.527,
+          "face": true
+        },
+        {
+          "frame_idx": 27,
+          "pred": "surprise",
+          "conf": 0.5954,
+          "face": true
+        },
+        {
+          "frame_idx": 28,
+          "pred": "surprise",
+          "conf": 0.5966,
+          "face": true
+        },
+        {
+          "frame_idx": 29,
+          "pred": "surprise",
+          "conf": 0.6646,
+          "face": true
+        },
+        {
+          "frame_idx": 30,
+          "pred": "surprise",
+          "conf": 0.5653,
+          "face": true
+        },
+        {
+          "frame_idx": 31,
+          "pred": "surprise",
+          "conf": 0.5726,
+          "face": true
+        },
+        {
+          "frame_idx": 32,
+          "pred": "surprise",
+          "conf": 0.5716,
+          "face": true
+        },
+        {
+          "frame_idx": 33,
+          "pred": "surprise",
+          "conf": 0.6675,
+          "face": true
+        },
+        {
+          "frame_idx": 34,
+          "pred": "surprise",
+          "conf": 0.6568,
+          "face": true
+        },
+        {
+          "frame_idx": 35,
+          "pred": "surprise",
+          "conf": 0.7619,
+          "face": true
+        },
+        {
+          "frame_idx": 36,
+          "pred": "surprise",
+          "conf": 0.7773,
+          "face": true
+        },
+        {
+          "frame_idx": 37,
+          "pred": "surprise",
+          "conf": 0.7682,
+          "face": true
+        },
+        {
+          "frame_idx": 38,
+          "pred": "surprise",
+          "conf": 0.7253,
+          "face": true
+        },
+        {
+          "frame_idx": 39,
+          "pred": "surprise",
+          "conf": 0.7407,
+          "face": true
+        },
+        {
+          "frame_idx": 40,
+          "pred": "surprise",
+          "conf": 0.3999,
+          "face": true
+        },
+        {
+          "frame_idx": 41,
+          "pred": "surprise",
+          "conf": 0.4564,
+          "face": true
+        },
+        {
+          "frame_idx": 42,
+          "pred": "surprise",
+          "conf": 0.3742,
+          "face": true
+        },
+        {
+          "frame_idx": 43,
+          "pred": "neutral",
+          "conf": 0.7033,
+          "face": true
+        },
+        {
+          "frame_idx": 44,
+          "pred": "neutral",
+          "conf": 0.7373,
+          "face": true
+        },
+        {
+          "frame_idx": 45,
+          "pred": "neutral",
+          "conf": 0.7028,
+          "face": true
+        },
+        {
+          "frame_idx": 46,
+          "pred": "neutral",
+          "conf": 0.7045,
+          "face": true
+        },
+        {
+          "frame_idx": 47,
+          "pred": "neutral",
+          "conf": 0.7019,
+          "face": true
+        },
+        {
+          "frame_idx": 48,
+          "pred": "neutral",
+          "conf": 0.6834,
+          "face": true
+        },
+        {
+          "frame_idx": 49,
+          "pred": "neutral",
+          "conf": 0.6633,
+          "face": true
+        },
+        {
+          "frame_idx": 50,
+          "pred": "neutral",
+          "conf": 0.649,
+          "face": true
+        },
+        {
+          "frame_idx": 51,
+          "pred": "neutral",
+          "conf": 0.733,
+          "face": true
+        },
+        {
+          "frame_idx": 52,
+          "pred": "neutral",
+          "conf": 0.623,
+          "face": true
+        },
+        {
+          "frame_idx": 53,
+          "pred": "neutral",
+          "conf": 0.6252,
+          "face": true
+        },
+        {
+          "frame_idx": 54,
+          "pred": "neutral",
+          "conf": 0.6113,
+          "face": true
+        },
+        {
+          "frame_idx": 55,
+          "pred": "neutral",
+          "conf": 0.5487,
+          "face": true
+        },
+        {
+          "frame_idx": 56,
+          "pred": "neutral",
+          "conf": 0.4761,
+          "face": true
+        },
+        {
+          "frame_idx": 57,
+          "pred": "neutral",
+          "conf": 0.408,
+          "face": true
+        },
+        {
+          "frame_idx": 58,
+          "pred": "surprise",
+          "conf": 0.6403,
+          "face": true
+        },
+        {
+          "frame_idx": 59,
+          "pred": "surprise",
+          "conf": 0.5695,
+          "face": true
+        },
+        {
+          "frame_idx": 60,
+          "pred": "surprise",
+          "conf": 0.5584,
+          "face": true
+        },
+        {
+          "frame_idx": 61,
+          "pred": "surprise",
+          "conf": 0.5926,
+          "face": true
+        },
+        {
+          "frame_idx": 62,
+          "pred": "surprise",
+          "conf": 0.548,
+          "face": true
+        },
+        {
+          "frame_idx": 63,
+          "pred": "surprise",
+          "conf": 0.3531,
+          "face": true
+        },
+        {
+          "frame_idx": 64,
+          "pred": "surprise",
+          "conf": 0.5048,
+          "face": true
+        },
+        {
+          "frame_idx": 65,
+          "pred": "surprise",
+          "conf": 0.5351,
+          "face": true
+        },
+        {
+          "frame_idx": 66,
+          "pred": "surprise",
+          "conf": 0.5547,
+          "face": true
+        },
+        {
+          "frame_idx": 67,
+          "pred": "surprise",
+          "conf": 0.5766,
+          "face": true
+        },
+        {
+          "frame_idx": 68,
+          "pred": "surprise",
+          "conf": 0.582,
+          "face": true
+        },
+        {
+          "frame_idx": 69,
+          "pred": "surprise",
+          "conf": 0.5357,
+          "face": true
+        },
+        {
+          "frame_idx": 70,
+          "pred": "surprise",
+          "conf": 0.508,
+          "face": true
+        },
+        {
+          "frame_idx": 71,
+          "pred": "surprise",
+          "conf": 0.4918,
+          "face": true
+        },
+        {
+          "frame_idx": 72,
+          "pred": "surprise",
+          "conf": 0.4481,
+          "face": true
+        },
+        {
+          "frame_idx": 73,
+          "pred": "surprise",
+          "conf": 0.4951,
+          "face": true
+        },
+        {
+          "frame_idx": 74,
+          "pred": "surprise",
+          "conf": 0.3068,
+          "face": true
+        },
+        {
+          "frame_idx": 75,
+          "pred": "neutral",
+          "conf": 0.7039,
+          "face": true
+        },
+        {
+          "frame_idx": 76,
+          "pred": "neutral",
+          "conf": 0.8079,
+          "face": true
+        },
+        {
+          "frame_idx": 77,
+          "pred": "neutral",
+          "conf": 0.8083,
+          "face": true
+        },
+        {
+          "frame_idx": 78,
+          "pred": "neutral",
+          "conf": 0.6147,
+          "face": true
+        },
+        {
+          "frame_idx": 79,
+          "pred": "neutral",
+          "conf": 0.498,
+          "face": true
+        },
+        {
+          "frame_idx": 80,
+          "pred": "neutral",
+          "conf": 0.409,
+          "face": true
+        },
+        {
+          "frame_idx": 81,
+          "pred": "neutral",
+          "conf": 0.6392,
+          "face": true
+        },
+        {
+          "frame_idx": 82,
+          "pred": "neutral",
+          "conf": 0.5955,
+          "face": true
+        },
+        {
+          "frame_idx": 83,
+          "pred": "neutral",
+          "conf": 0.651,
+          "face": true
+        },
+        {
+          "frame_idx": 84,
+          "pred": "neutral",
+          "conf": 0.6622,
+          "face": true
+        },
+        {
+          "frame_idx": 85,
+          "pred": "neutral",
+          "conf": 0.5682,
+          "face": true
+        },
+        {
+          "frame_idx": 86,
+          "pred": "neutral",
+          "conf": 0.4981,
+          "face": true
+        },
+        {
+          "frame_idx": 87,
+          "pred": "neutral",
+          "conf": 0.6363,
+          "face": true
+        },
+        {
+          "frame_idx": 88,
+          "pred": "neutral",
+          "conf": 0.7883,
+          "face": true
+        },
+        {
+          "frame_idx": 89,
+          "pred": "neutral",
+          "conf": 0.8353,
+          "face": true
+        },
+        {
+          "frame_idx": 90,
+          "pred": "neutral",
+          "conf": 0.8149,
+          "face": true
+        },
+        {
+          "frame_idx": 91,
+          "pred": "neutral",
+          "conf": 0.7839,
+          "face": true
+        },
+        {
+          "frame_idx": 92,
+          "pred": "neutral",
+          "conf": 0.8075,
+          "face": true
+        },
+        {
+          "frame_idx": 93,
+          "pred": "neutral",
+          "conf": 0.7796,
+          "face": true
+        },
+        {
+          "frame_idx": 94,
+          "pred": "neutral",
+          "conf": 0.7316,
+          "face": true
+        },
+        {
+          "frame_idx": 95,
+          "pred": "neutral",
+          "conf": 0.7582,
+          "face": true
+        },
+        {
+          "frame_idx": 96,
+          "pred": "neutral",
+          "conf": 0.7108,
+          "face": true
+        },
+        {
+          "frame_idx": 97,
+          "pred": "neutral",
+          "conf": 0.7806,
+          "face": true
+        },
+        {
+          "frame_idx": 98,
+          "pred": "neutral",
+          "conf": 0.7674,
+          "face": true
+        }
+      ]
+    },
+    {
+      "clip": "sadness.mp4",
+      "ground_truth": "sadness",
+      "native_fps": 15.02,
+      "total_frames": 93,
+      "face_frames": 93,
+      "majority_vote": "neutral",
+      "frame_accuracy": 0.0,
+      "top_wrong_class": "neutral",
+      "top_wrong_share": 1.0,
+      "class_counts": {
+        "neutral": 93
+      },
+      "frames": [
+        {
+          "frame_idx": 0,
+          "pred": "neutral",
+          "conf": 0.9752,
+          "face": true
+        },
+        {
+          "frame_idx": 1,
+          "pred": "neutral",
+          "conf": 0.9724,
+          "face": true
+        },
+        {
+          "frame_idx": 2,
+          "pred": "neutral",
+          "conf": 0.9662,
+          "face": true
+        },
+        {
+          "frame_idx": 3,
+          "pred": "neutral",
+          "conf": 0.9724,
+          "face": true
+        },
+        {
+          "frame_idx": 4,
+          "pred": "neutral",
+          "conf": 0.968,
+          "face": true
+        },
+        {
+          "frame_idx": 5,
+          "pred": "neutral",
+          "conf": 0.9673,
+          "face": true
+        },
+        {
+          "frame_idx": 6,
+          "pred": "neutral",
+          "conf": 0.976,
+          "face": true
+        },
+        {
+          "frame_idx": 7,
+          "pred": "neutral",
+          "conf": 0.9738,
+          "face": true
+        },
+        {
+          "frame_idx": 8,
+          "pred": "neutral",
+          "conf": 0.9693,
+          "face": true
+        },
+        {
+          "frame_idx": 9,
+          "pred": "neutral",
+          "conf": 0.9679,
+          "face": true
+        },
+        {
+          "frame_idx": 10,
+          "pred": "neutral",
+          "conf": 0.9685,
+          "face": true
+        },
+        {
+          "frame_idx": 11,
+          "pred": "neutral",
+          "conf": 0.9705,
+          "face": true
+        },
+        {
+          "frame_idx": 12,
+          "pred": "neutral",
+          "conf": 0.9679,
+          "face": true
+        },
+        {
+          "frame_idx": 13,
+          "pred": "neutral",
+          "conf": 0.9545,
+          "face": true
+        },
+        {
+          "frame_idx": 14,
+          "pred": "neutral",
+          "conf": 0.9507,
+          "face": true
+        },
+        {
+          "frame_idx": 15,
+          "pred": "neutral",
+          "conf": 0.9544,
+          "face": true
+        },
+        {
+          "frame_idx": 16,
+          "pred": "neutral",
+          "conf": 0.939,
+          "face": true
+        },
+        {
+          "frame_idx": 17,
+          "pred": "neutral",
+          "conf": 0.9271,
+          "face": true
+        },
+        {
+          "frame_idx": 18,
+          "pred": "neutral",
+          "conf": 0.923,
+          "face": true
+        },
+        {
+          "frame_idx": 19,
+          "pred": "neutral",
+          "conf": 0.9004,
+          "face": true
+        },
+        {
+          "frame_idx": 20,
+          "pred": "neutral",
+          "conf": 0.931,
+          "face": true
+        },
+        {
+          "frame_idx": 21,
+          "pred": "neutral",
+          "conf": 0.9353,
+          "face": true
+        },
+        {
+          "frame_idx": 22,
+          "pred": "neutral",
+          "conf": 0.9443,
+          "face": true
+        },
+        {
+          "frame_idx": 23,
+          "pred": "neutral",
+          "conf": 0.9461,
+          "face": true
+        },
+        {
+          "frame_idx": 24,
+          "pred": "neutral",
+          "conf": 0.9584,
+          "face": true
+        },
+        {
+          "frame_idx": 25,
+          "pred": "neutral",
+          "conf": 0.9564,
+          "face": true
+        },
+        {
+          "frame_idx": 26,
+          "pred": "neutral",
+          "conf": 0.9612,
+          "face": true
+        },
+        {
+          "frame_idx": 27,
+          "pred": "neutral",
+          "conf": 0.9598,
+          "face": true
+        },
+        {
+          "frame_idx": 28,
+          "pred": "neutral",
+          "conf": 0.9599,
+          "face": true
+        },
+        {
+          "frame_idx": 29,
+          "pred": "neutral",
+          "conf": 0.9423,
+          "face": true
+        },
+        {
+          "frame_idx": 30,
+          "pred": "neutral",
+          "conf": 0.9321,
+          "face": true
+        },
+        {
+          "frame_idx": 31,
+          "pred": "neutral",
+          "conf": 0.9138,
+          "face": true
+        },
+        {
+          "frame_idx": 32,
+          "pred": "neutral",
+          "conf": 0.9187,
+          "face": true
+        },
+        {
+          "frame_idx": 33,
+          "pred": "neutral",
+          "conf": 0.9206,
+          "face": true
+        },
+        {
+          "frame_idx": 34,
+          "pred": "neutral",
+          "conf": 0.9216,
+          "face": true
+        },
+        {
+          "frame_idx": 35,
+          "pred": "neutral",
+          "conf": 0.9198,
+          "face": true
+        },
+        {
+          "frame_idx": 36,
+          "pred": "neutral",
+          "conf": 0.925,
+          "face": true
+        },
+        {
+          "frame_idx": 37,
+          "pred": "neutral",
+          "conf": 0.9308,
+          "face": true
+        },
+        {
+          "frame_idx": 38,
+          "pred": "neutral",
+          "conf": 0.9613,
+          "face": true
+        },
+        {
+          "frame_idx": 39,
+          "pred": "neutral",
+          "conf": 0.9734,
+          "face": true
+        },
+        {
+          "frame_idx": 40,
+          "pred": "neutral",
+          "conf": 0.9738,
+          "face": true
+        },
+        {
+          "frame_idx": 41,
+          "pred": "neutral",
+          "conf": 0.953,
+          "face": true
+        },
+        {
+          "frame_idx": 42,
+          "pred": "neutral",
+          "conf": 0.8668,
+          "face": true
+        },
+        {
+          "frame_idx": 43,
+          "pred": "neutral",
+          "conf": 0.8665,
+          "face": true
+        },
+        {
+          "frame_idx": 44,
+          "pred": "neutral",
+          "conf": 0.9102,
+          "face": true
+        },
+        {
+          "frame_idx": 45,
+          "pred": "neutral",
+          "conf": 0.8722,
+          "face": true
+        },
+        {
+          "frame_idx": 46,
+          "pred": "neutral",
+          "conf": 0.8866,
+          "face": true
+        },
+        {
+          "frame_idx": 47,
+          "pred": "neutral",
+          "conf": 0.8568,
+          "face": true
+        },
+        {
+          "frame_idx": 48,
+          "pred": "neutral",
+          "conf": 0.8966,
+          "face": true
+        },
+        {
+          "frame_idx": 49,
+          "pred": "neutral",
+          "conf": 0.8868,
+          "face": true
+        },
+        {
+          "frame_idx": 50,
+          "pred": "neutral",
+          "conf": 0.9029,
+          "face": true
+        },
+        {
+          "frame_idx": 51,
+          "pred": "neutral",
+          "conf": 0.9027,
+          "face": true
+        },
+        {
+          "frame_idx": 52,
+          "pred": "neutral",
+          "conf": 0.9178,
+          "face": true
+        },
+        {
+          "frame_idx": 53,
+          "pred": "neutral",
+          "conf": 0.8952,
+          "face": true
+        },
+        {
+          "frame_idx": 54,
+          "pred": "neutral",
+          "conf": 0.9153,
+          "face": true
+        },
+        {
+          "frame_idx": 55,
+          "pred": "neutral",
+          "conf": 0.934,
+          "face": true
+        },
+        {
+          "frame_idx": 56,
+          "pred": "neutral",
+          "conf": 0.9293,
+          "face": true
+        },
+        {
+          "frame_idx": 57,
+          "pred": "neutral",
+          "conf": 0.9276,
+          "face": true
+        },
+        {
+          "frame_idx": 58,
+          "pred": "neutral",
+          "conf": 0.9334,
+          "face": true
+        },
+        {
+          "frame_idx": 59,
+          "pred": "neutral",
+          "conf": 0.9104,
+          "face": true
+        },
+        {
+          "frame_idx": 60,
+          "pred": "neutral",
+          "conf": 0.9352,
+          "face": true
+        },
+        {
+          "frame_idx": 61,
+          "pred": "neutral",
+          "conf": 0.9435,
+          "face": true
+        },
+        {
+          "frame_idx": 62,
+          "pred": "neutral",
+          "conf": 0.9643,
+          "face": true
+        },
+        {
+          "frame_idx": 63,
+          "pred": "neutral",
+          "conf": 0.9762,
+          "face": true
+        },
+        {
+          "frame_idx": 64,
+          "pred": "neutral",
+          "conf": 0.9821,
+          "face": true
+        },
+        {
+          "frame_idx": 65,
+          "pred": "neutral",
+          "conf": 0.9856,
+          "face": true
+        },
+        {
+          "frame_idx": 66,
+          "pred": "neutral",
+          "conf": 0.9321,
+          "face": true
+        },
+        {
+          "frame_idx": 67,
+          "pred": "neutral",
+          "conf": 0.9546,
+          "face": true
+        },
+        {
+          "frame_idx": 68,
+          "pred": "neutral",
+          "conf": 0.968,
+          "face": true
+        },
+        {
+          "frame_idx": 69,
+          "pred": "neutral",
+          "conf": 0.9731,
+          "face": true
+        },
+        {
+          "frame_idx": 70,
+          "pred": "neutral",
+          "conf": 0.9725,
+          "face": true
+        },
+        {
+          "frame_idx": 71,
+          "pred": "neutral",
+          "conf": 0.9773,
+          "face": true
+        },
+        {
+          "frame_idx": 72,
+          "pred": "neutral",
+          "conf": 0.945,
+          "face": true
+        },
+        {
+          "frame_idx": 73,
+          "pred": "neutral",
+          "conf": 0.9182,
+          "face": true
+        },
+        {
+          "frame_idx": 74,
+          "pred": "neutral",
+          "conf": 0.9162,
+          "face": true
+        },
+        {
+          "frame_idx": 75,
+          "pred": "neutral",
+          "conf": 0.9283,
+          "face": true
+        },
+        {
+          "frame_idx": 76,
+          "pred": "neutral",
+          "conf": 0.929,
+          "face": true
+        },
+        {
+          "frame_idx": 77,
+          "pred": "neutral",
+          "conf": 0.9575,
+          "face": true
+        },
+        {
+          "frame_idx": 78,
+          "pred": "neutral",
+          "conf": 0.9084,
+          "face": true
+        },
+        {
+          "frame_idx": 79,
+          "pred": "neutral",
+          "conf": 0.928,
+          "face": true
+        },
+        {
+          "frame_idx": 80,
+          "pred": "neutral",
+          "conf": 0.9373,
+          "face": true
+        },
+        {
+          "frame_idx": 81,
+          "pred": "neutral",
+          "conf": 0.9453,
+          "face": true
+        },
+        {
+          "frame_idx": 82,
+          "pred": "neutral",
+          "conf": 0.9602,
+          "face": true
+        },
+        {
+          "frame_idx": 83,
+          "pred": "neutral",
+          "conf": 0.9648,
+          "face": true
+        },
+        {
+          "frame_idx": 84,
+          "pred": "neutral",
+          "conf": 0.966,
+          "face": true
+        },
+        {
+          "frame_idx": 85,
+          "pred": "neutral",
+          "conf": 0.9674,
+          "face": true
+        },
+        {
+          "frame_idx": 86,
+          "pred": "neutral",
+          "conf": 0.969,
+          "face": true
+        },
+        {
+          "frame_idx": 87,
+          "pred": "neutral",
+          "conf": 0.9697,
+          "face": true
+        },
+        {
+          "frame_idx": 88,
+          "pred": "neutral",
+          "conf": 0.9696,
+          "face": true
+        },
+        {
+          "frame_idx": 89,
+          "pred": "neutral",
+          "conf": 0.974,
+          "face": true
+        },
+        {
+          "frame_idx": 90,
+          "pred": "neutral",
+          "conf": 0.971,
+          "face": true
+        },
+        {
+          "frame_idx": 91,
+          "pred": "neutral",
+          "conf": 0.9605,
+          "face": true
+        },
+        {
+          "frame_idx": 92,
+          "pred": "neutral",
+          "conf": 0.9669,
+          "face": true
+        }
+      ]
+    },
+    {
+      "clip": "surprise.mp4",
+      "ground_truth": "surprise",
+      "native_fps": 13.42,
+      "total_frames": 84,
+      "face_frames": 84,
+      "majority_vote": "neutral",
+      "frame_accuracy": 0.4643,
+      "top_wrong_class": "neutral",
+      "top_wrong_share": 0.5357,
+      "class_counts": {
+        "neutral": 45,
+        "surprise": 39
+      },
+      "frames": [
+        {
+          "frame_idx": 0,
+          "pred": "neutral",
+          "conf": 0.9712,
+          "face": true
+        },
+        {
+          "frame_idx": 1,
+          "pred": "neutral",
+          "conf": 0.5858,
+          "face": true
+        },
+        {
+          "frame_idx": 2,
+          "pred": "neutral",
+          "conf": 0.3463,
+          "face": true
+        },
+        {
+          "frame_idx": 3,
+          "pred": "neutral",
+          "conf": 0.6473,
+          "face": true
+        },
+        {
+          "frame_idx": 4,
+          "pred": "neutral",
+          "conf": 0.8066,
+          "face": true
+        },
+        {
+          "frame_idx": 5,
+          "pred": "neutral",
+          "conf": 0.9067,
+          "face": true
+        },
+        {
+          "frame_idx": 6,
+          "pred": "neutral",
+          "conf": 0.9466,
+          "face": true
+        },
+        {
+          "frame_idx": 7,
+          "pred": "neutral",
+          "conf": 0.8089,
+          "face": true
+        },
+        {
+          "frame_idx": 8,
+          "pred": "neutral",
+          "conf": 0.6657,
+          "face": true
+        },
+        {
+          "frame_idx": 9,
+          "pred": "neutral",
+          "conf": 0.8345,
+          "face": true
+        },
+        {
+          "frame_idx": 10,
+          "pred": "neutral",
+          "conf": 0.9195,
+          "face": true
+        },
+        {
+          "frame_idx": 11,
+          "pred": "neutral",
+          "conf": 0.8507,
+          "face": true
+        },
+        {
+          "frame_idx": 12,
+          "pred": "neutral",
+          "conf": 0.8095,
+          "face": true
+        },
+        {
+          "frame_idx": 13,
+          "pred": "neutral",
+          "conf": 0.891,
+          "face": true
+        },
+        {
+          "frame_idx": 14,
+          "pred": "neutral",
+          "conf": 0.9355,
+          "face": true
+        },
+        {
+          "frame_idx": 15,
+          "pred": "neutral",
+          "conf": 0.7921,
+          "face": true
+        },
+        {
+          "frame_idx": 16,
+          "pred": "neutral",
+          "conf": 0.7278,
+          "face": true
+        },
+        {
+          "frame_idx": 17,
+          "pred": "neutral",
+          "conf": 0.5108,
+          "face": true
+        },
+        {
+          "frame_idx": 18,
+          "pred": "neutral",
+          "conf": 0.5138,
+          "face": true
+        },
+        {
+          "frame_idx": 19,
+          "pred": "neutral",
+          "conf": 0.4121,
+          "face": true
+        },
+        {
+          "frame_idx": 20,
+          "pred": "neutral",
+          "conf": 0.3915,
+          "face": true
+        },
+        {
+          "frame_idx": 21,
+          "pred": "neutral",
+          "conf": 0.3915,
+          "face": true
+        },
+        {
+          "frame_idx": 22,
+          "pred": "neutral",
+          "conf": 0.3915,
+          "face": true
+        },
+        {
+          "frame_idx": 23,
+          "pred": "neutral",
+          "conf": 0.3915,
+          "face": true
+        },
+        {
+          "frame_idx": 24,
+          "pred": "neutral",
+          "conf": 0.3915,
+          "face": true
+        },
+        {
+          "frame_idx": 25,
+          "pred": "neutral",
+          "conf": 0.3915,
+          "face": true
+        },
+        {
+          "frame_idx": 26,
+          "pred": "neutral",
+          "conf": 0.3915,
+          "face": true
+        },
+        {
+          "frame_idx": 27,
+          "pred": "surprise",
+          "conf": 0.8129,
+          "face": true
+        },
+        {
+          "frame_idx": 28,
+          "pred": "surprise",
+          "conf": 0.9155,
+          "face": true
+        },
+        {
+          "frame_idx": 29,
+          "pred": "surprise",
+          "conf": 0.9617,
+          "face": true
+        },
+        {
+          "frame_idx": 30,
+          "pred": "surprise",
+          "conf": 0.9821,
+          "face": true
+        },
+        {
+          "frame_idx": 31,
+          "pred": "surprise",
+          "conf": 0.9913,
+          "face": true
+        },
+        {
+          "frame_idx": 32,
+          "pred": "surprise",
+          "conf": 0.9944,
+          "face": true
+        },
+        {
+          "frame_idx": 33,
+          "pred": "surprise",
+          "conf": 0.9967,
+          "face": true
+        },
+        {
+          "frame_idx": 34,
+          "pred": "surprise",
+          "conf": 0.9978,
+          "face": true
+        },
+        {
+          "frame_idx": 35,
+          "pred": "surprise",
+          "conf": 0.998,
+          "face": true
+        },
+        {
+          "frame_idx": 36,
+          "pred": "surprise",
+          "conf": 0.9931,
+          "face": true
+        },
+        {
+          "frame_idx": 37,
+          "pred": "surprise",
+          "conf": 0.9944,
+          "face": true
+        },
+        {
+          "frame_idx": 38,
+          "pred": "surprise",
+          "conf": 0.9961,
+          "face": true
+        },
+        {
+          "frame_idx": 39,
+          "pred": "surprise",
+          "conf": 0.9463,
+          "face": true
+        },
+        {
+          "frame_idx": 40,
+          "pred": "surprise",
+          "conf": 0.9463,
+          "face": true
+        },
+        {
+          "frame_idx": 41,
+          "pred": "surprise",
+          "conf": 0.9463,
+          "face": true
+        },
+        {
+          "frame_idx": 42,
+          "pred": "surprise",
+          "conf": 0.5398,
+          "face": true
+        },
+        {
+          "frame_idx": 43,
+          "pred": "surprise",
+          "conf": 0.2576,
+          "face": true
+        },
+        {
+          "frame_idx": 44,
+          "pred": "neutral",
+          "conf": 0.8713,
+          "face": true
+        },
+        {
+          "frame_idx": 45,
+          "pred": "neutral",
+          "conf": 0.9007,
+          "face": true
+        },
+        {
+          "frame_idx": 46,
+          "pred": "neutral",
+          "conf": 0.8754,
+          "face": true
+        },
+        {
+          "frame_idx": 47,
+          "pred": "neutral",
+          "conf": 0.8688,
+          "face": true
+        },
+        {
+          "frame_idx": 48,
+          "pred": "neutral",
+          "conf": 0.9214,
+          "face": true
+        },
+        {
+          "frame_idx": 49,
+          "pred": "neutral",
+          "conf": 0.9413,
+          "face": true
+        },
+        {
+          "frame_idx": 50,
+          "pred": "neutral",
+          "conf": 0.8485,
+          "face": true
+        },
+        {
+          "frame_idx": 51,
+          "pred": "neutral",
+          "conf": 0.7995,
+          "face": true
+        },
+        {
+          "frame_idx": 52,
+          "pred": "neutral",
+          "conf": 0.7579,
+          "face": true
+        },
+        {
+          "frame_idx": 53,
+          "pred": "neutral",
+          "conf": 0.8356,
+          "face": true
+        },
+        {
+          "frame_idx": 54,
+          "pred": "neutral",
+          "conf": 0.7985,
+          "face": true
+        },
+        {
+          "frame_idx": 55,
+          "pred": "neutral",
+          "conf": 0.7607,
+          "face": true
+        },
+        {
+          "frame_idx": 56,
+          "pred": "neutral",
+          "conf": 0.787,
+          "face": true
+        },
+        {
+          "frame_idx": 57,
+          "pred": "neutral",
+          "conf": 0.8401,
+          "face": true
+        },
+        {
+          "frame_idx": 58,
+          "pred": "neutral",
+          "conf": 0.8877,
+          "face": true
+        },
+        {
+          "frame_idx": 59,
+          "pred": "neutral",
+          "conf": 0.7554,
+          "face": true
+        },
+        {
+          "frame_idx": 60,
+          "pred": "neutral",
+          "conf": 0.7682,
+          "face": true
+        },
+        {
+          "frame_idx": 61,
+          "pred": "neutral",
+          "conf": 0.3683,
+          "face": true
+        },
+        {
+          "frame_idx": 62,
+          "pred": "surprise",
+          "conf": 0.8327,
+          "face": true
+        },
+        {
+          "frame_idx": 63,
+          "pred": "surprise",
+          "conf": 0.9193,
+          "face": true
+        },
+        {
+          "frame_idx": 64,
+          "pred": "surprise",
+          "conf": 0.8733,
+          "face": true
+        },
+        {
+          "frame_idx": 65,
+          "pred": "surprise",
+          "conf": 0.8733,
+          "face": true
+        },
+        {
+          "frame_idx": 66,
+          "pred": "surprise",
+          "conf": 0.9608,
+          "face": true
+        },
+        {
+          "frame_idx": 67,
+          "pred": "surprise",
+          "conf": 0.9823,
+          "face": true
+        },
+        {
+          "frame_idx": 68,
+          "pred": "surprise",
+          "conf": 0.9919,
+          "face": true
+        },
+        {
+          "frame_idx": 69,
+          "pred": "surprise",
+          "conf": 0.9961,
+          "face": true
+        },
+        {
+          "frame_idx": 70,
+          "pred": "surprise",
+          "conf": 0.9982,
+          "face": true
+        },
+        {
+          "frame_idx": 71,
+          "pred": "surprise",
+          "conf": 0.999,
+          "face": true
+        },
+        {
+          "frame_idx": 72,
+          "pred": "surprise",
+          "conf": 0.9994,
+          "face": true
+        },
+        {
+          "frame_idx": 73,
+          "pred": "surprise",
+          "conf": 0.9994,
+          "face": true
+        },
+        {
+          "frame_idx": 74,
+          "pred": "surprise",
+          "conf": 0.9994,
+          "face": true
+        },
+        {
+          "frame_idx": 75,
+          "pred": "surprise",
+          "conf": 0.9997,
+          "face": true
+        },
+        {
+          "frame_idx": 76,
+          "pred": "surprise",
+          "conf": 0.9998,
+          "face": true
+        },
+        {
+          "frame_idx": 77,
+          "pred": "surprise",
+          "conf": 0.995,
+          "face": true
+        },
+        {
+          "frame_idx": 78,
+          "pred": "surprise",
+          "conf": 0.9934,
+          "face": true
+        },
+        {
+          "frame_idx": 79,
+          "pred": "surprise",
+          "conf": 0.9863,
+          "face": true
+        },
+        {
+          "frame_idx": 80,
+          "pred": "surprise",
+          "conf": 0.9881,
+          "face": true
+        },
+        {
+          "frame_idx": 81,
+          "pred": "surprise",
+          "conf": 0.975,
+          "face": true
+        },
+        {
+          "frame_idx": 82,
+          "pred": "surprise",
+          "conf": 0.8476,
+          "face": true
+        },
+        {
+          "frame_idx": 83,
+          "pred": "surprise",
+          "conf": 0.7645,
+          "face": true
+        }
+      ]
+    }
+  ]
+}

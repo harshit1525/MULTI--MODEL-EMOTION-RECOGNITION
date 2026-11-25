@@ -11,6 +11,7 @@ import json
 import os
 import re
 import sys
+import time
 from collections import Counter
 from pathlib import Path
 
@@ -63,11 +64,13 @@ def evaluate_clip(service, clip_path: str, ground_truth: str, apply_smoothing: b
     service.reset_session(client_id)
 
     frame_results = []
+    latencies_ms = []
     idx = 0
     while True:
         ret, frame = cap.read()
         if not ret:
             break
+        t_start = time.perf_counter()
         result = service.process_frame(
             bgr_frame=frame,
             session_state_or_client_id=client_id,
@@ -75,6 +78,7 @@ def evaluate_clip(service, clip_path: str, ground_truth: str, apply_smoothing: b
             calibrate=False,
             return_trace=False,
         )
+        latencies_ms.append((time.perf_counter() - t_start) * 1000.0)
         pred = result.get("apparent_expression", "NO_FACE")
         if pred and pred != "NO_FACE":
             pred = pred.lower()
@@ -87,7 +91,7 @@ def evaluate_clip(service, clip_path: str, ground_truth: str, apply_smoothing: b
         idx += 1
 
     cap.release()
-    return frame_results, fps
+    return frame_results, fps, latencies_ms
 
 
 def summarize(frame_results, ground_truth):
@@ -163,6 +167,7 @@ def main():
 
     clips = sorted(clip_dir.glob("*.mp4"))
     results_all = []
+    all_latencies_ms = []
 
     for clip_path in clips:
         label, is_suffix_3 = parse_stem(clip_path.name)
@@ -176,7 +181,8 @@ def main():
         out = evaluate_clip(service, str(clip_path), label, apply_smoothing=not args.no_smoothing)
         if out is None:
             continue
-        frame_results, native_fps = out
+        frame_results, native_fps, lat_ms = out
+        all_latencies_ms.extend(lat_ms)
 
         stats = summarize(frame_results, label)
         entry = {
@@ -195,6 +201,10 @@ def main():
         print(f"{r['clip']:<20} {r['ground_truth']:<10} {r['majority_vote']:<10} "
               f"{r['frame_accuracy']:>8.1%} {r['top_wrong_class']:<10} {r['top_wrong_share']:>8.1%}")
 
+    lat_p50 = round(float(np.percentile(all_latencies_ms, 50)), 2) if all_latencies_ms else 0.0
+    lat_p95 = round(float(np.percentile(all_latencies_ms, 95)), 2) if all_latencies_ms else 0.0
+    print(f"\nCPU Latency (ms/frame): p50={lat_p50:.2f}, p95={lat_p95:.2f}")
+
     os.makedirs("results", exist_ok=True)
     out_path = f"results/eval_{args.backbone}.json"
     with open(out_path, "w", encoding="utf-8") as f:
@@ -203,6 +213,8 @@ def main():
             "architecture": service._architecture,
             "checkpoint": service.video_ckpt,
             "apply_smoothing": not args.no_smoothing,
+            "latency_p50_ms": lat_p50,
+            "latency_p95_ms": lat_p95,
             "clips": results_all,
         }, f, indent=2)
     print(f"\nSaved full details to: {out_path}")
