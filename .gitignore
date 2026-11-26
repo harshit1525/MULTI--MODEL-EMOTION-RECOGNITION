@@ -15,6 +15,12 @@ MELD.Raw/
 data/*.pt
 *.wav
 *.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+~$*
+New folder/
 archive/
 models/video_classifier/face_crops_cache/
 models/video_classifier/*_backup.pth

@@ -249,19 +249,24 @@ def set_table_borders_and_style(table, col_widths: Sequence[float], font_pt: flo
         tblPr.remove(old)
     tblPr.append(borders)
 
+    n_rows = len(table.rows)
+    v_pad = 36 if font_pt <= 8.0 else 55
+    ls = 1.05 if font_pt <= 8.0 else 1.1
+    sp_pt = 0.5 if font_pt <= 8.0 else 1.0
     for r_idx, row in enumerate(table.rows):
         trPr = row._tr.get_or_add_trPr()
         if r_idx == 0:
             trPr.append(parse_xml(f'<w:tblHeader {nsdecls("w")}/>'))
         trPr.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
+        keep_row = (r_idx < n_rows - 1) if n_rows <= 10 else (r_idx == 0 or r_idx == n_rows - 2)
         for c_idx, cell in enumerate(row.cells):
             cell.width = Inches(col_widths[c_idx])
             cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
             tcPr = cell._tc.get_or_add_tcPr()
             tcMar = parse_xml(
                 f'<w:tcMar {nsdecls("w")}>'
-                '<w:top w:w="55" w:type="dxa"/><w:bottom w:w="55" w:type="dxa"/>'
-                '<w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/>'
+                f'<w:top w:w="{v_pad}" w:type="dxa"/><w:bottom w:w="{v_pad}" w:type="dxa"/>'
+                '<w:left w:w="75" w:type="dxa"/><w:right w:w="75" w:type="dxa"/>'
                 "</w:tcMar>"
             )
             for old_m in tcPr.findall(qn("w:tcMar")):
@@ -269,10 +274,12 @@ def set_table_borders_and_style(table, col_widths: Sequence[float], font_pt: flo
             tcPr.append(tcMar)
             if r_idx == 0:
                 tcPr.append(parse_xml(f'<w:shd {nsdecls("w")} w:fill="{header_fill}"/>'))
-            for p in cell.paragraphs:
-                p.paragraph_format.line_spacing = 1.1
-                p.paragraph_format.space_before = Pt(1)
-                p.paragraph_format.space_after = Pt(1)
+            for p_idx, p in enumerate(cell.paragraphs):
+                p.paragraph_format.line_spacing = ls
+                p.paragraph_format.space_before = Pt(sp_pt)
+                p.paragraph_format.space_after = Pt(sp_pt)
+                if keep_row or p_idx < len(cell.paragraphs) - 1:
+                    p.paragraph_format.keep_with_next = True
                 for run in p.runs:
                     run.font.name = "Times New Roman"
                     run.font.size = Pt(font_pt)
@@ -382,6 +389,7 @@ def add_pseudocode_block(doc: Document, title: str, lines: Sequence[str]) -> Non
     tbl = doc.add_table(rows=1, cols=1)
     tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
     tbl.autofit = False
+    tbl.rows[0]._tr.get_or_add_trPr().append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
     cell = tbl.cell(0, 0)
     cell.width = Inches(5.75)
     tcPr = cell._tc.get_or_add_tcPr()
@@ -517,32 +525,26 @@ def build_prelims(doc: Document) -> None:
     doc.add_page_break()
     add_para(doc, "ABSTRACT", align=WD_ALIGN_PARAGRAPH.CENTER, bold=True, size=16.0, space_after=12.0)
     add_para(doc,
-             "Automated human emotion recognition requires modeling both spontaneous real-time facial expressions from live camera streams and "
-             "multi-channel conversational cues spanning speech prosody, spoken text, and visual context. Existing standalone classifiers often "
-             "suffer from train-serve preprocessing mismatches, severe domain shift between studio or television benchmarks and consumer webcams, "
-             "uncalibrated softmax confidence, and fragility under class imbalance or missing modalities.")
+             "Automated human emotion recognition spans two complementary problem regimes: spontaneous real-time facial expression analysis from "
+             "live consumer cameras and multi-channel conversational affect modeling across speech prosody, spoken text, and visual context. In "
+             "practice, standalone systems degrade under train-serve preprocessing mismatches, domain shift between curated corpora and webcams, "
+             "severe conversational class imbalance, conflicting unimodal predictions, and overconfident uncalibrated probabilities.")
     add_para(doc,
-             "This project presents a unified local-inference Emotion Recognition platform comprising two integrated subsystems evaluated across "
-             "a shared seven-class discrete emotion schema (anger, disgust, fear, joy, neutral, sadness, and surprise): (1) a real-time webcam "
-             "facial expression engine powered by OpenCV YuNet face detection, eye-line affine alignment, Laplacian blur quality gating, and three "
-             "selectable CNN backbones (EfficientNet-B0 at 96x96 pixels, RAF-DB ResNet-18 at 128x128 pixels, and a mixed RAF-DB + RAVDESS "
-             "fine-tuned ResNet-18 checkpoint); and (2) a MELD multimodal conversational pipeline integrating Wav2Vec 2.0 Base acoustic embeddings "
-             "with a balanced StrongerAudioClassifier MLP, contextual all-MiniLM-L6-v2 sentence embeddings, ResNet-50 temporal frame pooling, and an "
-             "AdvancedCrossModalAttentionFusionNet with Shannon-entropy reliability gating and post-hoc temperature scaling.")
+             "This project presents a unified, strictly local CPU emotion recognition platform built across a shared seven-emotion schema (anger, "
+             "disgust, fear, joy, neutral, sadness, and surprise), hosted via FastAPI and a responsive Web Studio UI: (1) a MELD conversational "
+             "multimodal subsystem (Sections 3.3.4–3.3.8, 3.4) integrating Wav2Vec 2.0 Base acoustic embeddings with balanced sampling, "
+             "contextual all-MiniLM-L6-v2 text representations, ResNet-50 temporal pooling, and an AdvancedCrossModalAttentionFusionNet with a "
+             "16-D per-modality contract, missing-modality Transformer masking, Shannon-entropy reliability gating, consensus logit blending, "
+             "and post-hoc temperature scaling; and (2) a real-time webcam engine (Sections 3.3.1–3.3.3) unifying YuNet eye-line alignment, "
+             "Laplacian blur quality gating, and selectable CNN backbones including mixed RAF-DB + aligned RAVDESS fine-tuning.")
     add_para(doc,
-             "Empirical evaluation demonstrates concrete progress alongside documented limitations. On 9 personal webcam evaluation clips (916 "
-             "frames used for both backbone selection and reporting), unifying live and offline inference pipelines, removing hard-coded action-unit "
-             "rules (which improved MELD validation macro-F1 from 0.2872 to 0.3868), and mixed fine-tuning on RAF-DB plus 3,970 aligned RAVDESS "
-             "speech crops raised pooled frame accuracy from 15.6% (1/9 clips, efficientnet_current) to 44.0% (4/9 clips, resnet18_raf) and 57.3% "
-             "(5/9 clips, resnet18_ravdess), while improving RAF-DB test macro-F1 from 0.6721 to 0.7077 and achieving 0.5354 macro-F1 on held-out "
-             "RAVDESS actors. On a unified 200-frame CPU benchmark, all three backbones achieved ~31.5-33.6 ms median (p50) and ~33.3-35.8 ms p95 "
-             "latency (~30 fps). On the 105-sample balanced MELD fusion test partition, cross-modal attention fusion with temperature scaling "
-             "achieved 36.19% accuracy (0.3574 macro-F1) and reduced Expected Calibration Error (ECE) from 0.2130 to 0.0734. Automated verification "
-             "passed 5/5 unit suites and 11/11 FastAPI integration tests.")
-    add_para(doc,
-             "From a societal and ethical standpoint, all webcam frames and microphone buffers execute strictly in volatile local memory without "
-             "disk persistence, accompanied by explicit scientific disclaimers noting that apparent facial expressions do not equate to internal "
-             "affective states.")
+             "Systematic empirical evaluation (Chapter 5) demonstrates balanced improvements alongside documented limitations. On MELD, balanced "
+             "acoustic sampling resolves minority-class collapse, contextual embeddings improve linguistic discrimination over TF-IDF baselines, "
+             "and cross-modal attention fusion improves accuracy over baseline fusion and outperforms every unimodal stream on fully conflicting "
+             "samples while cutting calibration error below target bounds. Across the webcam subsystem, unifying live HTTP/WebSocket transport "
+             "and offline evaluation, removing heuristic Action Unit overrides, and mixed RAVDESS adaptation substantially raise clip and frame "
+             "generalization at real-time laptop CPU frame rates. Automated unit and integration verification confirms reliable end-to-end "
+             "execution while keeping live biometric streams strictly in volatile RAM without clinical diagnostic claims.")
     add_para(doc, "Keywords: Multimodal Emotion Recognition, Facial Expression Recognition, MELD, RAF-DB, RAVDESS, Cross-Modal Attention, "
                   "Temperature Scaling, Domain Shift, FastAPI, Real-Time Computer Vision.", bold=False, italic=True, size=11.5)
 
@@ -573,29 +575,38 @@ def build_prelims(doc: Document) -> None:
         ("AU", "Facial Action Unit"),
         ("BGR / RGB", "Blue-Green-Red / Red-Green-Blue Color Channels"),
         ("BN", "Batch Normalization"),
+        ("BS", "Brier Score"),
+        ("CD-FER", "Cross-Domain Facial Expression Recognition"),
         ("CE", "Cross-Entropy Loss"),
+        ("CLAHE", "Contrast Limited Adaptive Histogram Equalization"),
         ("CNN", "Convolutional Neural Network"),
         ("CPU", "Central Processing Unit"),
         ("ECE", "Expected Calibration Error"),
         ("EMA", "Exponential Moving Average"),
         ("ERC", "Emotion Recognition in Conversations"),
         ("FER", "Facial Expression Recognition"),
+        ("FFN", "Feed-Forward Network"),
         ("FPS", "Frames Per Second"),
         ("GELU / ReLU / SiLU", "Gaussian / Rectified / Sigmoid Linear Unit Activations"),
         ("HTTP / WS", "Hypertext Transfer Protocol / WebSocket"),
         ("JSON", "JavaScript Object Notation"),
         ("LN", "Layer Normalization"),
+        ("MCE", "Maximum Calibration Error"),
         ("MELD", "Multimodal EmotionLines Dataset"),
+        ("MHA", "Multi-Head Attention"),
         ("MLP", "Multi-Layer Perceptron"),
         ("NBA", "National Board of Accreditation"),
         ("NLL", "Negative Log-Likelihood"),
+        ("NLP", "Natural Language Processing"),
         ("ONNX", "Open Neural Network Exchange"),
         ("PO / PSO", "Program Outcome / Program Specific Outcome"),
         ("RAF-DB", "Real-world Affective Faces Database"),
         ("RAM", "Random Access Memory"),
         ("RAVDESS", "Ryerson Audio-Visual Database of Emotional Speech and Song"),
         ("REST", "Representational State Transfer"),
+        ("RMS", "Root Mean Square"),
         ("SER", "Speech Emotion Recognition"),
+        ("SNR", "Signal-to-Noise Ratio"),
         ("SPA", "Single-Page Application"),
         ("TF-IDF", "Term Frequency - Inverse Document Frequency"),
         ("WBS", "Work Breakdown Structure"),
@@ -632,46 +643,44 @@ def build_chapter1(doc: Document) -> None:
 
     add_h2(doc, "1.2 Motivation and Need")
     add_para(doc,
-             "Empirical auditing of the project baseline revealed four concrete failure modes that motivated a unified architectural rebuild. "
-             "First, train-serve pipeline mismatch occurred when live REST/WebSocket webcam routes, evaluation scripts, and training loaders "
-             "used inconsistent image crops, mirror transformations, or hand-crafted Action Unit (AU) heuristic overrides, degrading validation "
-             "macro-F1 from 0.3868 down to 0.2872 [see results/webcam_fix_log.md]. Second, domain shift caused a MELD-trained EfficientNet-B0 "
-             "webcam model (efficientnet_current) to achieve only 15.6% pooled frame accuracy (1/9 clips correct) on personal webcam clips "
-             "and 20.4% accuracy on RAF-DB test images.")
+             "Empirical auditing of the initial codebase uncovered four systemic bottlenecks affecting both the conversational multimodal and live "
+             "webcam pipelines. First, severe class imbalance in MELD—where 47.1% of training utterances are neutral while disgust and fear each "
+             "represent under 2.8%—caused baseline acoustic classifiers to collapse toward majority-class predictions (quantified in Section 5.2). "
+             "Second, unimodal television streams frequently disagree or carry noisy facial/scene cuts, while uncalibrated baseline fusion output "
+             "overconfident probability estimates on conflicting samples (Section 5.2) without mechanisms to handle missing channels.")
     add_para(doc,
-             "Third, severe class imbalance in MELD—where 47.1% of training utterances are neutral while disgust and fear each represent "
-             "under 2.8%—caused baseline acoustic classifiers to collapse toward majority-class predictions (0.1771 macro-F1). Fourth, "
-             "uncalibrated baseline multimodal fusion exhibited an Expected Calibration Error (ECE) of 0.2130, outputting overconfident "
-             "probabilities on conflicting or noisy inputs. Addressing these bottlenecks necessitated a cohesive, locally deployable system "
-             "combining shared preprocessing, mixed-domain fine-tuning, learned cross-modal attention fusion, and temperature calibration.")
+             "Third, train-serve pipeline mismatch occurred when REST/WebSocket webcam routes, offline evaluation scripts, and training loaders "
+             "used inconsistent face cropping, horizontal mirroring, or hand-crafted Action Unit (AU) heuristic overrides, degrading validation F1 "
+             "(Sections 5.1–5.2). Fourth, severe domain shift caused a MELD-trained EfficientNet-B0 baseline to generalize poorly onto consumer "
+             "webcam video (Section 5.1). Resolving these bottlenecks motivated a cohesive, locally deployable architecture pairing balanced "
+             "unimodal encoders, missing-modality attention fusion, and temperature calibration with unified webcam preprocessing and mixed-domain "
+             "fine-tuning.")
 
     add_h2(doc, "1.3 Problem Statement")
     add_para(doc,
              "The objective of this project is to design, implement, and empirically validate a unified local-inference emotion recognition "
-             "system covering both (a) a real-time webcam facial expression subsystem with unified preprocessing, quality gating, and selectable "
-             "deep vision backbones, and (b) a MELD multimodal conversational analysis subsystem fusing acoustic (Wav2Vec 2.0), linguistic "
-             "(MiniLM / TF-IDF), and visual (ResNet-50) streams across a common seven-emotion taxonomy (anger, disgust, fear, joy, neutral, "
-             "sadness, and surprise), served through a FastAPI backend and browser-based studio interface.")
+             "system covering both (a) a MELD multimodal conversational analysis and calibration subsystem fusing acoustic (Section 3.3.5), "
+             "linguistic (Section 3.3.6), and visual (Section 3.3.4) streams through cross-modal attention fusion (Sections 3.3.7–3.3.8), and "
+             "(b) a real-time webcam facial expression subsystem with unified alignment, quality gating, and selectable vision backbones "
+             "(Sections 3.3.1–3.3.3) across a shared seven-emotion taxonomy, served through a FastAPI backend and browser studio interface.")
 
     add_h2(doc, "1.4 Project Objectives")
-    add_para(doc, "To resolve the identified engineering gaps, five clear and measurable objectives were established:")
-    add_bullet(doc, "Objective 1 — Pipeline Parity & Quality Gating: ",
-               "Unify all webcam endpoints (/frame, /frame-json, /ws, /ws/webcam, /multimodal) and evaluation scripts on a single "
-               "WebcamService.process_frame engine achieving 100% frame-level parity, unmirrored inference, eye-line affine alignment, "
-               "and Laplacian blur gating (threshold 30.0).")
-    add_bullet(doc, "Objective 2 — Cross-Domain Webcam Generalization: ",
-               "Improve personal webcam facial expression accuracy beyond the MELD-trained EfficientNet-B0 baseline (15.6% pooled, 1/9 "
-               "clips) and RAF-DB ResNet-18 baseline (44.0% pooled, 4/9 clips) via mixed RAF-DB + aligned RAVDESS fine-tuning while "
-               "preserving RAF-DB macro-F1 (>= 0.6721) and maintaining CPU p95 inference latency <= 150 ms.")
-    add_bullet(doc, "Objective 3 — Balanced MELD Unimodal Modeling: ",
-               "Mitigate MELD minority-class collapse in acoustic speech emotion recognition (Wav2Vec 2.0 768-D) and evaluate contextual "
-               "sentence embeddings (all-MiniLM-L6-v2) against TF-IDF baselines on all 2,610 held-out MELD test utterances.")
-    add_bullet(doc, "Objective 4 — Calibrated Multimodal Attention Fusion: ",
-               "Construct an attention-gated neural fusion architecture supporting missing-modality masking and post-hoc temperature "
-               "calibration to reduce ECE below 0.10 on the held-out fusion test benchmark.")
+    add_para(doc, "To resolve the identified engineering gaps across both subsystems evenly, five core objectives were established:")
+    add_bullet(doc, "Objective 1 — Balanced MELD Unimodal Modeling: ",
+               "Mitigate majority-class collapse in conversational speech emotion recognition via balanced acoustic sampling (Section 3.3.5) and "
+               "benchmark dense contextual sentence embeddings against sparse lexical baselines across held-out MELD utterances (Section 5.2).")
+    add_bullet(doc, "Objective 2 — Calibrated Missing-Modality Attention Fusion: ",
+               "Construct an attention-gated neural fusion architecture supporting arbitrary unimodal, bimodal, and trimodal subsets, conflict "
+               "resolution, and post-hoc temperature scaling targeting Expected Calibration Error below 0.10 (Sections 3.4, 5.2–5.3).")
+    add_bullet(doc, "Objective 3 — Webcam Train-Serve Parity & Quality Gating: ",
+               "Unify all live webcam endpoints (/frame, /frame-json, /ws, /ws/webcam, /multimodal) and offline evaluation onto a single "
+               "WebcamService.process_frame engine enforcing unmirrored eye-line alignment, blur gating, and removal of brittle AU heuristics (Section 5.1).")
+    add_bullet(doc, "Objective 4 — Cross-Domain Webcam Generalization under CPU Budget: ",
+               "Adapt static in-the-wild facial expression backbones to speaking consumer webcam video via mixed RAF-DB + RAVDESS fine-tuning "
+               "(Section 3.3.2) without catastrophic forgetting while holding CPU p95 latency <= 150 ms (Section 5.1).")
     add_bullet(doc, "Objective 5 — Privacy-Preserving Full-Stack Verification: ",
-               "Deploy the unified system through FastAPI REST/WebSocket endpoints and a 7-tab Web Studio with strictly volatile RAM "
-               "processing for live streams and 100% pass verification across automated unit and integration tests.")
+               "Deploy the unified engine through FastAPI REST/WebSocket endpoints and a zero-build Web Studio SPA enforcing volatile RAM "
+               "processing for live streams and full automated pass verification across unit and integration suites (Sections 4.4–4.6).")
 
     add_h2(doc, "1.5 Social and Environmental Relevance")
     add_para(doc,
@@ -683,9 +692,9 @@ def build_chapter1(doc: Document) -> None:
              "rather than internal psychological states.")
     add_para(doc,
              "From an environmental sustainability perspective, retraining massive vision-language models from scratch incurs substantial "
-             "compute energy. This project minimizes energy consumption by reusing frozen pretrained encoders (Wav2Vec 2.0, MiniLM, ResNet-50), "
-             "freezing early ResNet-18 stages during mixed fine-tuning (--freeze-until layer3), running lightweight 96 px and 128 px vision "
-             "backbones directly on laptop CPU hardware without dedicated GPU clusters, and gating redundant frame processing.")
+             "compute energy. This project minimizes energy consumption by reusing frozen pretrained encoders (Sections 3.3.4–3.3.6), partially "
+             "freezing early convolutional stages during mixed adaptation (Section 3.3.2), running compact vision backbones directly on laptop "
+             "CPU hardware without dedicated GPU clusters, and gating blurred or redundant frame inference.")
 
     add_h2(doc, "1.6 Project Plan")
     add_h3(doc, "1.6.1 Work Breakdown Structure (WBS)")
@@ -725,19 +734,19 @@ def build_chapter1(doc: Document) -> None:
         doc, "1.1",
         "Project Risk Register Derived from Engineering Logs and System Benchmarks",
         "report/tables/risk_register.csv",
-        col_widths=[0.42, 0.95, 0.72, 0.65, 0.56, 1.20, 1.25],
+        col_widths=[0.36, 0.90, 0.88, 0.63, 0.53, 1.20, 1.25],
         font_pt=7.8,
         rename_headers=["ID", "Risk", "Category", "Likelihood", "Impact", "Observed Evidence", "Mitigation Implemented"],
     )
 
     add_h2(doc, "1.7 Scope and Limitations")
     add_para(doc,
-             "The system covers seven discrete emotion categories (anger, disgust, fear, joy, neutral, sadness, and surprise) across real-time "
-             "webcam video frames and uploaded MELD-compatible audio, text, and video clips running locally on CPU hardware. Key limitations "
-             "are acknowledged upfront: the 9 personal webcam clips feature a single subject performing acted expressions with highly correlated "
-             "consecutive frames and served as both the backbone selection set and evaluation set; anger and sadness remain unsolved on those "
-             "clips (0.0% accuracy); MELD multimodal ablation results reflect a balanced 105-sample test subset (15 per class); and no "
-             "multi-speaker conversational context window is modeled across sequential MELD dialogue turns.")
+             "The system covers seven discrete emotion categories (anger, disgust, fear, joy, neutral, sadness, and surprise) across MELD "
+             "conversational audio, text, and video utterances as well as live CPU webcam streams. Honest operational boundaries are "
+             "acknowledged upfront (detailed empirically in Sections 5.1–5.4): MELD multimodal ablations reflect a balanced test partition "
+             "evaluated turn-by-turn without cross-utterance dialogue context memory, visual TV streams contain frequent scene cuts that depress "
+             "unimodal video accuracy, and single-frame webcam evaluation clips represent one acted speaker serving for both selection and "
+             "evaluation with unresolved anger and sadness confusion.")
     add_mapped_pos(doc, "PO1 (Engineering Knowledge), PO2 (Problem Analysis), PO6 (The Engineer and The World), "
                         "PO9 (Individual and Teamwork), PO10 (Project Management and Finance).")
 
@@ -784,7 +793,9 @@ def build_chapter2(doc: Document) -> None:
              "context and modality disparity: Hu et al. [21] proposed MM-DFN with dynamic graph fusion to curb inter-layer redundancy (62.49% "
              "accuracy, 59.46% weighted-F1 on MELD); Li et al. [22] introduced EmoCaps using emotion capsules (64.00% weighted-F1); Hu et al. [23] "
              "unified sentiment and emotion via UniMSE (65.51% accuracy, 65.91% weighted-F1); and Yun et al. [24] developed TelME, applying "
-             "text-teacher cross-modal knowledge distillation to boost weak acoustic and visual streams to ~66.36%–67.37%.")
+             "text-teacher cross-modal knowledge distillation to boost weak acoustic and visual streams to ~66.36%–67.37%. However, these "
+             "conversational models depend on multi-turn dialogue graphs or heavy sequence backbones, assume complete trimodal inputs at test "
+             "time, and omit explicit reliability gating or uncertainty reporting when noisy TV camera cuts conflict with spoken cues.")
 
     add_h2(doc, "2.3 Uncertainty Calibration and Imbalanced Learning")
     add_para(doc,
@@ -792,7 +803,10 @@ def build_chapter2(doc: Document) -> None:
              "demonstrated that post-hoc single-parameter temperature scaling sharply reduces Expected Calibration Error (ECE) without altering "
              "decision boundaries, while Müller et al. [26] showed that label smoothing improves generalization and implicit calibration. To "
              "address extreme class skew (such as 47% neutral utterances in MELD), Lin et al. [27] proposed Focal Loss to down-weight well-"
-             "classified majority samples, complementing inverse-frequency class-balanced sampling and decoupled weight decay optimization (AdamW) [28].")
+             "classified majority samples, complementing inverse-frequency class-balanced sampling and decoupled weight decay optimization (AdamW) [28]. "
+             "For multimodal fusion, entropy-based uncertainty estimation and calibrated log-odds consensus blending complement temperature "
+             "scaling by down-weighting uninformative or corrupted streams prior to final probability normalization, though fitted trimodal "
+             "temperatures require careful verification across masked single-modality subsets.")
 
     add_h2(doc, "2.4 Comparative Summary of Prior Works")
     add_para(doc,
@@ -831,9 +845,10 @@ def build_chapter2(doc: Document) -> None:
     add_bullet(doc, "Gap 2 — Cross-Domain Gap Between Static In-the-Wild Faces and Speaking Faces: ",
                "Models trained solely on static photographs (RAF-DB) or television clips (MELD) struggle on speaking, blinking, or "
                "resting-neutral webcam users unless adapted with aligned dynamic speech crops (such as RAVDESS) and sensor-realistic augmentations.")
-    add_bullet(doc, "Gap 3 — Calibration and Modality-Absence Resilience in Lightweight Multimodal Fusion: ",
-               "Many MELD systems assume all three modalities are always present and report uncalibrated softmax scores without entropy "
-               "gating or conflict diagnostics.")
+    add_bullet(doc, "Gap 3 — Calibration, Conflict Resolution, and Modality-Absence Resilience in Multimodal Fusion: ",
+               "Most conversational ERC benchmarks [21]–[24] assume all three modalities are present simultaneously and optimize accuracy or F1 "
+               "without evaluating Expected Calibration Error (ECE), Brier score [25], or degraded subset performance; lightweight single-utterance "
+               "fusion requires entropy/quality reliability gating, key-padding masking for missing channels, and calibrated conflict arbitration.")
     add_bullet(doc, "Gap 4 — Privacy-First Local Execution: ",
                "Cloud-hosted emotion APIs transmit raw facial and vocal biometrics externally; an end-to-end local CPU architecture combining "
                "multimodal analysis with zero-disk-storage live webcam tracking addresses practical deployment constraints.")
@@ -852,7 +867,7 @@ def build_chapter3(doc: Document) -> None:
              "were governed by seven practical engineering constraints aligned with accreditation standards (PO3, PO5). Specifically, the solution had "
              "to operate on consumer laptop CPU hardware without discrete GPU acceleration, respect strict local biometric privacy, preserve full "
              "train-serve preprocessing parity, and avoid proprietary software dependencies. Table 3.1 summarizes how each constraint category "
-             "shaped the design.")
+             "shaped the design; concrete model realizations are detailed in Section 3.3.")
     constraint_rows = [
         ("Economic", "Zero cloud API fees or paid GPU compute; open-source stack", "100% local CPU execution on existing Intel i7-12650H + 16 GB RAM"),
         ("Environmental & Energy", "Avoid training massive foundation models from scratch", "Frozen feature extractors (Wav2Vec2, MiniLM, ResNet-50) and partial ResNet-18 freeze (--freeze-until layer3)"),
@@ -868,194 +883,334 @@ def build_chapter3(doc: Document) -> None:
         constraint_rows, [1.20, 1.95, 2.60], font_pt=8.2,
     )
 
-    add_h2(doc, "3.2 Overall System and Subsystem Architectures")
+    add_h2(doc, "3.2 Overall System Architecture and Pipeline Overview")
     add_para(doc,
              "Figure 3.1 depicts the top-level platform architecture hosted inside backend/main.py. HTTP and WebSocket traffic enters the FastAPI "
              "server on local loopback (127.0.0.1:8000), which mounts five service modules sharing a unified seven-class taxonomy (anger, disgust, "
-             "fear, joy, neutral, sadness, surprise): AudioEmotionService, TextEmotionService, VideoEmotionService, MultimodalFusionService, and "
-             "WebcamService.")
+             "fear, joy, neutral, sadness, surprise): AudioEmotionService (Section 3.3.5), TextEmotionService (Section 3.3.6), "
+             "VideoEmotionService (Section 3.3.4), MultimodalFusionService (Sections 3.3.7–3.3.8 and 3.4), and WebcamService (Sections 3.3.1–3.3.3).")
     add_figure(doc, "report/figures/fig_diag_system_architecture.png", "3.1",
                "Overall system architecture integrating MELD multimodal pipelines, WebcamService, FastAPI, and Web Studio UI.", width_in=5.65)
 
     add_para(doc,
-             "Real-time webcam analysis follows the single-source pipeline in Figure 3.2. Incoming BGR frames pass through OpenCV YuNet face "
-             "detection (face_detection_yunet_2023mar.onnx) to locate the primary bounding box and five landmarks (left eye, right eye, nose tip, "
-             "and mouth corners). If landmarks satisfy confidence and minimum-size bounds, eye-line affine alignment centers and squares the crop "
-             "before Laplacian blur gating rejects motion-blurred frames. Selectable CNN backbones (ResNet-18 RAVDESS, ResNet-18 RAF-DB, or "
-             "EfficientNet-B0) produce raw logits refined by optional baseline calibration, confidence-adaptive EMA temporal smoothing, hysteresis "
-             "stability filtering, and uncertainty checking prior to overlay.")
+             "Real-time webcam analysis follows the single-source inference pipeline in Figure 3.2 (formalized in Algorithm 3.1). Incoming BGR "
+             "frames pass through YuNet face and 5-landmark detection (Section 3.3.1), eye-line affine alignment, Laplacian blur quality gating, "
+             "and the active CNN expression backbone (Sections 3.3.2–3.3.3), followed by optional per-client neutral baseline subtraction, "
+             "confidence-adaptive EMA temporal smoothing, 3-frame hysteresis filtering, and uncertainty flagging prior to overlay.")
     add_figure(doc, "report/figures/fig_diag_live_inference.png", "3.2",
                "Live webcam inference pipeline from capture through YuNet alignment, quality gate, backbone, EMA, and uncertainty overlay.", width_in=5.65)
 
     add_para(doc,
-             "To bridge the domain gap between static RAF-DB facial photographs [2] and live speaking faces without catastrophic forgetting of "
-             "RAF-DB features, train_mixed.py implements the dual-source fine-tuning pipeline illustrated in Figure 3.3. Each training mini-batch "
-             "blends balanced RAF-DB crops with aligned RAVDESS speech crops at ratio extra_share = 0.2 (26 RAF-DB + 6 RAVDESS frames per 32-sample "
-             "batch) while freezing early residual stages through layer3 and training layer4 plus the linear classification head under differential "
-             "AdamW learning rates.")
-    add_figure(doc, "report/figures/fig_diag_training_pipeline.png", "3.3",
-               "Mixed RAF-DB and RAVDESS ResNet-18 fine-tuning pipeline (extra_share=0.2, freeze-until layer3, best epoch 7).", width_in=5.60)
+             "To overcome static-to-speaking domain shift without losing RAF-DB discrimination, RAVDESS speech clips are curated via "
+             "prepare_ravdess.py (Figure 3.3): from 1,200 source MP4 files, filtering for audio-visual speech (modality=01, channel=01) and "
+             "dropping calm (code 02) leaves 520 eligible clips, from which middle 30%–70% frames sampled at 5.0 fps pass YuNet eye-line "
+             "alignment and Laplacian blur gating (threshold 30.0) to yield 3,970 JPG crops across 518 valid clips (3,184 train from Actors 01–08; "
+             "786 validation from Actors 09–10; 2 clips yielded no valid crops). Mixed fine-tuning in train_mixed.py (see Section 3.3.2 for "
+             "layer freezing, batch composition, and optimizer hyperparameters) then trains jointly on balanced RAF-DB and RAVDESS speech crops.")
+    add_figure(doc, "report/figures/fig_diag_ravdess_prep.png", "3.3",
+               "RAVDESS speech video preparation flow yielding 3,970 eye-aligned crops across 518 valid clips.", width_in=5.60)
 
     add_para(doc,
-             "Prior to mixed training, raw RAVDESS [3] videos pass through the automated preprocessing pipeline shown in Figure 3.4 (prepare_ravdess.py). "
-             "Filename metadata strictly retains full audio-visual speech clips (modality=01, channel=01), drops calm (code 02) outside the 7-class "
-             "taxonomy, samples the middle 30%–70% temporal window at 5 fps to avoid neutral onset/offset tails, and enforces the same YuNet aligned-"
-             "crop and Laplacian blur quality gate used at live inference time.")
-    add_figure(doc, "report/figures/fig_diag_ravdess_prep.png", "3.4",
-               "RAVDESS speech video preparation flow (modality=01, channel=01, calm dropped, middle 30-70% at 5 fps, quality gate).", width_in=5.60)
+             "Finally, Figure 3.4 documents the REST and WebSocket deployment boundary exposed by FastAPI across backend/main.py and "
+             "backend/api/*.py, organizing all 17 routes detailed in Table 4.3 into MELD unimodal endpoints, the multimodal fusion router, "
+             "webcam streaming routes, and session/calibration controls.")
+    add_figure(doc, "report/figures/fig_diag_api_deployment.png", "3.4",
+               "FastAPI deployment and REST/WebSocket endpoint architecture across 17 routes on 127.0.0.1:8000.", width_in=5.65)
 
+    # -----------------------------------------------------------------------
+    # 3.3 MODEL DESCRIPTIONS (SINGLE CANONICAL SPECIFICATION PER MODEL)
+    # -----------------------------------------------------------------------
+    add_h2(doc, "3.3 Model Descriptions")
     add_para(doc,
-             "For MELD conversational multimodal analysis [1], Figure 3.5 shows the two-stage fusion architecture implemented in MultimodalFusionService "
-             "and AdvancedCrossModalAttentionFusionNet. Each unimodal service outputs a 16-dimensional feature vector concatenating seven softmax "
-             "probabilities (dims 0:7), seven raw logits (dims 7:14), a normalized Shannon-entropy certainty score (dim 14), and a modality quality score "
-             "(dim 15). Modality projections feed a 2-layer Transformer encoder with missing-modality masking, followed by entropy-aware gating, weighted "
-             "consensus logit interpolation, and learned post-hoc temperature scaling (T* = 0.5953).")
+             "Each neural and statistical model employed across the webcam and MELD multimodal subsystems is specified once below using a uniform "
+             "seven-part technical template; subsequent chapters cross-reference these subsections without repeating model internals.")
+
+    def add_model_spec(sub_title: str, fields: Sequence[tuple[str, str]]) -> None:
+        add_h3(doc, sub_title)
+        for label, content in fields:
+            add_bullet(doc, f"{label}: ", content)
+
+    add_model_spec("3.3.1 YuNet Face and Landmark Detector", [
+        ("Role in system", "Detects the primary facial bounding box and five anatomical landmarks for real-time webcam tracking and offline RAVDESS crop extraction."),
+        ("Architecture and parameter count", "Anchor-free lightweight CNN in OpenCV DNN ONNX format (models/face_detection_yunet_2023mar.onnx, 232,589 bytes); the ONNX graph contains 106 nodes, 112 initializers, and 53,121 stored initializer parameters (the upstream paper reports 75.8K parameters [13])."),
+        ("Input and preprocessing", "Raw unmirrored BGR image frame with dynamic input_size set via setInputSize((w, h)); runtime thresholds score_threshold=0.55, nms_threshold=0.3, top_k=5000 (WebcamService._init_face_detector)."),
+        ("Output", "Per-face 15-element vector: bounding box (x, y, w, h), five 2D landmarks (right eye, left eye, nose tip, right mouth, left mouth), and detection confidence score."),
+        ("Training and hyperparameters", "Pretrained OpenCV Zoo ONNX artifact (2023mar release); no project-side retraining performed."),
+        ("Why chosen", "Provides sub-few-millisecond CPU detection alongside the five facial landmarks required for eye-line affine rotation alignment, unlike box-only Haar cascades."),
+        ("Where deployed", "backend/services/webcam_service.py (live and offline clip evaluation), prepare_ravdess.py (RAVDESS crop pipeline), and train_webcam_model.py (legacy MELD crop extraction)."),
+    ])
+
+    add_model_spec("3.3.2 ResNet-18 Facial Expression Backbones (RAF-DB and Mixed RAF-DB + RAVDESS)", [
+        ("Role in system", "Primary real-time webcam facial expression classifier, deployed as two checkpoints: resnet18_raf (static RAF-DB baseline) and resnet18_ravdess (default mixed-domain checkpoint)."),
+        ("Architecture and parameter count", "TorchVision ResNet-18 [4] (conv1 7x7, bn1, layer1–layer4 at widths 64/128/256/512 with residual skip connections) followed by a Linear(512, 7) head; 11,180,103 total parameters. Under --freeze-until layer3, conv1–layer3 (and their BatchNorm running stats) are frozen, leaving 8,397,319 trainable parameters across layer4 and fc."),
+        ("Input and preprocessing", "Eye-aligned square BGR crop (pad=1.10) converted to RGB PIL, evaluated via Resize(146, bilinear, antialias=True) -> CenterCrop(128) -> ImageNet normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]). Training augments with RandomResizedCrop(128), flip, 12-deg rotation, brightness/contrast/gamma/color-temp jitter, downscale-upscale, Gaussian blur, JPEG compression (Q=35–85), Gaussian noise, and synthetic eyeglasses occlusion (train_mixed.py:273–370)."),
+        ("Output", "7-D raw emotion logits in R^7; resnet18_raf outputs RAF-DB folder order and is remapped by class name to canonical order, while resnet18_ravdess natively outputs canonical order (anger, disgust, fear, joy, neutral, sadness, surprise)."),
+        ("Training and hyperparameters", "resnet18_raf (train_raf_resnet18.py): ImageNet-pretrained init, AdamW (wd=1e-4), backbone_lr=1e-4, head_lr=1e-3, CrossEntropyLoss (smoothing=0.0), bs=32, seed=42, 10 epochs (early stop 9, best epoch 6). resnet18_ravdess (train_mixed.py): initialized from best_resnet18.pt, 26 RAF-DB + 6 RAVDESS balanced crops per batch (extra_share=0.2), AdamW (wd=1e-4), backbone_lr=2e-5 (layer4), head_lr=2e-4 (fc), CrossEntropyLoss (label_smoothing=0.1), bs=32, seed=42, 8 epochs (best epoch 7 by mean of RAF and RAVDESS val Macro-F1)."),
+        ("Why chosen", "Residual skip connections support stable partial fine-tuning on CPU without catastrophic forgetting, sustaining real-time frame rates while bridging static-photo and speaking-face domains (evaluated in Section 5.1, Table 5.2 and Table 5.3)."),
+        ("Where deployed", "external_models/ravdess/best_resnet18_ravdess.pt (default) and external_models/resnet18_raf/best_resnet18.pt, hot-swappable in backend/services/webcam_service.py and live_resnet18_demo.py."),
+    ])
+
+    add_model_spec("3.3.3 EfficientNet-B0 Legacy Webcam Backbone", [
+        ("Role in system", "Retained in the runtime backbone switcher as the legacy MELD-trained webcam baseline to quantify cross-domain shift against ResNet-18."),
+        ("Architecture and parameter count", "TorchVision EfficientNet-B0 [5] compound-scaled MBConv backbone (4,007,548 parameters, 1,280-D pooled output) coupled to a custom classifier head Dropout(0.35) -> Linear(1280, 256) -> SiLU -> Dropout(0.25) -> Linear(256, 7) (329,735 parameters), totaling 4,337,283 parameters."),
+        ("Input and preprocessing", "Aligned square BGR crop (pad=1.25) resized directly to 96x96 RGB, scaled to [0, 1], and normalized with ImageNet mean/std."),
+        ("Output", "7-D canonical emotion logits in R^7, temperature-scaled at T=0.85 when post-processed in WebcamService."),
+        ("Training and hyperparameters", "Initial MELD face-crop warm-up/fine-tune (train_webcam_model.py), followed by 10 epochs of Phase-3 webcam-augmented fine-tuning (train_webcam_phase3.py, saved at checkpoint epoch 34) using WeightedRandomSampler, FocalLoss (gamma=2.0, label_smoothing=0.05), AdamW (wd=1e-4, backbone_lr=1.5e-5, head_lr=7.5e-5), CosineAnnealingLR (eta_min=1e-6), bs=64, seed=101."),
+        ("Why chosen", "Provides a lightweight 96x96 reference baseline illustrating that MELD television face crops generalize poorly to unseen consumer webcams."),
+        ("Where deployed", "models/video_classifier/best_webcam_model.pth, selectable as 'efficientnet_current' in backend/services/webcam_service.py."),
+    ])
+
+    add_model_spec("3.3.4 ResNet-50 and VideoClassifier (MELD Visual Stream)", [
+        ("Role in system", "Extracts visual facial/scene representations from uploaded MELD conversational video clips for unimodal video scoring and multimodal fusion."),
+        ("Architecture and parameter count", "Frozen ImageNet-pretrained TorchVision ResNet-50 [4] with classification layer replaced by nn.Identity() (23,508,032 parameters, 2048-D feature output), paired with VideoClassifier MLP (backend/models/video_model.py): Linear(2048, 256) -> ReLU -> Dropout(0.3) -> Linear(256, 7) (526,343 parameters); combined 24,034,375 parameters."),
+        ("Input and preprocessing", "8 uniformly spaced frames sampled via torch.linspace(0, frame_count - 1, 8). Each frame receives an aspect-preserving square crop (side=min(h,w), y_start=(h-side)*0.15, centered horizontally), LAB-space CLAHE (clipLimit=2.0, tileGridSize=(8,8)), resize to 224x224 RGB, and ImageNet normalization. Luminance (<35 or >220) and contrast (<15) degrade quality_discount to 0.80."),
+        ("Output", "Temporal mean-pooled 2048-D embedding passed through VideoClassifier to yield 7-D logits, softmax probabilities, and visual quality_metrics (later converted to a 16-D vector in Section 3.4)."),
+        ("Training and hyperparameters", "ResNet-50 weights are frozen (ResNet50_Weights.DEFAULT). Note: train.py:train_video is a stub without a training loop, so the optimizer, epochs, learning rate, and loss schedule used to produce models/video_classifier/best_video_model.pth are MISSING from repository logs (stored and test metrics are reported in Section 5.2, Table 5.4)."),
+        ("Why chosen", "Temporal pooling over 8 CLAHE-normalized head crops enables fast CPU inference on arbitrary-length MP4 uploads without training a 3D video transformer."),
+        ("Where deployed", "backend/services/video_service.py (VideoInferenceService) serving POST /predict/video and feeding POST /predict/multimodal."),
+    ])
+
+    add_model_spec("3.3.5 Wav2Vec 2.0 Base and StrongerAudioClassifier (MELD Acoustic Stream)", [
+        ("Role in system", "Models vocal prosody and acoustic emotion cues from 16 kHz conversational speech waveforms in MELD and live microphone streams."),
+        ("Architecture and parameter count", "Frozen self-supervised facebook/wav2vec2-base [15] (94,371,712 parameters: 7-layer CNN feature extractor 4,200,448 + 12-layer Transformer encoder 89,775,488, hidden_dim=768, 12 heads). Production head StrongerAudioClassifier (backend/models/audio_model.py:21–39): Linear(768, 512) -> ReLU -> BatchNorm1d(512) -> Dropout(0.3) -> Linear(512, 256) -> ReLU -> Dropout(0.3) -> Linear(256, 7) (527,879 parameters). Baseline AudioClassifier: Linear(768, 256) -> ReLU -> Dropout(0.3) -> Linear(256, 7) (198,663 parameters)."),
+        ("Input and preprocessing", "Audio decoded via soundfile/librosa, averaged to mono, resampled to 16 kHz, DC-offset removed, peak-normalized, trimmed of silence (librosa.effects.trim top_db=30 if >=1600 samples), and capped at 30 s. Wav2Vec2Processor prepares waveforms; last_hidden_state is mask-mean-pooled into a 768-D vector. Duration <0.6 s, RMS <0.008, or clipping >5% sets quality_discount=0.85."),
+        ("Output", "7-D acoustic logits, softmax probabilities, and acoustic SNR/RMS/clipping quality_metrics."),
+        ("Training and hyperparameters", "In train.py:train_audio, StrongerAudioClassifier is trained on pre-extracted 768-D MELD embeddings (9,988 train / 1,108 dev) with AdamW (lr=1e-3, wd=1e-4), ReduceLROnPlateau (mode='max', factor=0.5, patience=5), bs=32, and WeightedRandomSampler (inverse class frequency). Across results/audio_classifier_improvement/, 5 strategies were benchmarked for 14–28 epochs to train production checkpoint best_audio_model_balanced.pth (per-epoch log for this exact file is MISSING; test outcomes on N=2,610 appear in Section 5.2, Table 5.4)."),
+        ("Why chosen", "Self-supervised speech transformer representations capture prosodic pitch and energy dynamics beyond hand-crafted spectral statistics [16], while balanced sampling prevents 47.1% neutral collapse."),
+        ("Where deployed", "backend/services/audio_service.py (AudioInferenceService) serving POST /predict/audio, POST /predict/multimodal, and POST /predict/webcam/multimodal."),
+    ])
+
+    add_model_spec("3.3.6 all-MiniLM-L6-v2 and TF-IDF Baselines (MELD Linguistic Stream)", [
+        ("Role in system", "Encodes spoken or transcribed conversational utterances into semantic vectors for 7-class linguistic emotion classification."),
+        ("Architecture and parameter count", "Frozen sentence-transformers/all-MiniLM-L6-v2 [19] (22,713,216 parameters: 6 Transformer layers, hidden_size=384, 12 attention heads). Saved production classifier (models/text_classifier/best_text_model_contextual.pt): sklearn LogisticRegression (C=1.2, class_weight='balanced', solver='lbfgs', max_iter=1000) with coef_ (7, 384) and intercept_ (7,) totaling 2,695 trainable parameters (22,715,911 combined). Legacy baseline (best_text_model.joblib): TfidfVectorizer(ngram_range=(1,3), max_features=12000, sublinear_tf=True) + LogisticRegression(C=1.5, class_weight='balanced', lbfgs) (84,007 classifier weights)."),
+        ("Input and preprocessing", "TextPreprocessingUtils.clean_and_normalize (backend/models/text_model.py) replaces smart quotes/apostrophes and expands 19 common English contractions. MiniLM tokenizes with padding=True, truncation=True, max_length=128 and computes attention-mask mean pooling -> 384-D vector. Utterances <=1 word and <5 chars receive quality_discount=0.85."),
+        ("Output", "7-D class probability vector via predict_proba(), predicted label, and token/character quality_metrics."),
+        ("Training and hyperparameters", "Note: train.py:train_text defines CalibratedClassifierCV(LogisticRegression(C=1.0, class_weight='balanced'), method='sigmoid', cv=3) on 80 samples/emotion (560 total), whereas the saved production bundle best_text_model_contextual.pt stores a direct LogisticRegression(C=1.2, class_weight='balanced') without a CalibratedClassifierCV wrapper (the exact script/split producing C=1.2 and TF-IDF C=1.5 is MISSING from the repo)."),
+        ("Why chosen", "Dense 384-D contextual embeddings handle paraphrasing, short conversational turns, and semantic negation at low CPU latency while outperforming sparse 12k n-gram TF-IDF features (comparative MELD test results appear in Section 5.2, Table 5.4)."),
+        ("Where deployed", "backend/services/text_service.py (TextInferenceService) paired with TranscriptionService (canonical MELD index + Google Speech ASR) behind /predict/text, /predict/text/file, /predict/multimodal, and /predict/webcam/multimodal."),
+    ])
+
+    add_model_spec("3.3.7 AdvancedCrossModalAttentionFusionNet (and LearnedAttentionFusionNet Baseline)", [
+        ("Role in system", "Fuses available acoustic, linguistic, and visual probability/logit representations into one calibrated emotion prediction with per-modality reliability weights."),
+        ("Architecture and parameter count", "AdvancedCrossModalAttentionFusionNet (backend/models/fusion_model.py:98–217): 167,113 parameters total — three modality projectors Linear(16,96)->LN->GELU->Dropout(0.2) (3x1,824=5,472), learnable modality_type_emb (1,3,96) (288), 2-layer TransformerEncoder (d_model=96, 4 heads, dim_feedforward=192, GELU, dropout=0.2; 149,568), output LayerNorm(96) (192), reliability gate_mlp Linear(98,48)->GELU->Linear(48,1)->Sigmoid (4,801), classification head Linear(96,64)->LN->GELU->Dropout(0.2)->Linear(64,7) (6,791), and learnable scalar consensus_weight (1, learned value 0.5102). Baseline LearnedAttentionFusionNet: 26,920 parameters (14-D input, d=64, 1 MHA layer, 4 heads)."),
+        ("Input and preprocessing", "Three 16-D modality feature vectors (Section 3.4) plus a boolean presence mask M in {0,1}^3 indicating active streams."),
+        ("Output", "Fused 7-D logits z_fused in R^7 and normalized modality attention/reliability gates g in [0,1]^3 summing to 1.0 across active streams."),
+        ("Training and hyperparameters", "Trained in train.py:train_fusion on pre-extracted balanced MELD splits (data/fusion_train_dataset.pt N=210 [30/class]; fusion_val_dataset.pt N=105 [15/class]) for 45 epochs, bs=32, AdamW (lr=1.5e-3, wd=1e-4), CosineAnnealingLR (T_max=45, eta_min=1e-5), CrossEntropyLoss (label_smoothing=0.05), grad clip max_norm=1.0, 15% single-modality dropout, seed=42, selecting minimum validation loss checkpoint (per-epoch log is MISSING)."),
+        ("Why chosen", "Models cross-channel dependencies across arbitrary modality subsets (unimodal, bimodal, trimodal) via key_padding_mask while blending learned neural features with centered log-odds consensus."),
+        ("Where deployed", "models/fusion_classifier/optimized_fusion_model.pth loaded by backend/services/fusion_service.py (MultimodalFusionService) and evaluated in evaluate.py."),
+    ])
+
+    add_model_spec("3.3.8 Post-Hoc Temperature Scaling and Runtime Concordance Calibration", [
+        ("Role in system", "Aligns predicted confidence with empirical accuracy without altering argmax ranking, mitigating overconfidence under class imbalance and noisy streams."),
+        ("Architecture and parameter count", "Single scalar temperature parameter T > 0 (1 parameter) scaling fusion logits z / T prior to softmax."),
+        ("Input and preprocessing", "Uncalibrated 7-D logits z_fused produced by AdvancedCrossModalAttentionFusionNet (or webcam logits in WebcamService)."),
+        ("Output", "Calibrated 7-class probability distribution P_cal = softmax(z / T)."),
+        ("Training and hyperparameters", "Offline optimization in train.py:344–354 applies bounded scalar minimization (scipy.optimize.minimize_scalar, bounds=(0.10, 2.50), Brent method — not L-BFGS) to minimize validation NLL on fusion_val_dataset.pt (N=105), yielding checkpoint scalar T* for optimized_fusion_model.pth (reported with validation and test curves in Section 5.2; baseline best_fusion_model.pth stores T=1.3490). In live service inference, MultimodalFusionService (fusion_service.py:62–63,196–263) overrides checkpoint T* with concordance-aware T_adaptive in [0.24, 0.28] (0.28 full consensus, 0.24–0.28 partial consensus, 0.26 conflicting) plus concordance logit scaling (1.15x–1.30x)."),
+        ("Why chosen", "Single-parameter temperature scaling is computationally free at inference, preserves decision boundaries, and lowers trimodal Expected Calibration Error on both validation and test splits below the 0.10 target (quantified in Section 5.2) [25]."),
+        ("Where deployed", "Stored in models/fusion_classifier/optimized_fusion_model.pth (used by evaluate.py) and adapted in backend/services/fusion_service.py; webcam backbones use T=1.0 (ResNet-18) or T=0.85 (EfficientNet-B0)."),
+    ])
+
+    # -----------------------------------------------------------------------
+    # 3.4 MULTIMODAL CROSS-MODAL ATTENTION FUSION DESIGN & WORKED EXAMPLE
+    # -----------------------------------------------------------------------
+    add_h2(doc, "3.4 Multimodal Cross-Modal Attention Fusion Design and Worked Example")
+    add_para(doc,
+             "Figure 3.5 illustrates the complete two-stage fusion architecture implemented in MultimodalFusionService and "
+             "AdvancedCrossModalAttentionFusionNet (Section 3.3.7). Rather than concatenating raw 768-D, 384-D, and 2048-D embeddings—which "
+             "overfits rapidly on small conversational fusion splits—the architecture operates on a compact, calibrated 16-D per-modality contract.")
     add_figure(doc, "report/figures/fig_diag_meld_fusion.png", "3.5",
                "MELD AdvancedCrossModalAttentionFusionNet and MultimodalFusionService entropy gating and temperature calibration.", width_in=5.65)
 
+    add_bullet(doc, "16-D Per-Modality Feature Contract (fusion_service.py:100–115): ",
+               "For each active stream m in {audio, text, video}, _build_16d_feature constructs u_m in R^16 by concatenating: "
+               "(i) normalized 7-class probabilities p_m = u_m[0:7]; (ii) centered log-probabilities l_m = ln(clip(p_m, 1e-6, 1.0)) - mean(ln p_m) "
+               "at u_m[7:14]; (iii) normalized Shannon certainty c_m = max(0.02, 1 - H_tilde(p_m)) at u_m[14]; and (iv) signal quality discount "
+               "q_m in {0.80, 0.85, 1.0} at u_m[15]. Absent streams receive the neutral fallback [1/7,...,1/7, 0,...,0, 0.0, 0.5].")
+    add_bullet(doc, "Modality Projections & Transformer Encoder: ",
+               "Dedicated linear projectors (see Section 3.3.7 for exact layer dimensions and dropout) map each u_m into shared 96-D space and "
+               "add learnable modality_type_emb in R^(1x3x96), after which a 2-layer TransformerEncoder exchanges cross-modal context.")
+    add_bullet(doc, "Missing-Modality Masking: ",
+               "Boolean presence mask M in {0,1}^3 produces key_padding_mask = ~M so absent channels receive zero attention weight; an explicit "
+               "safety guard (key_padding_mask[all_masked, 0] = False) prevents NaN attention outputs if all masks are false.")
+    add_bullet(doc, "Entropy Reliability Gate & Masked Normalization: ",
+               "Each attended token h_tilde_m in R^96 is concatenated with [c_m, q_m] and scored by gate_mlp to yield raw_g_m. Multiplying by "
+               "M_m and dividing by sum_k(raw_g_k * M_k) ensures zero leakage from absent streams and convex reliability weights sum_m g_m = 1.")
+    add_bullet(doc, "Dual-Branch Consensus Logit Blend & Calibration: ",
+               "A neural head maps the gated representation sum_m g_m * h_tilde_m to z_neural, while a residual consensus branch computes z_cons = "
+               "sum_m g_m * l_m directly over centered unimodal log-odds. Learned scalar gamma = clamp(consensus_weight, 0.1, 0.9) = 0.5102 blends "
+               "z_fused = (1 - gamma) * z_neural + gamma * z_cons prior to temperature scaling (see Section 3.3.8).")
+
+    add_h3(doc, "3.4.1 Worked Numeric Example on MELD Utterance dia0_utt0")
     add_para(doc,
-             "Finally, Figure 3.6 documents the REST and WebSocket deployment boundary exposed by FastAPI across backend/main.py and backend/api/*.py, "
-             "connecting client browser sessions to unimodal endpoints (/predict/audio, /predict/text, /predict/video), multimodal upload routes "
-             "(/predict/multimodal), and real-time webcam endpoints (/predict/webcam/frame, /frame-json, /ws, /backbone, /calibrate).")
-    add_figure(doc, "report/figures/fig_diag_api_deployment.png", "3.6",
-               "FastAPI deployment and REST/WebSocket endpoint architecture hosted locally on 127.0.0.1:8000.", width_in=5.65)
+             "To trace every stage numerically, consider real MELD sample dia0_utt0 (frontend/samples/dia0_utt0.wav and dia0_utt0.mp4, "
+             "canonical MELD dev utterance spoken by Phoebe at 00:20:57,256–00:21:00,049: \"Oh my God, he's lost it. He's totally lost it.\"). "
+             "All three streams pass signal-quality checks (q_a = q_t = q_v = 1.0): Audio predicts DISGUST (0.2010) with near-uniform "
+             "certainty c_a = 0.0252 (SNR 31.9 dB); Text predicts SADNESS (0.5114, c_t = 0.2964); and Video predicts SADNESS (0.9190, "
+             "c_v = 0.8269, mean luminance 59.39). Passing u_a, u_t, u_v through AdvancedCrossModalAttentionFusionNet yields raw gates "
+             "[0.4558, 0.5947, 0.4204], normalizing to g = [Audio=0.3098, Text=0.4043, Video=0.2858]. Notice that although Video has higher "
+             "raw certainty (0.8269 vs. 0.2964), the Transformer and gate MLP assign highest trust to Text (40.43%). Blending z_neural and "
+             "z_cons at gamma = 0.5102 yields z_fused[sadness] = +1.0015 (Table 3.2), producing calibrated SADNESS confidence 49.18% at "
+             "validation-fitted T* (Section 5.2; and 94.55% under runtime Partial Consensus scaling T_adaptive = 0.2514, 1.25x boost, matching "
+             "Figure 4.5). Masking Video out (M = [1, 1, 0]) dynamically renormalizes gates to [A=0.4292, T=0.5708, V=0.0000] and retains "
+             "SADNESS (z_fused = +0.4524, P(T*) = 28.46%), confirming graceful missing-modality behavior.")
 
-    add_h2(doc, "3.3 Core Algorithms (Pseudo-Code)")
-    add_para(doc,
-             "The three critical algorithms underlying live webcam parity, RAVDESS crop extraction, and mixed-domain training are specified below in "
-             "structured pseudo-code corresponding directly to backend/services/webcam_service.py, prepare_ravdess.py, and train_mixed.py.")
-
-    add_pseudocode_block(doc, "Algorithm 3.1: Unified Webcam Frame Processing & Uncertainty Gating (WebcamService.process_frame)", [
-        "Input: BGR frame I, client_id c, mirror flag m, smooth flag s, calibrate flag cal",
-        "1.  If m is True (legacy preview only; default m = False): flip I horizontally.",
-        "2.  Run YuNet face detector on I -> select largest/highest-confidence face F = (x,y,w,h, re, le, nose, rm, lm, conf).",
-        "3.  If F is empty or conf < 0.6 or min(w,h) < 40: return status = NO_FACE.",
-        "4.  If alignment active: compute eye angle theta = atan2(ley - rey, lex - rex); if |theta| <= 45 deg,",
-        "    rotate I around eye midpoint (cx, cy) and extract BORDER_REPLICATE square crop C of side max(w,h)*pad.",
-        "5.  Evaluate Laplacian variance v = Var(Laplacian(Gray(C))); flag blurry warning if v < 30.0.",
-        "6.  Resize C to active backbone resolution (128x128 for ResNet-18, 96x96 for EfficientNet-B0), RGB + ImageNet norm.",
-        "7.  Forward active backbone -> logits z in R^7; update/subtract per-client neutral baseline z_base if cal active.",
-        "8.  Compute softmax p_raw = softmax(z); apply adaptive EMA p_ema = alpha * p_raw + (1 - alpha) * p_prev if s is True.",
-        "9.  Update hysteresis label tracker; check p_top1 < 0.38 or (p_top1 - p_top2) < 0.08 -> is_uncertain flag.",
-        "10. Return JSON payload (emotion, tier, confidence, is_uncertain, probabilities, face_box, quality_metrics).",
-    ])
-
-    add_pseudocode_block(doc, "Algorithm 3.2: RAVDESS Dynamic Speech Crop Preparation & Quality Filtering (prepare_ravdess.py)", [
-        "Input: Directory of RAVDESS MP4 files (1,200 total), target_fps = 5.0, blur_threshold = 30.0, actors val = {09, 10}",
-        "1.  Parse 7-part RAVDESS filename mm-cc-ee-ii-ss-rr-aa.mp4.",
-        "2.  Reject unless modality mm == '01' (full-AV) and vocal channel cc == '01' (speech); skip calm (ee == '02').",
-        "3.  Map remaining 7 emotions -> canonical 7-class index; assign train (aa <= 08) or val (aa in {09, 10}).",
-        "4.  Open video clip -> frame_count N, fps f; compute middle window [floor(0.30*N), ceil(0.70*N)] stride round(f/5.0).",
-        "5.  For each sampled frame index t:",
-        "    a. Detect YuNet face; reject if conf < 0.6 or w < 64 or h < 64.",
-        "    b. Extract eye-aligned square crop via aligned_square_crop(..., pad=1.10/1.25, min_side=64).",
-        "    c. Reject if Var(Laplacian(Gray(crop))) < 30.0.",
-        "    d. Save PNG crop and append (crop_path, emotion_id, actor_id) row to train/val manifest CSV.",
-        "Output: 518 retained clips -> 3,970 aligned crops (3,184 train Actors 01-08, 786 val Actors 09-10).",
-    ])
-
-    add_pseudocode_block(doc, "Algorithm 3.3: Mixed RAF-DB + RAVDESS Differential Fine-Tuning (train_mixed.py)", [
-        "Input: ResNet-18 RAF checkpoint, RAF-DB train (10,428), RAVDESS train (3,184), extra_share = 0.2, batch_size = 32",
-        "1.  Freeze ResNet-18 conv1, bn1, layer1, layer2, layer3; keep layer4 and linear fc trainable; freeze early BN stats.",
-        "2.  Configure AdamW (wd = 1e-4) with differential LRs: backbone_lr = 2e-5 for layer4, head_lr = 2e-4 for fc.",
-        "3.  Set per-batch mix quotas: n_extra = round(32 * 0.2) = 6 RAVDESS crops, n_raf = 32 - 6 = 26 RAF-DB crops.",
-        "4.  Construct inverse-frequency class-balanced WeightedRandomSampler separately for raf_loader and extra_loader.",
-        "5.  For epoch = 1 .. max_epochs:",
-        "    a. Iterate paired mini-batches, concatenate (26 + 6 = 32), compute CrossEntropyLoss(label_smoothing = 0.1).",
-        "    b. Backpropagate, step AdamW, evaluate Macro-F1 independently on RAF-DB val (1,841) and RAVDESS val (786).",
-        "    c. Compute composite selection score = 0.5 * (macro_f1_raf_val + macro_f1_ravdess_val); checkpoint if best (ep 7).",
-        "Output: best_resnet18_ravdess.pt + embedded preprocessing metadata (128 px, RGB ImageNet normalization).",
-    ])
-
-    add_h2(doc, "3.4 Mathematical Modelling")
-    add_para(doc,
-             "Every mathematical formulation implemented across training, preprocessing, multimodal fusion, calibration, and evaluation in this "
-             "project is presented below in standardized equation numbering (3.1)–(3.22), alongside its physical symbol definitions and code location.")
-
-    add_formula_eq(doc, "3.1", "report/formulas/F1_softmax.png",
-                   "z in R^7 denotes raw class logits, c indexing the 7 emotions, producing calibrated probabilities sum_k p_k = 1 "
-                   "(webcam_service.py:765, audio_service.py:142, video_service.py:141).")
-    add_formula_eq(doc, "3.2", "report/formulas/F2_cross_entropy_label_smoothing.png",
-                   "y is the ground-truth label index, C=7, eps=0.1 is the label-smoothing factor (0.05 in MELD fusion) regularizing target "
-                   "distributions against noisy labels [26] (train_mixed.py:686,768).")
-    add_formula_eq(doc, "3.3", "report/formulas/F3_focal_loss.png",
-                   "alpha_y weights inverse class frequency, p_y is predicted true-class probability, and gamma=2.0 down-weights easy majority "
-                   "samples under MELD/webcam imbalance [27] (audio_model.py:41-59, train_webcam_phase3.py:163-192).")
-    add_formula_eq(doc, "3.4", "report/formulas/F6_class_balanced_weight.png",
-                   "N is dataset size, C=7, N_c is sample count of class c, yielding sampling weights w_c inversely proportional to class rarity "
-                   "(train_mixed.py:424-431).")
-    add_formula_eq(doc, "3.5", "report/formulas/F7_input_normalization.png",
-                   "x_RGB in [0,1] are RGB channels normalized by ImageNet mean mu=[0.485,0.456,0.406] and std sigma=[0.229,0.224,0.225] "
-                   "(train_mixed.py:383, live_resnet18_demo.py:44, webcam_service.py:137).")
-    add_formula_eq(doc, "3.6", "report/formulas/F9_conv_relu.png",
-                   "W and b denote 2D convolutional filter kernels and biases applied over spatial receptive fields followed by ReLU nonlinearity "
-                   "(torchvision ResNet-18, audio_model.py:13).")
-    add_formula_eq(doc, "3.7", "report/formulas/F10_batch_norm.png",
-                   "mu_B and sigma_B^2 are mini-batch feature moments regularized by learnable affine parameters gamma, beta (frozen up to layer3 "
-                   "during mixed ResNet-18 fine-tuning; active in StrongerAudioClassifier; train_mixed.py:465-474).")
-    add_formula_eq(doc, "3.8", "report/formulas/F8_resnet_residual_block.png",
-                   "F(x, {W_i}) denotes the two-layer residual mapping and W_s an optional 1x1 projection shortcut for identity skip-connection learning [4] "
-                   "(train_mixed.py:29, video_service.py:33).")
-    add_formula_eq(doc, "3.9", "report/formulas/F18_efficientnet_compound_scaling.png",
-                   "phi uniformly scales network depth d, width w, and input resolution r under resource factor alpha * beta^2 * gamma^2 approx 2 [5] "
-                   "for efficientnet_current (96x96 px, webcam_service.py:140-144).")
-    add_formula_eq(doc, "3.10", "report/formulas/F11_adamw_update.png",
-                   "m_t, v_t are first/second gradient moments, eta is differential learning rate (2e-5 backbone / 2e-4 head), and lambda=1e-4 is "
-                   "decoupled weight decay [28] (train_mixed.py:477-489).")
-    add_formula_eq(doc, "3.11", "report/formulas/F12_mixed_batch_composition.png",
-                   "B=32 total mini-batch size and rho=0.2 (extra_share) enforce n_extra=6 RAVDESS and n_raf=26 RAF-DB samples per step "
-                   "(train_mixed.py:618-621).")
-    add_formula_eq(doc, "3.12", "report/formulas/F13_aligned_square_crop.png",
-                   "(rex, rey) and (lex, ley) are YuNet eye coordinates defining rotation angle theta and padded crop side s=max(w,h)*pad "
-                   "(live_resnet18_demo.py:49-81, webcam_service.py:585-586).")
-    add_formula_eq(doc, "3.13", "report/formulas/F14_blur_quality_gate.png",
-                   "nabla^2 I_gray is the 2D Laplacian operator on grayscale crop C whose spatial variance must meet threshold tau_blur=30.0 "
-                   "(prepare_ravdess.py:131, webcam_service.py:592-593).")
-    add_formula_eq(doc, "3.14", "report/formulas/F19_ema_smoothing.png",
-                   "p_t is current softmax vector and alpha_t scales dynamically with prediction confidence to suppress single-frame jitter "
-                   "(webcam_service.py:770-775).")
-    add_formula_eq(doc, "3.15", "report/formulas/F16_uncertain_rule.png",
-                   "p_(1) and p_(2) are top-1 and top-2 probabilities; outputs with p_(1) < 0.38 or margin (p_(1) - p_(2)) < 0.08 trigger "
-                   "uncertain flagging (webcam_service.py:832-846).")
-    add_formula_eq(doc, "3.16", "report/formulas/F20_meld_audio_pooling_mlp.png",
-                   "H_wav in R^(T x 768) is mask-mean-pooled over valid acoustic frames and classified via GELU/LayerNorm/Dropout MLP [15][16] "
-                   "(audio_service.py:130-142, audio_model.py:21-39).")
-    add_formula_eq(doc, "3.17", "report/formulas/F21_meld_fusion_equations.png",
-                   "u_m in R^16 are audio/text/video feature vectors encoded by masked Transformer self-attention [18], combined via entropy-"
-                   "weighted gates g_m, consensus logits, and temperature T*=0.5953 (fusion_model.py:172-216, fusion_service.py:112,249-262).")
-    add_formula_eq(doc, "3.18", "report/formulas/F22_calibration_metrics.png",
-                   "B_m are M=15 confidence bins bounding Observed Accuracy vs Mean Confidence gap (ECE) and squared error (Brier) [25] "
-                   "(backend/utils/metrics.py:10-48).")
-    add_formula_eq(doc, "3.19", "report/formulas/F4_classification_metrics.png",
-                   "TP_c, FP_c, FN_c compute per-class precision, recall, F1, and unweighted Macro-F1 across all C=7 emotion classes "
-                   "(train_mixed.py:492-505, train_webcam_phase3.py:212-232).")
-    add_formula_eq(doc, "3.20", "report/formulas/F5_confusion_matrix.png",
-                   "M_ij counts true class i predicted as j, and M~_ij normalizes each row by total true class support (train_mixed.py:515-521, "
-                   "backend/utils/metrics.py:55).")
-    add_formula_eq(doc, "3.21", "report/formulas/F15_majority_and_pooled_acc.png",
-                   "Acc_pooled evaluates aggregate frame accuracy over all N=916 clip frames, whereas majority vote checks clip modal class "
-                   "(eval_clips.py:113-115).")
-    add_formula_eq(doc, "3.22", "report/formulas/F17_percentile_latency.png",
-                   "L_(k) are ordered per-frame CPU millisecond timings on k=1..200 frames giving median p50, tail p95, and throughput FPS = 1000/p50 "
-                   "(eval_clips.py:207-208).")
-
-    add_h2(doc, "3.5 Tool and Technique Justification")
-    add_para(doc,
-             "Each model family, signal encoder, and software framework was selected based on empirical CPU latency, licensing openness, and "
-             "reproducibility across PyTorch [29] and OpenCV runtimes, as structured in Table 3.2.")
-    tool_rows = [
-        ("YuNet (face_detection_yunet_2023mar.onnx) [13]", "OpenCV 5.1 DNN", "75.8K-param anchor-free detector outputting bounding box + 5 landmarks (eyes, nose, mouth) required for affine alignment at CPU speed."),
-        ("ResNet-18 (128x128 RGB) [4]", "TorchVision", "11.18M parameters; residual skip connections support partial fine-tuning (--freeze-until layer3) with 31.5-33.0 ms end-to-end p50 latency."),
-        ("EfficientNet-B0 (96x96 RGB) [5]", "TorchVision", "Legacy MELD-pretrained webcam baseline retained inside runtime switcher to demonstrate domain-shift degradation vs RAF/RAVDESS."),
-        ("Wav2Vec 2.0 Base (768-D) + StrongerMLP [15][16]", "Transformers", "Self-supervised speech encoder capturing pitch/prosody over hand-crafted MFCCs; StrongerMLP with WeightedRandomSampler raises Macro-F1."),
-        ("all-MiniLM-L6-v2 (384-D) [19][20]", "Sentence-Transformers", "Compact 384-D semantic encoder outperforming sparse 12k TF-IDF features on MELD text utterances (42.87% vs 40.15% Acc)."),
-        ("ResNet-50 (8-frame temporal pool) [4]", "TorchVision", "Extracts 2048-D visual representations for offline MELD uploaded video clips prior to VideoClassifier and 16-D fusion projection."),
-        ("PyTorch 2.14.0+cpu & FastAPI 0.162 [29]", "Core Runtime", "Unified autograd/checkpoint serialization plus async ASGI REST and WebSocket endpoints serving the zero-build Web Studio SPA."),
+    dia0_rows = [
+        ("Anger", "0.1258 (-0.0689)", "0.0215 (-1.1183)", "0.0000 (-7.8915)", "-0.2960", "-2.7291", "-1.5373", "0.0267", "0.0069", "0.0000"),
+        ("Disgust", "0.2010 (+0.3998)", "0.0110 (-1.7884)", "0.0034 (+0.2400)", "+0.4430", "-0.5307", "-0.0538", "0.1175", "0.0835", "0.0053"),
+        ("Fear", "0.0592 (-0.8226)", "0.1256 (+0.6468)", "0.0116 (+1.4672)", "+0.1779", "+0.4260", "+0.3045", "0.1682", "0.1525", "0.0218"),
+        ("Joy", "0.1761 (+0.2675)", "0.2027 (+1.1254)", "0.0003 (-2.1877)", "-0.1229", "-0.0874", "-0.1048", "0.1117", "0.0767", "0.0043"),
+        ("Neutral", "0.1533 (+0.1288)", "0.0154 (-1.4519)", "0.0014 (-0.6473)", "-0.4391", "-0.7322", "-0.5886", "0.0688", "0.0340", "0.0006"),
+        ("Sadness", "0.1592 (+0.1666)", "0.5114 (+2.0506)", "0.9190 (+5.8395)", "-0.6113", "+2.5499", "+1.0015", "0.3376", "0.4918", "0.9455"),
+        ("Surprise", "0.1255 (-0.0712)", "0.1124 (+0.5358)", "0.0643 (+3.1798)", "-0.5116", "+1.1034", "+0.3123", "0.1695", "0.1545", "0.0225"),
     ]
     add_styled_table(
-        doc, "3.2", "Technical Justification of Models, Signal Encoders, and Software Frameworks",
-        ["Component / Technology", "Ecosystem", "Engineering Justification"],
-        tool_rows, [1.60, 1.05, 3.10], font_pt=8.0,
+        doc, "3.2", "Worked Numeric Trace of AdvancedCrossModalAttentionFusionNet on MELD Sample dia0_utt0 (g=[0.3098, 0.4043, 0.2858], gamma=0.5102)",
+        ["Emotion", "Audio p (l_a)", "Text p (l_t)", "Video p (l_v)", "z_neural", "z_cons", "z_fused", "P(T=1)", "P(T=T*)", "P_live"],
+        dia0_rows, [0.54, 0.84, 0.84, 0.84, 0.46, 0.46, 0.46, 0.42, 0.48, 0.41], font_pt=6.4,
+    )
+
+    # -----------------------------------------------------------------------
+    # 3.5 CORE ALGORITHMS (PSEUDO-CODE)
+    # -----------------------------------------------------------------------
+    add_h2(doc, "3.5 Core Algorithms (Pseudo-Code)")
+    add_para(doc,
+             "Algorithms 3.1 and 3.2 specify the runtime execution contracts for the real-time webcam engine (WebcamService.process_frame) "
+             "and the cross-modal attention fusion forward/calibration pipeline (fusion_model.py and fusion_service.py). Offline RAVDESS "
+             "crop extraction (prepare_ravdess.py) and mixed-domain training (train_mixed.py) are summarized concisely in Section 3.2 and "
+             "Section 3.3.2 without duplicate pseudo-code listings.")
+
+    add_pseudocode_block(doc, "Algorithm 3.1: Unified Webcam Frame Processing & Uncertainty Gating (WebcamService.process_frame)", [
+        "Input: BGR frame I, client_id c, mirror flag m (default False), smooth flag s, calibrate flag cal",
+        "1.  If m is True (legacy preview only): flip I horizontally.",
+        "2.  Run YuNet (Section 3.3.1) on I -> select largest/nearest face F = (x,y,w,h, re, le, nose, rm, lm, conf).",
+        "3.  If F is empty: reset EMA buffer and return status = NO_FACE.",
+        "4.  Compute eye angle theta = atan2(ley - rey, lex - rex); if |theta| <= 45 deg,",
+        "    rotate I around eye midpoint (cx, cy) and extract BORDER_REPLICATE square crop C of side floor(max(w,h)*pad).",
+        "5.  Evaluate Laplacian variance v = Var(Laplacian(Gray(C))); hold prior prediction if v < 30.0 or conf < 0.50.",
+        "6.  Preprocess C for active backbone (Sections 3.3.2–3.3.3) -> raw logits z in R^7; apply neutral baseline offset if cal active.",
+        "7.  Compute softmax p_raw = softmax(z); apply confidence-adaptive EMA p_ema = alpha * p_raw + (1 - alpha) * p_prev if s.",
+        "8.  Temperature-scale centered log(p_ema) (T=1.0 for ResNet-18, T=0.85 for EfficientNet-B0), update 3-frame hysteresis.",
+        "9.  Check p_top1 < 0.38 or (p_top1 - p_top2) < 0.08 -> set is_uncertain flag and confidence tier (Robust/Moderate/Subtle).",
+        "10. Return JSON payload (apparent_expression, confidence_tier, is_uncertain, probabilities, bbox, quality_status).",
+    ])
+
+    add_pseudocode_block(doc, "Algorithm 3.2: Cross-Modal Attention Fusion, Masking & Calibration (fusion_model.py / fusion_service.py)", [
+        "Input: Optional unimodal results (audio_result, text_result, video_result), learned model weights, T_base = 0.28 (or checkpoint T*)",
+        "1.  Initialize active mask M in {0,1}^3; if sum(M) == 0 return error ('No valid modalities').",
+        "2.  For each stream m in {audio, text, video}:",
+        "    a. If present: extract p_m in R^7, l_m = ln(p_m) - mean(ln p_m), c_m = max(0.02, 1 - H_tilde(p_m)), q_m from quality_metrics.",
+        "    b. If absent: set u_m = [1/7,...,1/7, 0,...,0, 0.0, 0.5]; emit missing-modality notice.",
+        "3.  Project u_m -> h_m^(0) = Proj_m(u_m) + modality_type_emb[m] in R^96; set key_padding_mask = ~M (guard if all True).",
+        "4.  Run 2-layer TransformerEncoder + LayerNorm -> attended tokens h_tilde_m in R^96.",
+        "5.  Compute raw_g_m = gate_mlp(concat(h_tilde_m, c_m, q_m)); normalize g_m = (raw_g_m * M_m) / max(sum_k raw_g_k * M_k, 1e-7).",
+        "6.  Compute neural branch z_neural = Classifier(sum_m g_m * h_tilde_m) and consensus branch z_cons = sum_m g_m * l_m.",
+        "7.  Clamp gamma = clamp(consensus_weight, 0.1, 0.9); compute z_fused = (1 - gamma) * z_neural + gamma * z_cons.",
+        "8.  Calibrate: offline eval divides z_fused by fitted scalar T* (Section 5.2); live service applies concordance boost + T_adaptive in [0.24, 0.28].",
+        "9.  Apply softmax(z_scaled), resolve Full/Partial/Conflicting agreement narrative, and return MultimodalPredictionResponse.",
+    ])
+
+    # -----------------------------------------------------------------------
+    # 3.6 MATHEMATICAL MODELLING (ALIGNED & COMPLETE (3.1)-(3.25))
+    # -----------------------------------------------------------------------
+    add_h2(doc, "3.6 Mathematical Modelling")
+    add_para(doc,
+             "Every mathematical formulation implemented across unimodal encoding, multimodal attention fusion, temperature calibration, "
+             "webcam geometry/smoothing, and evaluation in this project is itemized below in standardized equation numbering (3.1)–(3.25), "
+             "verified one-to-one against its rendered equation and source location.")
+
+    add_formula_eq(doc, "3.1", "report/formulas/F1_softmax.png",
+                   "z in R^K (K=7) denotes raw class logits, c indexing the 7 discrete emotions, yielding normalized probabilities sum_c p_c = 1 "
+                   "(webcam_service.py:765, audio_service.py:142, video_service.py:141).")
+    add_formula_eq(doc, "3.2", "report/formulas/F2_cross_entropy_label_smoothing.png",
+                   "y is the ground-truth label index, K=7, and eps is the label-smoothing factor (0.10 in mixed ResNet-18 training, 0.05 in MELD "
+                   "fusion) regularizing target distributions against noisy labels [26] (train_mixed.py:768, train.py:283).")
+    add_formula_eq(doc, "3.3", "report/formulas/F3_focal_loss.png",
+                   "alpha_t weights inverse class frequency, p_t is predicted true-class probability, and gamma=2.0 down-weights easy majority "
+                   "samples under MELD/webcam imbalance [27] (audio_model.py:41–59, train_webcam_phase3.py:163–192).")
+    add_formula_eq(doc, "3.4", "report/formulas/F6_class_balanced_weight.png",
+                   "N is dataset size, n_c is sample count of class c, yielding WeightedRandomSampler probabilities inversely proportional to "
+                   "class frequency (train_mixed.py:424–431, train.py:100–106).")
+    add_formula_eq(doc, "3.5", "report/formulas/F7_input_normalization.png",
+                   "x_c in [0,1] are RGB channels normalized by ImageNet channel mean mu=[0.485,0.456,0.406] and std sigma=[0.229,0.224,0.225] "
+                   "(train_mixed.py:383, video_service.py:40, webcam_service.py:137).")
+    add_formula_eq(doc, "3.6", "report/formulas/F9_conv_relu.png",
+                   "W and b denote 2D convolutional filter kernels and biases followed by ReLU nonlinearity across ResNet-18/50 and MLP stages "
+                   "(torchvision ResNet-18/50, audio_model.py:13).")
+    add_formula_eq(doc, "3.7", "report/formulas/F10_batch_norm.png",
+                   "mu_B and sigma_B^2 are mini-batch feature moments standardized with learnable affine parameters gamma, beta (frozen through "
+                   "layer3 in mixed ResNet-18 fine-tuning; active in StrongerAudioClassifier; train_mixed.py:465–474, audio_model.py:30).")
+    add_formula_eq(doc, "3.8", "report/formulas/F8_resnet_residual_block.png",
+                   "F(x, {W_i}) denotes the residual mapping summed with the identity skip connection in ResNet-18 and ResNet-50 [4] "
+                   "(train_mixed.py:29, video_service.py:33).")
+    add_formula_eq(doc, "3.9", "report/formulas/F18_efficientnet_compound_scaling.png",
+                   "phi scales EfficientNet-B0 depth d, width w, and input resolution r under resource constraint alpha*beta^2*gamma^2 approx 2 "
+                   "[5] for legacy efficientnet_current (96x96 px, webcam_service.py:140–144).")
+    add_formula_eq(doc, "3.10", "report/formulas/F11_adamw_update.png",
+                   "m_hat_t, v_hat_t are bias-corrected gradient moments, eta_g is parameter-group learning rate, and lambda=1e-4 is decoupled "
+                   "weight decay [28] (train_mixed.py:477–489, train.py:119,284).")
+    add_formula_eq(doc, "3.11", "report/formulas/F12_mixed_batch_composition.png",
+                   "B=32 total mini-batch size and s_extra=0.2 enforce n_extra=6 RAVDESS crops and n_RAF=26 RAF-DB crops per training step "
+                   "(train_mixed.py:618–621).")
+    add_formula_eq(doc, "3.12", "report/formulas/F13_aligned_square_crop.png",
+                   "(x_R, y_R) and (x_L, y_L) are YuNet eye coordinates defining rotation angle theta (if |theta|<=45 deg), eye midpoint c_eye, "
+                   "and padded square crop side S = floor(max(w, h) * pad) (live_resnet18_demo.py:49–81, webcam_service.py:585–586).")
+    add_formula_eq(doc, "3.13", "report/formulas/F14_blur_quality_gate.png",
+                   "nabla^2 I_gray is the 2D Laplacian operator on grayscale crop C whose spatial variance must meet threshold 30.0 "
+                   "(prepare_ravdess.py:131, webcam_service.py:592–593).")
+    add_formula_eq(doc, "3.14", "report/formulas/F19_ema_smoothing.png",
+                   "p_t is the current softmax vector and alpha_t scales dynamically with top-1 probability p_max,t to dampen single-frame jitter "
+                   "(webcam_service.py:770–775).")
+    add_formula_eq(doc, "3.15", "report/formulas/F16_uncertain_rule.png",
+                   "p_(1) and p_(2) are top-1 and top-2 calibrated probabilities; outputs with p_(1) < 0.38 or margin (p_(1) - p_(2)) < 0.08 "
+                   "trigger the is_uncertain warning flag (webcam_service.py:832–846).")
+    add_formula_eq(doc, "3.16", "report/formulas/F20_meld_audio_pooling_mlp.png",
+                   "h_t in R^768 are Wav2Vec 2.0 hidden frames mask-mean-pooled into e_a in R^768 and classified via StrongerAudioClassifier "
+                   "(ReLU, BatchNorm1d(512), Dropout(0.3), 768->512->256->7) [15][16] (audio_service.py:130–142, audio_model.py:21–39).")
+    add_formula_eq(doc, "3.17", "report/formulas/F23_meld_16d_contract.png",
+                   "p_m in R^7 are normalized modality probabilities, l_tilde_m are centered log-probabilities, c_m in [0.02, 1] is normalized "
+                   "Shannon certainty, and q_m in {0.80, 0.85, 1.0} is signal quality discount forming u_m in R^16 (fusion_service.py:100–115).")
+    add_formula_eq(doc, "3.18", "report/formulas/F24_meld_transformer_masking.png",
+                   "Proj_m maps 16-D stream features to R^96 plus learned modality_type_emb e_type_m; a 2-layer TransformerEncoder with "
+                   "key_padding_mask = ~M produces LayerNorm-attended representations H_tilde (fusion_model.py:172–185).")
+    add_formula_eq(doc, "3.19", "report/formulas/F21_meld_fusion_equations.png",
+                   "H_tilde_m is normalized Shannon entropy, g_m are masked sigmoid reliability gates over [h_tilde_m, c_m, q_m], and z_fused "
+                   "blends neural logits with consensus centered log-odds at learned gamma=0.5102 (fusion_model.py:189–216).")
+    add_formula_eq(doc, "3.20", "report/formulas/F25_temperature_scaling_nll.png",
+                   "T > 0 scales logits before softmax; offline bounded scalar optimization minimizes NLL on the N_val=105 validation split "
+                   "to yield optimal scalar T* (evaluated in Section 5.2) [25] (train.py:345–354).")
+    add_formula_eq(doc, "3.21", "report/formulas/F22_calibration_metrics.png",
+                   "B_b are confidence bins (B=10 in metrics.py) measuring Expected Calibration Error (ECE) and multi-class Brier Score (BS) "
+                   "[25] (backend/utils/metrics.py:10–48).")
+    add_formula_eq(doc, "3.22", "report/formulas/F4_classification_metrics.png",
+                   "TP_c, FP_c, FN_c compute per-class precision, recall, F1, and unweighted Macro-F1 across all K=7 emotion categories "
+                   "(train_mixed.py:492–505, train_webcam_phase3.py:212–232).")
+    add_formula_eq(doc, "3.23", "report/formulas/F5_confusion_matrix.png",
+                   "C_ij counts true class i predicted as j, and C_tilde_ij normalizes each row by total true-class support "
+                   "(train_mixed.py:515–521, backend/utils/metrics.py:55).")
+    add_formula_eq(doc, "3.24", "report/formulas/F15_majority_and_pooled_acc.png",
+                   "y_hat_clip selects clip-level modal class over T_k frames while Acc_pooled averages frame accuracy over all N=916 clip frames "
+                   "(eval_clips.py:113–115).")
+    add_formula_eq(doc, "3.25", "report/formulas/F17_percentile_latency.png",
+                   "L_p orders per-frame CPU millisecond timings Delta t_i over N=200 frames to extract median p50 and tail p95 latency "
+                   "(eval_clips.py:207–208).")
+
+    add_h2(doc, "3.7 Tool and Technique Justification")
+    add_para(doc,
+             "Table 3.3 summarizes the open-source runtime stack and links each model family to its dedicated specification in Section 3.3, "
+             "avoiding redundant parameter or metric repetition.")
+    tool_rows = [
+        ("PyTorch 2.14.0+cpu & TorchVision 0.29.1 [29]", "Core DL Runtime", "Unified autograd, CPU inference mode, and TorchVision backbones (Sections 3.3.2–3.3.4, 3.3.7–3.3.8)."),
+        ("OpenCV 5.1.0 DNN", "Vision Runtime", "Runs YuNet ONNX (Section 3.3.1), eye-line affine warping, Laplacian blur gating, and LAB CLAHE."),
+        ("Transformers 5.17.0 (HuggingFace)", "Speech & NLP Encoders", "Hosts offline cached Wav2Vec 2.0 Base (Section 3.3.5) and all-MiniLM-L6-v2 (Section 3.3.6)."),
+        ("scikit-learn 1.9.1 & Joblib", "Statistical Heads & Metrics", "Hosts text LogisticRegression/TF-IDF classifiers (Section 3.3.6) and F1/confusion metrics."),
+        ("Librosa 1.0.0 & SoundFile", "Audio DSP", "16 kHz resampling, silence trimming (top_db=30), RMS/SNR/clipping diagnostics (Section 3.3.5)."),
+        ("FastAPI 0.162.0 & Uvicorn", "ASGI Web Server", "Serves 17 REST/WebSocket routes (Figure 3.4, Table 4.3) and zero-build Web Studio SPA."),
+        ("SciPy Bounded Optimization", "Calibration Solver", "Minimizes validation NLL via minimize_scalar for post-hoc temperature T* (Section 3.3.8)."),
+    ]
+    add_styled_table(
+        doc, "3.3", "Runtime Ecosystem Justification and Model Cross-Reference Index",
+        ["Software / Library Component", "Role", "Technical Justification & Model Section Cross-Reference"],
+        tool_rows, [1.65, 1.05, 3.05], font_pt=8.0,
     )
 
     add_mapped_pos(doc, "PO3 (Design/Development of Solutions), PO5 (Modern Tool Usage).")
@@ -1069,48 +1224,61 @@ def build_chapter4(doc: Document) -> None:
 
     add_h2(doc, "4.1 Step-by-Step System Development")
     add_para(doc,
-             "Implementation progressed across seven documented milestones audited in results/webcam_fix_log.md and repository commits, converting "
-             "fragmented experimental scripts into an integrated production-tested application.")
+             "Implementation progressed across both subsystems—real-time webcam vision and MELD conversational multimodal analysis—converting "
+             "standalone training scripts into an integrated, test-verified FastAPI application. Rather than restating model layer counts or "
+             "preprocessing specs already established in Section 3.3, the subsections below document the engineering integrations across each module.")
 
-    add_h3(doc, "4.1.1 Pipeline Parity Fix Between Live Webcam Endpoints and Offline Evaluation")
+    add_h3(doc, "4.1.1 Webcam Pipeline Parity, Quality Gating, and Dynamic Backbone Switching")
     add_para(doc,
-             "Initial testing uncovered silent discrepancies between browser live frames, base64 /frame-json requests, WebSocket streams, and "
-             "offline clip scripts. All routes (/predict/webcam/frame, /frame-json, /ws, /ws/webcam, /multimodal) plus eval_clips.py were "
-             "refactored onto a single shared engine (WebcamService.process_frame). Simulating WebRTC browser transport at 320x180 JPEG quality 85 "
-             "confirmed exact 916/916 frame parity (100.0% label agreement) between HTTP upload inference and local disk evaluation.")
+             "Early auditing uncovered silent divergences between browser live requests, WebSocket streams, and offline evaluation scripts, as well "
+             "as horizontal mirroring and brittle Action Unit (AU) geometry heuristics. All live routes (/predict/webcam/frame, /frame-json, "
+             "/ws, /ws/webcam, /multimodal) and eval_clips.py were unified onto WebcamService.process_frame (Algorithm 3.1), achieving exact "
+             "HTTP-vs-offline label parity under simulated 320x180 JPEG85 browser transport (verified in Section 5.1). Inference defaults were "
+             "fixed to mirror=False (decoupled from CSS preview mirroring), brittle AU override rules were removed after ablation confirmed "
+             "stronger validation F1 (Section 5.1), and POST /predict/webcam/backbone was added to hot-swap between resnet18_ravdess (default), "
+             "resnet18_raf, and efficientnet_current (Sections 3.3.1–3.3.3) while clearing stale per-client EMA buffers.")
 
-    add_h3(doc, "4.1.2 Unmirrored Inference and Geometric Quality Gating")
+    add_h3(doc, "4.1.2 RAVDESS Crop Curation and Mixed-Domain Fine-Tuning")
     add_para(doc,
-             "Browser selfie canvases frequently mirror video frames for user comfort, which altered asymmetrical expression gradients during "
-             "classification. Inference defaults were fixed to mirror=False in WebcamService while keeping CSS visual mirroring independent. "
-             "YuNet 5-point landmarks enabled in-plane eye-line affine alignment via aligned_square_crop, rejecting faces with roll |theta| > 45 "
-             "degrees to fallback upright bounds, side < 64 px, or Laplacian blur variance < 30.0.")
+             "To bridge static RAF-DB training photographs to dynamic speaking webcam faces without catastrophic forgetting, prepare_ravdess.py "
+             "executed an actor-disjoint curation pass separating Actors 01–08 (training) from unseen Actors 09–10 (validation; Figure 3.3). "
+             "Mixed-domain fine-tuning in train_mixed.py (Section 3.3.2) then adapted the baseline RAF-DB weights on joint mini-batches and "
+             "selected the checkpoint maximizing mean RAF-DB and RAVDESS validation Macro-F1.")
 
-    add_h3(doc, "4.1.3 Removal of Hard-Coded Action Unit Rules")
+    add_h3(doc, "4.1.3 MELD Acoustic Pipeline and Class-Imbalance Mitigation")
     add_para(doc,
-             "Early webcam heuristics applied rule-based facial geometry overrides that suppressed legitimate model posteriors. Phase-2 ablation "
-             "(results/phase2_ablations.json) verified that removing these hard-coded Action Unit rules raised MELD validation macro-F1 from "
-             "0.2872 to 0.3868 (+0.0996), confirming pure learned feature decoding.")
+             "MELD training and validation utterances exhibited severe class skew (~47% neutral vs. <2.8% disgust and fear), causing the "
+             "baseline AudioClassifier (Section 3.3.5) to suffer majority-class collapse on held-out test categories (quantified in Section 5.2, "
+             "Table 5.4). Offline extraction via pipeline.py (--extract audio and --extract wav2vec) invoked ffmpeg to cache MELD embeddings across "
+             "train/dev/test splits (9,988 / 1,108 / 2,610). Five imbalance strategies were benchmarked in results/audio_classifier_improvement/ "
+             "(A_Baseline, B_Stronger_MLP, C_Weighted_CE, D_Weighted_Sampler, F_Focal_Loss), motivating the inverse-frequency sampled production "
+             "checkpoint best_audio_model_balanced.pth integrated with AudioInferenceService quality diagnostics (Section 3.3.5).")
 
-    add_h3(doc, "4.1.4 Dynamic Multi-Backbone Integration")
+    add_h3(doc, "4.1.4 MELD Linguistic Pipeline and Canonical/ASR Transcription")
     add_para(doc,
-             "WebcamService was extended with a dynamic backbone switcher (POST /predict/webcam/backbone) supporting three registered models: "
-             "resnet18_ravdess (default), resnet18_raf, and efficientnet_current. Each checkpoint embeds its preprocessing dictionary (input size, "
-             "eval_resize=146/CenterCrop=128 vs 96x96, RGB ImageNet normalization), preventing stale image resolution mismatches upon hot-swapping.")
+             "Linguistic processing migrated from the legacy TF-IDF baseline to dense contextual embeddings inside TextInferenceService "
+             "(backend/services/text_service.py; see Section 3.3.6), while retaining automatic fallback loading to best_text_model.joblib if the "
+             "contextual bundle is absent. Repository auditing documented an implementation discrepancy between train.py:train_text and the "
+             "deployed best_text_model_contextual.pt weights (detailed in Section 3.3.6). For audio-only or video-only uploads lacking an "
+             "explicit transcript, TranscriptionService (backend/services/transcription_service.py) indexes 11,132 unique dia{D}_utt{U} keys "
+             "across the MELD dev (1,109), test (2,610), and train (9,989) CSVs (unique count reflects split-overlapping dialogue IDs) and falls "
+             "back to Google Speech Recognition ASR for non-MELD user recordings.")
 
-    add_h3(doc, "4.1.5 RAVDESS Dynamic Crop Extraction and Mixed Fine-Tuning")
+    add_h3(doc, "4.1.5 MELD Visual Stream and Temporal Frame Pooling")
     add_para(doc,
-             "Using prepare_ravdess.py, 1,200 RAVDESS files were filtered down to 518 speech clips (skipping 600 non-AV/song clips, 80 calm clips, "
-             "and 2 clips lacking valid faces), yielding 3,970 eye-aligned quality-gated crops split cleanly by actor identity (3,184 train from "
-             "Actors 01–08; 786 val from Actors 09–10). Mixed training (train_mixed.py) initialized from best_resnet18.pt, froze stages up to "
-             "layer3, blended 26 RAF-DB + 6 RAVDESS balanced crops per 32-sample batch, and peaked at Epoch 7 (best_resnet18_ravdess.pt).")
+             "VideoInferenceService (backend/services/video_service.py; see Section 3.3.4) handles uploaded MP4/AVI/MOV clips via OpenCV frame "
+             "sampling, speaker head framing, and illumination-normalized ResNet-50 pooling. At runtime, diagnostic checks monitor exposure and "
+             "contrast statistics, flagging degraded visual quality and emitting up to four base64 preview thumbnails for the Web Studio UI. "
+             "Note that train.py:train_video remains an unimplemented stub, leaving training curves for best_video_model.pth unlogged.")
 
-    add_h3(doc, "4.1.6 MELD Unimodal Improvement, Fusion Optimization, and Calibration")
+    add_h3(doc, "4.1.6 Cross-Modal Attention Fusion Training, Calibration, and Conflict Diagnostics")
     add_para(doc,
-             "In the MELD subsystem, acoustic collapse toward majority neutral was mitigated using StrongerAudioClassifier (768->512->256->7 with "
-             "LayerNorm and GELU) and inverse-frequency WeightedRandomSampler. Contextual MiniLM embeddings replaced TF-IDF with CalibratedClassifierCV. "
-             "Finally, AdvancedCrossModalAttentionFusionNet (16-D stream inputs, d_model=96, 2 Transformer encoder layers, 4 heads) was trained for "
-             "45 epochs and temperature-calibrated (T* = 0.5953) via L-BFGS optimization.")
+             "Fusion training in train.py:train_fusion operates on pre-extracted balanced 16-D MELD partitions (data/fusion_train_dataset.pt, "
+             "fusion_val_dataset.pt, fusion_test_dataset.pt), dropping a random modality during training so attention masking and reliability "
+             "gates (Sections 3.3.7 and 3.4) learn to re-weight surviving channels, followed by bounded scalar calibration (Section 3.3.8). At "
+             "serving time, MultimodalFusionService (backend/services/fusion_service.py) accepts arbitrary 1-, 2-, or 3-modality payloads, falls "
+             "back to entropy-weighted Bayesian integration if neural weights are absent, applies runtime concordance scaling, and synthesizes "
+             "natural-language agreement rationales (Full Consensus, Partial Consensus, or Conflicting / Divergent).")
 
     add_h2(doc, "4.2 Web Studio Frontend Walkthrough")
     add_para(doc,
@@ -1138,7 +1306,7 @@ def build_chapter4(doc: Document) -> None:
                "Video Upload Clip Studio (ResNet-50 8-frame temporal pooling) prediction view on dia0_utt0.mp4.", width_in=5.35)
 
     add_para(doc,
-             "Figure 4.4 presents the Benchmarks & Ablation research view, surfacing the stored MELD 7-configuration ablation table and temperature "
+             "Figure 4.4 presents the Benchmarks & Ablation research view, surfacing the stored MELD ablation table and temperature "
              "calibration reliability plot directly inside the browser.")
     add_figure(doc, "report/figures/ui_results_benchmarks.png", "4.4",
                "Benchmarks & Ablation UI tab displaying MELD configuration comparison and reliability curve.", width_in=5.35)
@@ -1157,7 +1325,7 @@ def build_chapter4(doc: Document) -> None:
     add_para(doc,
              "Figure 4.7 depicts the Linguistic Modality Studio evaluating arbitrary text prompts through the contextual all-MiniLM-L6-v2 pipeline.")
     add_figure(doc, "report/figures/ui_text_studio.png", "4.7",
-               "Linguistic Modality Studio (all-MiniLM-L6-v2 + CalibratedClassifierCV) prediction interface.", width_in=5.35)
+               "Linguistic Modality Studio (all-MiniLM-L6-v2 + LogisticRegression) prediction interface.", width_in=5.35)
 
     add_para(doc,
              "Figure 4.8 displays the Session Prediction History and Audit Log view stored strictly client-side in session memory for review or export.")
@@ -1167,27 +1335,37 @@ def build_chapter4(doc: Document) -> None:
     add_h2(doc, "4.3 Experimental Setup and Training Hyperparameters")
     add_para(doc,
              "All training, benchmarking, and server tests were conducted on the CPU workstation detailed in Table 4.1 (verified via platform, "
-             "Win32 CIM queries, and active .venv package inspection), and exact model hyperparameters across all checkpoints are consolidated in "
-             "Table 4.2.")
+             "Win32 CIM queries, and active .venv package inspection). Training hyperparameters across all webcam and MELD unimodal/fusion "
+             "models are consolidated in Table 4.2, with unlogged checkpoint fields marked MISSING.")
     add_csv_table(
         doc, "4.1", "Verified Hardware and Software Execution Environment Specifications",
         "report/tables/environment.csv",
         col_widths=[0.85, 1.35, 2.35, 1.20], font_pt=8.2,
     )
-    add_csv_table(
-        doc, "4.2", "Training Hyperparameters Across Webcam Backbones and MELD Multimodal Fusion",
-        "report/tables/hyperparameters.csv",
-        col_widths=[0.95, 1.05, 0.90, 0.95, 0.90, 1.00], font_pt=7.4,
+    hp_rows = [
+        ("resnet18_ravdess", "128 (eval 146)", "AdamW (wd=1e-4)", "2e-5 (layer4) / 2e-4 (fc)", "CE (smooth=0.1)", "8 (best ep 7)", "32 (26 RAF+6 RAV)", "train_mixed.py / train_ravdess.log"),
+        ("resnet18_raf", "128 (eval 146)", "AdamW (wd=1e-4)", "1e-4 (bb) / 1e-3 (fc)", "CE (smooth=0.0)", "10 (stop 9, best 6)", "32", "train_raf_resnet18.py / config.json"),
+        ("efficientnet_current", "96 (96)", "AdamW (wd=1e-4)", "1.5e-5 (bb) / 7.5e-5 (fc)", "Focal (g=2.0, sm=0.05)", "10 ph3 (ckpt ep 34)", "64", "train_webcam_phase3.py"),
+        ("MELD Audio (StrongerMLP)", "768-D vec", "AdamW (wd=1e-4)", "1e-3 + Plateau(0.5,p=5)", "CE + BalancedSampler", "14–28 exp (ckpt MISSING)", "32", "train.py / audio_classifier_improvement/"),
+        ("MELD Text (MiniLM / TF-IDF)", "384-D / 12k", "L-BFGS LogReg", "C=1.2 / C=1.5 (bal.)", "Multinomial LogLoss", "Closed-fit (script MISSING)", "N/A", "best_text_model_contextual.pt / .joblib"),
+        ("MELD Video (ResNet-50 MLP)", "2048-D (224px)", "MISSING (stub)", "MISSING (stub)", "MISSING (stub)", "MISSING (stub)", "MISSING", "train.py:172 (stub); best_video_model.pth"),
+        ("MELD Fusion Baseline", "14-D vec", "MISSING", "MISSING", "MISSING", "MISSING (T=1.3490)", "MISSING", "best_fusion_model.pth"),
+        ("MELD Fusion Optimized", "16-D vec", "AdamW (wd=1e-4)", "1.5e-3 + Cosine(1e-5)", "CE (sm=0.05) + 15% Drop", "45 (ep curve MISSING)", "32", "train.py:250–376 / optimized_fusion_model.pth"),
+    ]
+    add_styled_table(
+        doc, "4.2", "Training Hyperparameters Across Webcam Backbones and MELD Unimodal / Fusion Models",
+        ["Model", "Input Size", "Optimizer", "LR / Reg", "Loss / Sampling", "Epochs / Best", "Batch", "Source"],
+        hp_rows, [0.95, 0.62, 0.72, 0.82, 0.76, 0.68, 0.50, 0.70], font_pt=6.7,
     )
 
     add_h2(doc, "4.4 FastAPI REST and WebSocket Endpoints")
     add_para(doc,
-             "Table 4.3 inventories all 17 REST and WebSocket endpoints registered across backend/main.py and backend/api/*.py, together with input "
-             "schemas and structured JSON response contracts.")
+             "Table 4.3 inventories all 17 REST and WebSocket endpoints registered across backend/main.py and backend/api/*.py (visualized in "
+             "Figure 3.4), together with input schemas and structured JSON response contracts.")
     add_csv_table(
         doc, "4.3", "Complete List of FastAPI REST and WebSocket Endpoints",
         "report/tables/api_endpoints.csv",
-        col_widths=[0.50, 1.15, 0.85, 0.95, 0.95, 1.35], font_pt=7.4,
+        col_widths=[0.46, 1.25, 0.92, 0.92, 1.00, 1.20], font_pt=7.4,
     )
 
     add_h2(doc, "4.5 Automated Test Verification (Input vs. Expected vs. Actual)")
@@ -1232,9 +1410,12 @@ def build_chapter4(doc: Document) -> None:
 def build_chapter5(doc: Document) -> None:
     add_chapter_heading(doc, "5", "Results and Discussion", page_break=True)
 
-    add_h2(doc, "5.1 Datasets, Webcam Progression, and Final Confusion Matrix")
+    add_h2(doc, "5.1 Datasets and Real-Time Webcam Evaluation")
     add_para(doc,
-             "Evaluation spans four benchmarks under the shared seven-emotion taxonomy (Table 5.1): RAF-DB [2] (10,428 train / 1,841 val / 3,068 test after removing 2 train duplicates), RAVDESS [3] speech crops (3,184 Actors 01–08 train / 786 Actors 09–10 val), MELD [1] (N=2,610 unimodal test; 105 balanced fusion test), and 9 personal clips (916 frames, evaluation-only).",
+             "Empirical evaluation spans four benchmarks across the shared seven-emotion taxonomy (Table 5.1): RAF-DB [2] (10,428 train / "
+             "1,841 val / 3,068 test after removing 2 exact within-train duplicates), actor-disjoint RAVDESS [3] speech crops (3,184 Actors 01–08 "
+             "train / 786 Actors 09–10 val), MELD [1] (N=2,610 held-out unimodal test; 105-sample balanced fusion validation and test splits, "
+             "15/class), and 9 personal webcam evaluation clips (916 frames, evaluation-only).",
              space_after=4.0)
     add_csv_table(
         doc, "5.1", "Datasets Summary Across Training, Validation, and Evaluation Splits",
@@ -1243,7 +1424,17 @@ def build_chapter5(doc: Document) -> None:
     )
 
     add_para(doc,
-             "Table 5.2 and Figure 5.1 summarize the real-time webcam backbone progression. Replacing legacy EfficientNet-B0 (15.61% pooled webcam, 1/9 clips; 20.4% RAF-DB) with RAF-trained ResNet-18 lifted webcam accuracy to 44.00% (4/9 clips; 79.53% RAF-DB). Mixed fine-tuning on RAF-DB + aligned RAVDESS crops (resnet18_ravdess, Epoch 7) achieved the best generalization: lifting RAF-DB test macro-F1 to 0.7077 (79.27% acc), reaching 56.87% (0.5354 macro-F1) on unseen RAVDESS actors, and raising personal webcam performance to 57.31% (525/916 frames, 5/9 clips).",
+             "Across the live vision pipeline (Sections 3.3.1–3.3.3), unifying REST, WebSocket, and offline evaluation on WebcamService.process_frame "
+             "verified 916/916 HTTP-vs-disk frame label parity across all 9 evaluation clips, while removing brittle Action Unit geometry overrides "
+             "raised MELD validation macro-F1 from 0.2872 to 0.3868 (+0.0996, results/phase2_ablations.json). As summarized in Table 5.2, replacing "
+             "legacy EfficientNet-B0 (15.61% pooled webcam, 1/9 clips; 20.4% RAF-DB) with RAF-trained ResNet-18 lifted webcam accuracy to 44.00% "
+             "(4/9 clips; 79.53% RAF-DB), and mixed RAF-DB + RAVDESS fine-tuning (resnet18_ravdess) reached 57.31% pooled accuracy (525/916 frames, "
+             "5/9 clips), raised RAF-DB macro-F1 from 0.6721 to 0.7077 (79.27% accuracy), and achieved 56.87% accuracy (0.5354 macro-F1) on unseen "
+             "RAVDESS actors. Across the 9 evaluation clips, the confusion matrix (Figure 5.1) and clip-level logs confirm 100.0% accuracy on "
+             "Disgust (2).mp4, Joy.mp4, and Neutal.mp4 (100% Joy and Neutral recall; 93.1% Disgust recall overall), 79.78% on disgust.mp4, and "
+             "43.75% (majority pass) on Fear (2).mp4, whereas Anger (61.4% surprise, 38.6% neutral) and Sadness (100% neutral) remain unsolved "
+             "single-frame failure cases. In the unified 200-frame CPU latency benchmark (Table 5.3), all three backbones held 31.50–33.63 ms median "
+             "(p50) and 33.26–35.82 ms tail (p95) latency (~29.7–31.8 FPS), well within the 150 ms budget.",
              space_after=4.0)
     add_csv_table(
         doc, "5.2", "Webcam Backbones Across RAF-DB, RAVDESS, 9 Clips, and Unified CPU Latency",
@@ -1252,75 +1443,194 @@ def build_chapter5(doc: Document) -> None:
         rename_headers=["Backbone", "Arch.", "Px", "RAF Acc", "RAF F1", "RAV Acc", "RAV F1", "Clips", "Pooled", "p50 ms", "p95 ms"],
         col_widths=[0.88, 0.62, 0.34, 0.48, 0.48, 0.48, 0.48, 0.45, 0.50, 0.52, 0.52], font_pt=6.8,
     )
-    add_figure(doc, "report/figures/fig_webcam_backbone_comparison.png", "5.1",
-               "Per-clip frame accuracy, pooled accuracy, and clips passed across all three webcam backbones (9 clips, 916 frames).", width_in=4.65)
-
-    add_para(doc,
-             "Figure 5.2 presents the single final confusion matrix—for the promoted default resnet18_ravdess backbone across the 9 evaluation clips—paired with per-clip results in Table 5.3 and unified 200-frame CPU latency in Table 5.4. It achieves 100.0% frame accuracy on Disgust (2).mp4, Joy.mp4, and Neutal.mp4, 79.78% on disgust.mp4, and 43.75% (majority pass) on Fear (2).mp4, while holding 32.98 ms median latency (~30.3 FPS, p95 = 34.59 ms).",
-             space_after=4.0)
-    add_figure(doc, "report/figures/fig_cm_webcam_resnet18_ravdess.png", "5.2",
-               "Final 7x7 row-normalized confusion matrix: default ResNet-18 (RAF+RAVDESS) on 9 webcam clips (57.31% pooled).", width_in=3.75)
+    add_figure(doc, "report/figures/fig_cm_webcam_resnet18_ravdess.png", "5.1",
+               "Final 7x7 row-normalized webcam confusion matrix: default ResNet-18 (RAF+RAVDESS) on 9 clips (57.31% pooled, N=916).", width_in=3.75)
     add_csv_table(
-        doc, "5.3", "Per-Clip Ground Truth, Majority Vote, and Frame Accuracy (916/916 Detected Faces)",
-        "report/tables/per_clip_results.csv",
-        col_indices=[0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11],
-        rename_headers=["Clip", "Truth", "Frm", "Eff Maj", "Eff Acc", "RAF Maj", "RAF Acc", "RAV Maj", "RAV Acc", "RAV TopErr", "Err%"],
-        col_widths=[0.74, 0.46, 0.34, 0.50, 0.46, 0.50, 0.46, 0.55, 0.46, 0.64, 0.64], font_pt=6.7,
-    )
-    add_csv_table(
-        doc, "5.4", "Unified 200-Frame CPU Latency on Disgust (2).mp4 (Earlier Single Runs Non-Comparable)",
+        doc, "5.3", "Unified 200-Frame CPU Latency on Disgust (2).mp4 (Earlier Single Runs Non-Comparable)",
         "report/tables/latency_benchmark.csv",
         col_indices=[0, 1, 2, 7, 8, 9, 10, 11, 12, 13, 14],
         rename_headers=["Backbone", "Arch.", "Px", "Mean", "Std", "p50", "p95", "p99", "Min", "Max", "FPS(p50)"],
         col_widths=[0.94, 0.72, 0.34, 0.45, 0.42, 0.46, 0.46, 0.46, 0.46, 0.46, 0.58], font_pt=6.8,
     )
 
-    add_h2(doc, "5.2 MELD Multimodal Ablations and Probability Calibration")
+    add_h2(doc, "5.2 MELD Unimodal and Multimodal Benchmark, Ablation, and Calibration")
     add_para(doc,
-             "In MELD unimodal optimization, removing hard-coded Action Unit heuristics raised validation macro-F1 from 0.2872 to 0.3868 (+0.0996); balanced Wav2Vec 2.0 sampling raised acoustic macro-F1 from 0.1771 to 0.2209 (N=2,610); and contextual all-MiniLM-L6-v2 text lifted accuracy from 40.15% (TF-IDF) to 42.87%. Comparing individual unimodal streams against full multimodal fusion on the balanced evaluation benchmark (Figure 5.3, Table 5.5, N=105), unimodal Audio-only achieves 20.95% accuracy (0.2022 macro-F1, ECE 0.1725), Video-only achieves 6.67% (0.0681 macro-F1, ECE 0.4125), and Text-only achieves 37.14% (0.3650 macro-F1, ECE 0.1903); combining all three streams via Trimodal AdvancedCrossModalAttentionFusionNet with temperature scaling (T*=0.5953) achieves 36.19% accuracy (0.3574 macro-F1, up from the 29.52% / 0.2833 baseline) while cutting Expected Calibration Error from 0.2130 down to 0.0734 (Figure 5.4).",
+             "Table 5.4 consolidates all MELD unimodal and multimodal fusion benchmarks across held-out evaluation splits using exact checkpoint "
+             "and service evaluation (metrics from backend/utils/metrics.py, results/audio_classifier_improvement/comparison.csv, "
+             "results/video_metrics/classification_report.txt, results/baseline_audit/baseline_performance.json, and "
+             "results/metrics/multimodal_optimization_comparison.json). To resolve an inconsistency present in earlier project tables, two "
+             "distinct fusion baselines are separated cleanly on data/fusion_test_dataset.pt (N=105): (1) the Pre-Optimization System Baseline "
+             "(baseline_performance.json: Acc 29.52%, Macro-F1 0.2833, ECE 0.2130, Brier 0.8811, NLL 1.9835), which is the canonical baseline for "
+             "optimization gains; and (2) the 14-D LearnedAttentionFusionNet checkpoint (best_fusion_model.pth, T=1.3490), whose 14-D test slice "
+             "achieves 30.48% accuracy, 0.2488 Macro-F1, ECE 0.0520 (0.0606 unscaled), and Brier 0.8317 (earlier tables had paired 30.48%/0.2488 "
+             "test accuracy/F1 with the checkpoint's stored validation ECE of 0.0713 at 34.29% accuracy).",
              space_after=4.0)
-    add_figure(doc, "report/figures/fig_ablation_meld_7config.png", "5.3",
-               "Multimodal ablation benchmark across unimodal and trimodal MELD configurations (N=105).", width_in=4.65)
-    add_figure(doc, "report/figures/fig_calibration_reliability.png", "5.4",
-               "Reliability diagram comparing uncalibrated vs. temperature-scaled multimodal probabilities (ECE 0.2130 -> 0.0734).", width_in=3.85)
-    key_meld_names = {
-        "Audio Baseline (A_Baseline)",
-        "Audio Balanced Sampler (Production)",
-        "Text Baseline (TF-IDF)",
-        "Text Contextual (Production)",
-        "Fusion Baseline",
-        "Optimized Fusion (Audio Only)",
-        "Optimized Fusion (Video Only)",
-        "Optimized Fusion (Text Only)",
-        "Optimized Fusion (Audio + Video + Text (Trimodal))",
-    }
-    add_csv_table(
-        doc, "5.5", "Unimodal vs. Trimodal Multimodal MELD Benchmark Results",
-        "report/tables/meld_model_results.csv",
-        col_indices=[0, 2, 3, 4, 5, 6, 7, 8],
-        rename_headers=["Model / Config", "Architecture", "Eval Set", "N", "Acc", "MacroF1", "W-F1", "ECE"],
-        filter_fn=lambda r: r[0] in key_meld_names,
-        col_widths=[1.20, 1.15, 0.85, 0.40, 0.52, 0.55, 0.58, 0.50], font_pt=7.0,
-    )
 
-    add_h2(doc, "5.3 Objectives Audit, Economic BOM, Benchmark Positioning, and Failure Defense")
-    add_para(doc,
-             "Tables 5.6, 5.7, and 5.8 consolidate the Chapter 1 objectives audit, open-source CPU-only Bill of Materials, and positioning against verified literature (GPU static transformers POSTER++ 92.21% [9] and DDAMFN 91.35% [10]; multi-turn imbalanced MELD networks TelME ~67% [24] and UniMSE 65.51% [23]).",
-             space_after=4.0)
-    obj_rows = [
-        ("Obj 1: Parity & Quality Gating", "100% API/eval match; align + blur >= 30", "916/916 parity; AU rules cut (0.2872->0.3868)", "Met"),
-        ("Obj 2: Webcam Acc & Latency", "Beat 15.6%/44%; RAF F1>=0.6721; p95<=150ms", "57.31% (5/9), RAF F1 0.7077, p95 34.59 ms; anger/sad 0%", "Partly Met"),
-        ("Obj 3: Balanced MELD Unimodal", "Mitigate collapse; MiniLM vs TF-IDF", "Audio F1 0.1771->0.2209; MiniLM 42.87% vs 40.15%", "Met"),
-        ("Obj 4: Calibrated Fusion", "Masking + calibration ECE < 0.10", "Masking verified; ECE 0.2130->0.0734; T-only > Acc", "Partly Met"),
-        ("Obj 5: Privacy & Auto QA", "Volatile live RAM + full test suite pass", "5/5 unit + 11/11 integration pass; 8 UI tabs OK", "Met"),
+    meld_full_rows = [
+        ("Audio Baseline (Sec. 3.3.5)", "AudioClassifier (768->256->7)", "Test Emb.", "2,610", "0.4923", "0.1771", "0.3973", "0.0702", "0.6819"),
+        ("Audio Exp B: Stronger MLP", "StrongerAudioClassifier", "Test Emb.", "2,610", "0.4900", "0.1986", "0.4138", "—", "—"),
+        ("Audio Exp C: Weighted CE", "StrongerAudioClassifier", "Test Emb.", "2,610", "0.2686", "0.2110", "0.3025", "—", "—"),
+        ("Audio Exp D: Balanced Sampler", "StrongerAudioClassifier", "Test Emb.", "2,610", "0.2854", "0.2041", "0.3201", "—", "—"),
+        ("Audio Exp F: Focal Loss", "StrongerAudioClassifier", "Test Emb.", "2,610", "0.4866", "0.1972", "0.4109", "—", "—"),
+        ("Audio Balanced (Production)", "StrongerMLP + Sampler", "Test Emb.", "2,610", "0.3287", "0.2209", "0.3580", "0.0578", "0.7844"),
+        ("Text Baseline (Sec. 3.3.6)", "12k TF-IDF + LogReg (C=1.5)", "MELD Test", "2,610", "0.4015", "0.2989", "0.4196", "0.0595", "0.7387"),
+        ("Text Contextual (Production)", "MiniLM + LogReg (C=1.2)", "MELD Test", "2,610", "0.4287", "0.3326", "0.4725", "0.1073", "0.7215"),
+        ("Video Unimodal (Ckpt Report)", "ResNet-50 + VideoClassifier", "Ckpt Subset", "35", "0.3714", "0.3684", "0.3684", "MISSING", "MISSING"),
+        ("Video Raw Stream (Fusion Test)", "X_v[:, :7] unimodal logits", "Fusion Test", "105", "0.0857", "0.0900", "0.0900", "0.4972", "1.1752"),
+        ("Pre-Opt Fusion Baseline", "Baseline system (audit JSON)", "Fusion Test", "105", "0.2952", "0.2833", "0.2833", "0.2130", "0.8811"),
+        ("LearnedAttentionFusionNet", "14-D Baseline (T=1.3490)", "Fusion Test", "105", "0.3048", "0.2488", "0.2488", "0.0520", "0.8317"),
+        ("Optimized Fusion (Uncalibrated)", "AdvCrossModal (T=1.0)", "Fusion Test", "105", "0.3619", "0.3574", "0.3574", "0.0972", "0.7803"),
+        ("Optimized Fusion (Scaled)", "AdvCrossModal (T*=0.5953)", "Fusion Test", "105", "0.3619", "0.3574", "0.3574", "0.0734", "0.7785"),
     ]
     add_styled_table(
-        doc, "5.6", "Audit of Achieved Metrics Against Chapter 1 Objectives",
+        doc, "5.4", "Complete MELD Unimodal and Multimodal Fusion Benchmark Results Across Held-Out Splits",
+        ["Model / Config", "Architecture / Setup", "Eval Split", "N", "Acc", "MacroF1", "W-F1", "ECE", "Brier"],
+        meld_full_rows, [1.18, 1.15, 0.60, 0.36, 0.45, 0.50, 0.47, 0.52, 0.52], font_pt=6.8,
+    )
+
+    add_para(doc,
+             "On the acoustic channel (Table 5.4), why does baseline accuracy (0.4923) exceed balanced production accuracy (0.3287) while Macro-F1 "
+             "improves from 0.1771 to 0.2209? Inspection of results/metrics/classification_report.csv reveals severe majority-class collapse: MELD "
+             "test contains 1,256/2,610 (48.1%) neutral utterances versus 68 disgust (2.6%), 50 fear (1.9%), and 208 sadness (8.0%). The un-balanced "
+             "baseline reached 49.23% accuracy primarily by recalling 91.08% of neutral samples (0.6698 neutral F1) while scoring 0.0000 F1 across "
+             "disgust, fear, and sadness. Applying inverse-frequency WeightedRandomSampler in best_audio_model_balanced.pth sacrificed neutral recall "
+             "(91.08% -> 42.04%) to restore minority predictions (anger 0.2554 -> 0.3434, sadness 0.0000 -> 0.2079, surprise 0.1570 -> 0.2479, "
+             "disgust 0.0498, fear 0.0088) and lowered acoustic ECE (0.0702 -> 0.0578). On text, dense contextual all-MiniLM-L6-v2 embeddings "
+             "improved accuracy (40.15% -> 42.87%) and Macro-F1 (0.2989 -> 0.3326) over 12k TF-IDF; stored checkpoint dicts on un-normalized text "
+             "show 0.4134/0.3074 (TF-IDF) and 0.4276/0.3334 (MiniLM).",
+             space_after=4.0)
+
+    add_para(doc,
+             "Table 5.5 and Figure 5.2 present the full seven-configuration modality ablation (Audio, Video, Text, all three bimodal pairs, and "
+             "Trimodal A+V+T) evaluated on the balanced 105-sample fusion test set (15/class) using optimized_fusion_model.pth (T* = 0.5953, "
+             "results/full_ablation_benchmark_results.json). Single-stream Video Only collapses to 6.67% accuracy (0.4125 ECE), whereas Audio Only "
+             "reaches 20.95% (0.1725 ECE) and Text Only reaches 37.14% (0.3650 Macro-F1). Combining Audio + Text matches top accuracy (37.14%) "
+             "with the highest overall Macro-F1 (0.3670) and lowers ECE from 0.1903 to 0.1146. Full Trimodal fusion (36.19% accuracy, 0.3574 Macro-F1) "
+             "achieves +6.67 pp accuracy and +0.0741 Macro-F1 over the Pre-Optimization Baseline (29.52% / 0.2833) while delivering the lowest "
+             "Expected Calibration Error (0.0734) and NLL (1.7244) of all tested configurations.",
+             space_after=4.0)
+
+    ablation7_rows = [
+        ("Audio Only", "[T, F, F]", "0.2095", "0.2022", "0.2022", "0.3576", "0.1725", "0.8655", "1.9861", "0.35"),
+        ("Video Only", "[F, F, T]", "0.0667", "0.0681", "0.0681", "0.4792", "0.4125", "1.0758", "2.5764", "0.04"),
+        ("Text Only", "[F, T, F]", "0.3714", "0.3650", "0.3650", "0.5580", "0.1903", "0.8200", "1.9435", "0.03"),
+        ("Audio + Video", "[T, F, T]", "0.1714", "0.1618", "0.1618", "0.3320", "0.1606", "0.8745", "1.9841", "0.03"),
+        ("Audio + Text", "[T, T, F]", "0.3714", "0.3670", "0.3670", "0.4492", "0.1146", "0.7706", "1.7354", "0.14"),
+        ("Video + Text", "[F, T, T]", "0.3524", "0.3394", "0.3394", "0.4620", "0.1128", "0.8140", "1.8302", "0.03"),
+        ("Audio + Video + Text (Trimodal)", "[T, T, T]", "0.3619", "0.3574", "0.3574", "0.4007", "0.0734", "0.7785", "1.7244", "0.19"),
+    ]
+    add_styled_table(
+        doc, "5.5", "Full 7-Configuration Multimodal Ablation Benchmark on Balanced MELD Test Set (N=105, T*=0.5953)",
+        ["Configuration", "Mask [A,T,V]", "Acc", "MacroF1", "W-F1", "Conf", "ECE-10", "Brier", "NLL", "Lat (ms)"],
+        ablation7_rows, [1.28, 0.56, 0.48, 0.52, 0.48, 0.46, 0.50, 0.50, 0.50, 0.47], font_pt=6.8,
+    )
+    add_figure(doc, "report/figures/fig_ablation_meld_7config.png", "5.2",
+               "Real 7-configuration MELD multimodal ablation benchmark (N=105, T*=0.5953): Accuracy, Macro-F1, and ECE.", width_in=5.55)
+
+    add_para(doc,
+             "Figure 5.3 plots the empirical reliability curves generated directly from optimized_fusion_model.pth across validation (N=105) "
+             "and held-out test (N=105) splits. Bounded validation NLL minimization yields T* = 0.5953 (0.595251), reducing validation ECE from "
+             "0.1377 to 0.0668 (NLL 1.5829 -> 1.5226, Brier 0.7305 -> 0.7052) and reducing held-out test ECE from 0.0972 (uncalibrated T=1.0) "
+             "to 0.0734 (Brier 0.7803 -> 0.7785), a 65.5% relative ECE reduction below the 0.2130 pre-optimization baseline (0.2130 -> 0.0734). "
+             "Crucially, why is Trimodal fusion accuracy (36.19%) slightly below Text Only (37.14%) while calibration improves? In MELD TV scenes, "
+             "rapid cuts and background speakers inject severe visual noise (Video-Only Acc 6.67%, ECE 0.4125), flipping one marginal utterance "
+             "compared to Text Only; however, combining multi-stream representations with Shannon-entropy gating tempers overconfident unimodal text "
+             "logits (lowering mean confidence from 55.80% in Text Only at T*=0.5953 to 40.07% in Trimodal), cutting ECE by 61.4% (0.1903 -> "
+             "0.0734) and improving NLL (1.9435 -> 1.7244). Applying trimodal T* < 1.0 to masked single streams sharpens their single-stream "
+             "logits (e.g., Text Only ECE 0.0801 unscaled vs. 0.1903 scaled).",
+             space_after=4.0)
+    add_figure(doc, "report/figures/fig_calibration_reliability.png", "5.3",
+               "Reliability diagrams for optimized_fusion_model.pth at T*=0.5953 on Validation (ECE 0.1377 -> 0.0668) and Held-Out Test (ECE 0.0972 -> 0.0734; vs. Pre-Opt Baseline 0.2130).",
+               width_in=5.55)
+
+    add_h2(doc, "5.3 Fusion Confusion Matrix, Gate Allocation, Missing Modality, and Conflict Analysis")
+    add_para(doc,
+             "Figure 5.4 and Table 5.6 detail per-class performance on data/fusion_test_dataset.pt (N=105, 15/class). Trimodal fusion excels on "
+             "high-cue expressions—surprise (0.6667 F1, 9/15 recall, 0.7500 precision), neutral (0.4444 F1, 8/15 recall), and joy (0.4242 F1, "
+             "7/15 recall)—while low-arousal sadness exhibits the steepest confusion (0.1538 F1: 5 sadness utterances predicted as disgust and 4 as "
+             "neutral), and fear (0.2963 F1) and anger (0.2308 F1) surpass Audio Only (+0.2296 and +0.1508 F1) and Video Only.",
+             space_after=4.0)
+    add_figure(doc, "report/figures/fig_cm_meld_fusion_optimized.png", "5.4",
+               "MELD fusion test confusion matrix: AdvancedCrossModalAttentionFusionNet (Acc 36.19%, Macro-F1 0.3574, T*=0.5953, N=105).",
+               width_in=3.95)
+
+    per_class_rows = [
+        ("Anger (15)", "0.2727 / 0.2000 / 0.2308", "0.3333 / 0.2000 / 0.2500", "0.1000 / 0.0667 / 0.0800", "0.0000 / 0.0000 / 0.0000"),
+        ("Disgust (15)", "0.2500 / 0.3333 / 0.2857", "0.2500 / 0.3333 / 0.2857", "0.1739 / 0.2667 / 0.2105", "0.1765 / 0.2000 / 0.1875"),
+        ("Fear (15)", "0.3333 / 0.2667 / 0.2963", "0.2500 / 0.2667 / 0.2581", "0.0667 / 0.0667 / 0.0667", "0.0000 / 0.0000 / 0.0000"),
+        ("Joy (15)", "0.3889 / 0.4667 / 0.4242", "0.3750 / 0.4000 / 0.3871", "0.2727 / 0.2000 / 0.2308", "0.0417 / 0.0667 / 0.0513"),
+        ("Neutral (15)", "0.3810 / 0.5333 / 0.4444", "0.4286 / 0.6000 / 0.5000", "0.2222 / 0.1333 / 0.1667", "0.2000 / 0.0667 / 0.1000"),
+        ("Sadness (15)", "0.1818 / 0.1333 / 0.1538", "0.2000 / 0.1333 / 0.1600", "0.2500 / 0.3333 / 0.2857", "0.0000 / 0.0000 / 0.0000"),
+        ("Surprise (15)", "0.7500 / 0.6000 / 0.6667", "0.7692 / 0.6667 / 0.7143", "0.3529 / 0.4000 / 0.3750", "0.1429 / 0.1333 / 0.1379"),
+        ("Macro Avg (105)", "0.3654 / 0.3619 / 0.3574", "0.3723 / 0.3714 / 0.3650", "0.2055 / 0.2095 / 0.2022", "0.0801 / 0.0667 / 0.0681"),
+    ]
+    add_styled_table(
+        doc, "5.6", "Per-Class Precision / Recall / F1 on Balanced MELD Fusion Test Set (data/fusion_test_dataset.pt, N=105)",
+        ["Emotion (Supp.)", "Trimodal (A+V+T) P/R/F1", "Text-Only P/R/F1", "Audio-Only P/R/F1", "Video-Only P/R/F1"],
+        per_class_rows, [0.95, 1.25, 1.18, 1.18, 1.19], font_pt=6.8,
+    )
+
+    add_para(doc,
+             "Inspection of learned gates (g_a, g_t, g_v) and consensus scalar gamma = 0.5102 (Table 5.7) demonstrates that "
+             "AdvancedCrossModalAttentionFusionNet automatically learned the true unimodal reliability hierarchy—assigning highest mean weight to "
+             "Text (0.4059), intermediate weight to Audio (0.3570), and lowest weight to noisy TV Video (0.2371)—without hard-coded modality priors. "
+             "Under missing-modality masking, key_padding_mask and masked gate normalization smoothly re-allocate all probability mass across "
+             "surviving streams with zero absent-stream leakage (e.g., Audio + Text [0.4701, 0.5299, 0.0000]; Video + Text [0.0000, 0.6295, 0.3705]). "
+             "Crucially, partitioning test samples by unimodal argmax agreement reveals that on the 60 hardest Conflicting / Divergent cases (57.1% of "
+             "the test set where all three unimodal predictions disagree), Trimodal fusion achieves 38.33% accuracy—outperforming Text Only (33.33%, "
+             "+5.00 pp), Audio Only (16.67%), and Video Only (5.00%). Table 5.8 traces three real conflict instances from the repository.",
+             space_after=4.0)
+
+    gate_rows = [
+        ("Trimodal [T, T, T]", "N=105 (All)", "0.3570 +- 0.0252 [0.289, 0.416]", "0.4059 +- 0.0308 [0.322, 0.490]", "0.2371 +- 0.0382 [0.179, 0.328]", "Fusion 36.19% (ECE 0.0734)"),
+        ("Audio + Text [T, T, F]", "N=105 (Masked V)", "0.4701", "0.5299", "0.0000 (masked)", "Fusion 37.14% (Macro-F1 0.3670)"),
+        ("Audio + Video [T, F, T]", "N=105 (Masked T)", "0.5959", "0.0000 (masked)", "0.4041", "Fusion 17.14%"),
+        ("Video + Text [F, T, T]", "N=105 (Masked A)", "0.0000 (masked)", "0.6295", "0.3705", "Fusion 35.24%"),
+        ("Full Consensus (A=T=V)", "n=5 (4.8%)", "0.3635", "0.4004", "0.2361", "Fusion 20.0% = A/T/V 20.0%"),
+        ("Partial Consensus (2 of 3)", "n=40 (38.1%)", "0.3538", "0.4018", "0.2444", "Fusion 35.0% | T 40.0% | A 35.0% | V 12.5%"),
+        ("Conflicting (All 3 Differ)", "n=60 (57.1%)", "0.3585", "0.4091", "0.2324", "Fusion 38.33% > T 33.33% (+5.0 pp)"),
+    ]
+    add_styled_table(
+        doc, "5.7", "Learned Modality Gate Allocation, Missing-Modality Masking, and Conflict-Category Performance (N=105)",
+        ["Subset / Mask", "Support", "Audio Gate", "Text Gate", "Video Gate", "Accuracy / Outcome"],
+        gate_rows, [1.05, 0.72, 0.92, 0.92, 0.92, 1.22], font_pt=6.7,
+    )
+
+    conflict_rows = [
+        ("Test #2 (fusion_test_dataset.pt)", "anger", "anger (0.216)", "surprise (0.274)", "joy (0.945)", "[0.4047, 0.3951, 0.2002]", "anger (0.2691) — Overturns 94.5% wrong Video"),
+        ("Test #19 (fusion_test_dataset.pt)", "disgust", "neutral (0.216)", "fear (0.262)", "joy (0.645)", "[0.3762, 0.3938, 0.2300]", "disgust (0.3365) — Recover truth when all 3 wrong"),
+        ("dia0_utt0 (frontend/samples/)", "sadness", "disgust (0.2010)", "sadness (0.5114)", "sadness (0.9190)", "[0.3098, 0.4043, 0.2858]", "sadness (0.4918 T*; 0.9455 live Partial Cons.)"),
+    ]
+    add_styled_table(
+        doc, "5.8", "Real Verified Conflict Examples Resolved by AdvancedCrossModalAttentionFusionNet (T*=0.5953)",
+        ["Sample Source", "Truth", "Audio Pred.", "Text Pred.", "Video Pred.", "Gates [A, T, V]", "Fused Prediction & Behavior"],
+        conflict_rows, [0.95, 0.48, 0.72, 0.74, 0.74, 0.92, 1.20], font_pt=6.6,
+    )
+    add_para(doc,
+             "Similarly, on Test Sample #36 (truth fear), conflicting inputs Audio sadness (0.260), Text anger (0.279), and overconfident Video joy "
+             "(0.904) receive gates [0.3632, 0.4331, 0.2037] and resolve correctly to fear (0.2663), illustrating how neural cross-attention plus "
+             "entropy-aware gating prevents extreme unimodal false positives from dominating decisions.",
+             space_after=4.0)
+
+    add_h2(doc, "5.4 Objectives Audit, Economic BOM, Benchmark Positioning, and Failure Defense")
+    add_para(doc,
+             "Tables 5.9, 5.10, and 5.11 audit Chapter 1 objectives, consolidate the zero-cloud open-source Bill of Materials, and position the "
+             "system fairly against GPU-only literature benchmarks (POSTER++ 92.21% [9], DDAMFN 91.35% [10], TelME ~67% [24], and UniMSE 65.51% [23]).",
+             space_after=4.0)
+    obj_rows = [
+        ("Obj 1: Balanced MELD Unimodal", "Mitigate audio collapse; MiniLM vs TF-IDF", "Audio F1 0.1771->0.2209; MiniLM 42.87% vs 40.15%", "Met"),
+        ("Obj 2: Calibrated Attention Fusion", "Masking, conflicts, ECE < 0.10", "Masking verified; 38.3% conflict acc; ECE 0.2130->0.0734; T-only > Acc", "Partly Met"),
+        ("Obj 3: Webcam Parity & Quality Gate", "Unify routes/eval; align+blur; remove AU", "916/916 parity; AU rules removed (0.2872->0.3868)", "Met"),
+        ("Obj 4: Cross-Domain Webcam & CPU", "Mixed adaptation; p95 <= 150 ms", "57.31% (5/9), RAF F1 0.7077, p95 34.59 ms; anger/sad 0%", "Partly Met"),
+        ("Obj 5: Privacy & Auto QA", "Volatile RAM + full automated tests", "5/5 unit + 11/11 integration pass; zero disk write live", "Met"),
+    ]
+    add_styled_table(
+        doc, "5.9", "Audit of Achieved Metrics Against Chapter 1 Objectives",
         ["Objective", "Target Criterion", "Observed Empirical Outcome", "Status"],
         obj_rows, [1.25, 1.50, 2.25, 0.75], font_pt=7.2,
     )
     add_csv_table(
-        doc, "5.7", "Bill of Materials (Open-Source Software, Weights, Datasets, and Hardware Placeholders)",
+        doc, "5.10", "Bill of Materials (Open-Source Software, Weights, Datasets, and Hardware Placeholders)",
         "report/tables/bill_of_materials.csv",
         col_widths=[0.78, 1.05, 1.42, 0.34, 0.86, 1.30], font_pt=7.0,
     )
@@ -1331,17 +1641,17 @@ def build_chapter5(doc: Document) -> None:
         ("Ours: Text / Opt. Fusion", "MELD (2,610 / 105 bal.)", "42.87% / 36.19% (ECE 0.0734)", "Single utterance, CPU, missing-stream masking"),
     ]
     add_styled_table(
-        doc, "5.8", "Concise Positioning Against Verified Published Benchmarks",
+        doc, "5.11", "Concise Positioning Against Verified Published Benchmarks",
         ["Method", "Benchmark / Split", "Reported Metrics", "Scope Difference vs. This System"],
         sota_rows, [1.35, 1.25, 1.35, 1.80], font_pt=7.2,
     )
 
-    add_bullet(doc, "Anger (61.39% surprise) & Sadness (100% neutral): ",
-               "Single-frame brows under desk light mimic static surprise; low-arousal sadness needs multi-second temporal cues.")
-    add_bullet(doc, "Single-Speaker Selection & 8-Actor Gap: ",
-               "Nine single-subject clips served for both selection and eval alongside a 0.2205 RAVDESS train-val gap across 8 actors.")
-    add_bullet(doc, "MELD Video Dilution vs. Calibration Gain: ",
-               "Noisy TV scene cuts slightly lower trimodal Acc vs. Text (36.19% vs. 37.14%) while cutting ECE from 0.1903 to 0.0734.")
+    add_bullet(doc, "MELD Visual Dilution, Minority Audio Ceiling & Single-Turn Scope: ",
+               "Television video cuts depress unimodal video accuracy (6.67% on fusion test) and keep sadness F1 at 0.1538, while turn-by-turn "
+               "inference lacks conversational history compared to multi-turn models [23][24] and audio fear/disgust remain severely limited (<0.05 F1).")
+    add_bullet(doc, "Single-Speaker Webcam Bias & Anger/Sadness Failures: ",
+               "Nine single-subject clips served for both backbone selection and evaluation alongside a 0.2205 RAVDESS train-val actor gap; under "
+               "overhead lighting, anger mimics static surprise (61.39%) and low-arousal sadness collapses to neutral (100%).")
 
     add_mapped_pos(doc, "PO4 (Conduct Investigations of Complex Problems).")
 
@@ -1354,34 +1664,35 @@ def build_chapter6(doc: Document) -> None:
 
     add_h2(doc, "6.1 Summary and Key Conclusions")
     add_para(doc,
-             "This project delivered an integrated, privacy-preserving local Emotion Recognition system bridging real-time webcam facial analysis "
-             "and MELD conversational multimodal classification under one FastAPI service and interactive Web Studio. Systematic root-cause "
-             "debugging demonstrated that fixing preprocessing parity (916/916 HTTP-vs-offline match), enforcing unmirrored affine face alignment "
-             "and Laplacian blur checks, and stripping brittle hand-crafted AU rules (+0.0996 validation macro-F1) were prerequisites before "
-             "model upgrades could yield reliable gains.")
+             "This project delivered an integrated, privacy-preserving local Emotion Recognition system bridging conversational MELD multimodal "
+             "analysis and real-time webcam facial classification inside one FastAPI architecture and interactive Web Studio UI. Across the MELD "
+             "multimodal subsystem (Sections 5.2–5.3), inverse-frequency balanced acoustic sampling mitigated minority-class neutral collapse at the "
+             "expected accuracy-versus-Macro-F1 tradeoff, contextual sentence embeddings improved linguistic modeling over sparse TF-IDF, and "
+             "AdvancedCrossModalAttentionFusionNet learned to weight channels according to empirical reliability (Text > Audio > Video) while "
+             "gracefully re-normalizing missing-modality subsets via Transformer padding masks.")
     add_para(doc,
-             "Across the webcam pipeline, mixed fine-tuning of ResNet-18 on RAF-DB blended with 3,970 aligned RAVDESS speech crops raised pooled "
-             "frame accuracy across 9 personal webcam clips from 15.61% (1/9 clips, efficientnet_current) to 44.00% (4/9 clips, resnet18_raf) "
-             "and 57.31% (5/9 clips, resnet18_ravdess), while simultaneously lifting RAF-DB test macro-F1 to 0.7077 and holding CPU inference at "
-             "~30.3 FPS (32.98 ms p50, 34.59 ms p95). Across the MELD multimodal subsystem, balanced Wav2Vec 2.0 sampling lifted acoustic macro-F1 "
-             "from 0.1771 to 0.2209, all-MiniLM-L6-v2 improved text accuracy to 42.87%, and AdvancedCrossModalAttentionFusionNet with post-hoc "
-             "temperature scaling (T* = 0.5953) improved fusion macro-F1 from 0.2833 to 0.3574 and lowered ECE from 0.2130 to 0.0734.")
+             "Crucially, ablation and conflict analyses showed that while noisy television video caused trimodal accuracy to trail pure Text Only "
+             "slightly, cross-modal gating beat every individual stream on fully conflicting utterances and post-hoc temperature scaling cut calibration "
+             "error well below the target threshold across both validation and held-out test splits. In parallel, across the webcam subsystem "
+             "(Section 5.1), enforcing strict API-to-offline preprocessing parity, eye-line affine alignment, Laplacian blur checks, removal of "
+             "brittle Action Unit heuristics, and mixed RAF-DB + aligned RAVDESS fine-tuning delivered large cross-domain accuracy gains at real-time "
+             "laptop CPU speed without losing static RAF-DB discrimination.")
 
     add_h2(doc, "6.2 Future Research and Engineering Directions")
     add_para(doc,
-             "Several promising extensions remain unimplemented in the current codebase and represent concrete avenues for future work:")
-    add_bullet(doc, "Held-Out Personal Webcam Adaptation and Multi-Subject Evaluation: ",
-               "Collecting diverse multi-speaker webcam benchmarks under natural illumination and exploring ethical, opt-in speaker calibration "
-               "(beyond the current 25-frame additive resting-neutral offset) to address residual anger/surprise and sadness/neutral failures.")
-    add_bullet(doc, "HSEmotion Integration and Test-Time Augmentation: ",
-               "Evaluating pretrained HSEmotion/EmotiEffNet checkpoints [11][12] directly inside the runtime WebcamService switcher alongside "
-               "horizontal-flip test-time averaging if CPU budget permits.")
-    add_bullet(doc, "Learned Temporal Sequence Modeling: ",
-               "Replacing single-frame EMA probability filtering with lightweight temporal convolutions or attention over 1–2 second facial landmark "
-               "and feature sequences to distinguish resting neutral faces from expressive speech and sadness.")
+             "Several promising extensions remain unimplemented in the current codebase and represent concrete avenues for future work across both subsystems:")
     add_bullet(doc, "Speaker-Aware Conversational MELD Memory: ",
                "Extending MELD multimodal fusion with cross-utterance dialogue context windows [21][24] and speaker-turn embeddings to close the "
-               "gap with conversation-level benchmarks while retaining calibrated uncertainty outputs.")
+               "gap with conversation-level benchmarks while preserving missing-modality masking and subset-aware temperature calibration.")
+    add_bullet(doc, "Face-Tracked MELD Visual Filtering: ",
+               "Applying YuNet speaker face detection and active-speaker tracking inside VideoInferenceService (Section 3.3.4) to reject background "
+               "characters and abrupt scene cuts that dilute trimodal visual accuracy.")
+    add_bullet(doc, "Held-Out Personal Webcam Adaptation and Multi-Subject Evaluation: ",
+               "Collecting diverse multi-speaker webcam benchmarks under natural illumination and exploring opt-in temporal speaker calibration "
+               "(beyond the current resting-neutral logit offset) to resolve anger/surprise and sadness/neutral failures.")
+    add_bullet(doc, "Learned Temporal Vision Modeling & HSEmotion Backbones: ",
+               "Replacing single-frame EMA probability filtering with lightweight 1–2 second temporal convolutions or attention over facial sequences, "
+               "alongside evaluating pretrained HSEmotion/EmotiEffNet weights [11][12] within CPU latency budgets.")
 
     add_mapped_pos(doc, "PO6 (The Engineer and The World), PO7 (Environment and Sustainability), "
                         "PO8 (Ethics), PO11 (Life-Long Learning).")
