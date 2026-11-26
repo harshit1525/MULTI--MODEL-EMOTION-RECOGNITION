@@ -5,6 +5,17 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Node / Build / IDE / Secrets
+node_modules/
+dist/
+build/
+.vscode/
+.idea/
+.env
+.env.*
+*.pem
+*.key
+
 # Datasets and heavy binary files
 DATASET/
 Video speech dataset/
@@ -13,6 +24,10 @@ audio_data/
 audio_embeddings/
 MELD.Raw/
 data/*.pt
+*.pt
+*.pth
+*.h5
+*.ckpt
 *.wav
 *.mp4
 *.avi
